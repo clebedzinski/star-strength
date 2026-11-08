@@ -10,8 +10,8 @@ android {
         applicationId "app.sic.strength"
         minSdk 26
         targetSdk 34
-        versionCode 1
-        versionName "1.0.0-sic-debug"
+        versionCode 2
+        versionName "1.0.1-sic-debug"
     }
 
     compileOptions {

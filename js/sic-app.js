@@ -24,7 +24,9 @@
     builder: null,
     testInput: '',
     folderStatus: { routines: '', history: '', backups: '' },
-    bugPreview: false
+    bugPreview: false,
+    settingsCat: null,
+    settingsSub: 'skin'
   };
   const runtime = { logLockUntil: 0, undo: null, restAlive: { batman: false, robin: false }, nodes: [], saveTimer: 0, dirty: false, lastError: '', bugVerified: false, handles: {}, metro: null, phase: 'READY' };
   let state = null;
@@ -39,7 +41,22 @@
   function partner() { return SIC.activePartner(state); }
   function skin() { return SIC.getSkin(state); }
   function map() { return SIC.inputMap(state.settings.inputMap, state.settings.psConfirmSwap); }
-  function prompt(action) { return state.settings.showPrompts ? SIC.promptFor(action, state.settings.lastInput, map()) : ''; }
+  function prompt(action) {
+    if (!state.settings.showPrompts) return '';
+    const last = state.settings.lastInput;
+    if (last !== 'keyboard' && last !== 'xbox' && last !== 'playstation') return '';
+    return SIC.promptFor(action, last, map());
+  }
+  function lum(hex) {
+    const rgb = SIC.hexToRgb(hex) || { r: 11, g: 15, b: 23 };
+    const f = function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(rgb.r) + 0.7152 * f(rgb.g) + 0.0722 * f(rgb.b);
+  }
+  function contrast(a, b) {
+    const L1 = lum(a), L2 = lum(b);
+    return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+  }
+  function inkFor(bg) { return lum(bg) > 0.45 ? '#0F172A' : '#F8FAFC'; }
   function reducedMotion() {
     if (state.settings.motion === 'reduce') return true;
     if (state.settings.motion === 'full') return false;
@@ -93,6 +110,11 @@
     if (demo) seedDemo();
     if (params.get('skin') && (SIC.SKIN_SLUGS.indexOf(params.get('skin')) >= 0)) state.skinId = params.get('skin');
     if (params.get('panel')) ui.overlay = params.get('panel');
+    if (params.get('panel') === 'builder') ui.builder = { name: '', days: [{ name: 'Push', exercises: ['Barbell Bench Press'] }] };
+    if (params.get('panel') === 'xml') ui.xmlPreview = { routineCount: 2, historyCount: 1, routineConflicts: [{ id: 't', name: 'Test', existingName: 'Test' }], historyConflicts: [{ id: 'h' }] };
+    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) state.settings.lastInput = 'touch';
+    if (params.get('set')) ui.settingsCat = params.get('set');
+    if (params.get('sub')) ui.settingsSub = params.get('sub');
     if (!demo && storage.getItem('ss_seen_version') !== CFG.appVersion) ui.overlay = ui.overlay || 'whats';
   }
 
@@ -161,24 +183,40 @@
     const pal = SIC.effectivePalette(state);
     const sk = skin();
     const root = document.documentElement;
-    root.style.setProperty('--bg', pal.bg);
-    root.style.setProperty('--card', pal.card || pal.surface || pal.bg);
+    const bg = pal.bg;
+    const card = pal.card || pal.surface || bg;
+    let text = pal.text;
+    if (contrast(text, bg) < 4.5) text = inkFor(bg);
+    if (contrast(text, card) < 4.5) text = inkFor(card);
+    let muted = pal.muted || text;
+    if (contrast(muted, card) < 3) muted = lum(card) > 0.45 ? '#334155' : '#cbd5e1';
+    const light = lum(bg) > 0.45;
+    const onAccent = contrast(pal.onAccent || '#000000', pal.accent) < 3 ? inkFor(pal.accent) : (pal.onAccent || inkFor(pal.accent));
+    root.style.setProperty('--bg', bg);
+    root.style.setProperty('--card', card);
     root.style.setProperty('--border', pal.border);
-    root.style.setProperty('--text', pal.text);
+    root.style.setProperty('--text', text);
     root.style.setProperty('--accent', pal.accent);
     root.style.setProperty('--accent-2', pal.accent2 || pal.accent);
-    root.style.setProperty('--on-accent', pal.onAccent || '#000');
-    root.style.setProperty('--muted', pal.muted || pal.text);
+    root.style.setProperty('--on-accent', onAccent);
+    root.style.setProperty('--muted', muted);
+    root.style.setProperty('--field-bg', light ? '#ffffff' : '#0f172a');
+    root.style.setProperty('--field-text', light ? '#0f172a' : '#f8fafc');
+    root.style.setProperty('--field-border', light ? '#64748b' : '#94a3b8');
     root.style.setProperty('--surface', pal.surface || pal.bg);
     root.style.setProperty('--font', pal.font || sk.font || "Inter, system-ui, sans-serif");
     root.style.setProperty('--radius', (sk.radius || 12) + 'px');
     root.style.setProperty('--panel-opacity', String(SIC.clampOpacity(state.settings.panelOpacity, 0.6)));
     const timer = Object.assign({}, sk.timer, state.settings.timer.style === 'auto' ? {} : state.settings.timer);
     root.style.setProperty('--timer-opacity', String(SIC.clampOpacity(state.settings.timer.opacity || timer.opacity || 1, 0.6)));
-    root.style.setProperty('--timer-scale', String(state.settings.timer.scale || timer.scale || 1));
+    const scaleCap = function (n) { const x = Number(n) || 1; return String(Math.max(0.85, Math.min(1.15, x))); };
+    root.style.setProperty('--timer-scale', scaleCap(state.settings.timer.scale || timer.scale || 1));
     root.style.setProperty('--metro-opacity', String(SIC.clampOpacity(state.settings.metronome.opacity || 1, 0.6)));
-    root.style.setProperty('--metro-scale', String(state.settings.metronome.scale || 1));
-    document.body.className = 'sic skin-' + sk.layout + ' density-' + (sk.density || 'regular');
+    root.style.setProperty('--metro-scale', scaleCap(state.settings.metronome.scale || 1));
+    const showPrompts = state.settings.lastInput === 'keyboard' || state.settings.lastInput === 'xbox' || state.settings.lastInput === 'playstation';
+    document.body.className = 'sic skin-' + sk.layout + ' density-' + (sk.density || 'regular') + (showPrompts ? ' show-prompts' : '');
+    const typeScale = Math.max(0.95, Math.min(1.12, Number(state.settings.textScale) || 1));
+    document.documentElement.style.fontSize = (16 * typeScale) + 'px';
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', pal.bg);
     if (window.SICFx) {
@@ -230,11 +268,13 @@
     return '<span class="stepper"><button type="button" data-act="nudge" data-focus="1" data-ex="' + esc(ex) + '" data-set="' + esc(set) + '" data-field="' + field + '" data-dir="-1" aria-label="' + minus + '">' + minus + ptag(field === 'weight' ? 'weightDown' : 'repsDown') + '</button><button type="button" data-act="nudge" data-focus="1" data-ex="' + esc(ex) + '" data-set="' + esc(set) + '" data-field="' + field + '" data-dir="1" aria-label="' + plus + '">' + plus + ptag(field === 'weight' ? 'weightUp' : 'repsUp') + '</button></span>';
   }
   function numInput(ex, set, field, value, hint) {
-    return '<input data-lockrender="1" data-act="field" data-ex="' + esc(ex) + '" data-set="' + esc(set) + '" data-field="' + field + '" inputmode="decimal" value="' + esc(value) + '" placeholder="' + esc(hint) + '" aria-label="' + field + '">';
+    const label = field === 'weight' ? (state.settings.units === 'kg' ? 'Kilograms' : 'Pounds') : 'Reps';
+    return '<input data-lockrender="1" data-act="field" data-ex="' + esc(ex) + '" data-set="' + esc(set) + '" data-field="' + field + '" inputmode="decimal" value="' + esc(value) + '" placeholder="" aria-label="' + label + '">';
   }
   function typeSelect(ex, set, value) {
     return '<select data-act="field" data-ex="' + esc(ex) + '" data-set="' + esc(set) + '" data-field="type">' + SIC.SET_TYPES.map(function (t) { return '<option' + (t === value ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select>';
   }
+  function tabBar() { return '<nav class="tabs" aria-label="Sections">' + tabs() + '</nav>'; }
   function tabs() {
     return ['log', 'routines', 'history', 'analytics'].map(function (t) {
       const label = t === 'log' ? 'Log' : t[0].toUpperCase() + t.slice(1);
@@ -265,11 +305,14 @@
       return '<button type="button" class="ghost" data-act="partner" data-partner="' + p + '" aria-current="' + (state.activePartner === p ? 'true' : 'false') + '">' + esc(state.partnerNames[p]) + '</button>';
     }).join('') + '</div>';
   }
+  function setBlock(ex, s) {
+    const unit = state.settings.units === 'kg' ? 'kg' : 'lb';
+    return '<div class="setline' + (s.current ? ' current' : '') + '"><div class="setline-top"><button type="button" class="ghost" data-act="del-set" data-ex="' + esc(ex.id) + '" data-set="' + esc(s.id) + '" aria-label="Delete set ' + (s.index + 1) + '">Delete</button><strong>Set ' + (s.index + 1) + '</strong>' + typeSelect(ex.id, s.id, s.type) + '<span class="prev">Last ' + esc(s.prev) + '</span><button type="button" class="done ' + (s.done ? 'on' : '') + '" data-act="toggle-done" data-ex="' + esc(ex.id) + '" data-set="' + esc(s.id) + '" aria-label="Mark set ' + (s.index + 1) + ' done">' + (s.done ? 'Done' : 'Log') + '</button></div><label>' + unit + ' ' + numInput(ex.id, s.id, 'weight', s.weight, s.hintW) + '</label><label>Reps ' + numInput(ex.id, s.id, 'reps', s.reps, s.hintR) + '</label></div>';
+  }
   function classicTable(ex) {
-    const rows = ex.sets.map(function (s) {
-      return '<tr class="' + (s.current ? 'current' : '') + '" data-act="focus-set" data-ex="' + esc(ex.id) + '" data-set="' + esc(s.id) + '"><td><button type="button" class="ghost" data-act="del-set" data-ex="' + esc(ex.id) + '" data-set="' + esc(s.id) + '" aria-label="Delete set">✕</button></td><td>' + (s.index + 1) + '</td><td>' + typeSelect(ex.id, s.id, s.type) + '</td><td class="muted">' + esc(s.prev) + '</td><td>' + numInput(ex.id, s.id, 'weight', s.weight, s.hintW) + '</td><td>' + numInput(ex.id, s.id, 'reps', s.reps, s.hintR) + '</td><td><button type="button" class="done ' + (s.done ? 'on' : '') + '" data-act="toggle-done" data-ex="' + esc(ex.id) + '" data-set="' + esc(s.id) + '" aria-label="Set done">' + (s.done ? '✓' : '') + '</button></td></tr>';
-    }).join('');
-    return '<article class="card"><div class="spread"><div class="row">' + muscleIcon(ex.muscle) + '<div><strong>' + esc(ex.name) + '</strong><div class="muted">' + esc(ex.target) + (ex.source === 'extra' ? ' · today only' : '') + '</div></div></div>' + partners() + '</div><input data-lockrender="1" data-act="field" data-ex="' + esc(ex.id) + '" data-field="notes" value="' + esc(ex.notes) + '" placeholder="Notes" aria-label="Notes"><div style="overflow:auto"><table class="set-table"><thead><tr><th></th><th>SET</th><th>TYPE</th><th>PREV</th><th>' + (state.settings.units === 'kg' ? 'KG' : 'LBS') + '</th><th>REPS</th><th>DONE</th></tr></thead><tbody>' + rows + '</tbody></table></div><div class="spread"><button type="button" class="ghost" data-act="add-set" data-ex="' + esc(ex.id) + '">Add set</button><button type="button" class="ghost" data-act="manage" data-ex="' + esc(ex.id) + '">± Sets' + ptag('manageSets') + '</button><button type="button" class="ghost" data-act="remove-ask" data-ex="' + esc(ex.id) + '">Remove</button></div><div class="row">' + stepper(ex.id, (ex.sets.find(function (s) { return s.current; }) || ex.sets[0] || {}).id, 'weight', '−', '+') + logBtn() + '</div></article>';
+    const rows = ex.sets.map(function (s) { return setBlock(ex, s); }).join('');
+    const current = ex.sets.find(function (s) { return s.current; }) || ex.sets[0];
+    return '<article class="card"><div class="spread"><div class="row">' + muscleIcon(ex.muscle) + '<div><h3 style="margin:0">' + esc(ex.name) + '</h3><div class="muted">' + esc(ex.target) + (ex.source === 'extra' ? ' · today only' : '') + '</div></div></div>' + partners() + '</div><label class="stack">Notes<input data-lockrender="1" data-act="field" data-ex="' + esc(ex.id) + '" data-field="notes" value="' + esc(ex.notes) + '" placeholder="Optional note" aria-label="Notes"></label>' + rows + '<div class="actions"><button type="button" class="ghost" data-act="add-set" data-ex="' + esc(ex.id) + '">Add set</button><button type="button" class="ghost" data-act="manage" data-ex="' + esc(ex.id) + '">Manage sets' + ptag('manageSets') + '</button><button type="button" class="ghost" data-act="remove-ask" data-ex="' + esc(ex.id) + '">Remove</button></div><div class="actions">' + (current ? stepper(ex.id, current.id, 'weight', '− lb', '+ lb') + stepper(ex.id, current.id, 'reps', '− rep', '+ rep') : '') + logBtn() + '</div></article>';
   }
   function classicLog(v) {
     const cards = v.exercises.map(classicTable).join('') || '<div class="card">No exercises on this day.</div>';
@@ -284,12 +327,12 @@
     const routineWin = '<section class="win"><header><span>ROUTINE</span><span>DAY</span></header><div class="body">' + daySelect() + '<ul>' + v.exercises.map(function (e) { return '<li><button type="button" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + esc(e.name) + '</button></li>'; }).join('') + '</ul>' + adder() + '</div></section>';
     const setWin = '<section class="win"><header><span>SET LOG</span><span>' + esc(cur ? cur.name : '') + '</span></header><div class="body">' + (cur ? classicTable(cur) : '') + '</div></section>';
     const restWin = '<section class="win rest"><header>REST</header><div class="body">' + restLine() + '</div></section>';
-    const tempoWin = '<section class="win tempo"><header>TEMPO</header><div class="body"><div class="metro-readout" data-metro>' + esc(runtime.phase) + '</div><button type="button" data-act="tempo-toggle">' + (state.settings.tempo.running ? 'Stop' : 'Start') + '</button></div></section>';
-    return '<div class="px-city" aria-hidden="true"></div>' + routineWin + setWin + restWin + tempoWin;
+    const tempoWin = '<section class="win tempo"><header>TEMPO</header><div class="body"><div class="metro-readout" data-metro>' + esc(runtime.phase) + '</div><button type="button" data-act="tempo-toggle">' + (state.settings.tempo.running ? 'Stop metronome' : 'Start') + '</button></div></section>';
+    return '<div class="px-city" aria-hidden="true"></div>' + setWin + restWin + tempoWin + routineWin;
   }
   function pixelShell(inner) {
     const body = ui.tab === 'log' ? pixelLog(viewCache) : '<section class="win"><header>' + esc(ui.tab.toUpperCase()) + '</header><div class="body">' + inner + '</div></section>';
-    return '<div class="pixel-desk">' + body + '<nav class="taskbar"><button type="button" data-act="overlay" data-overlay="settings">SYS</button>' + tabs() + '<span style="margin-left:auto">' + clock() + '</span><button type="button" data-act="mini-open">HUD</button>' + finishBtn() + '</nav></div>';
+    return '<div class="pixel-desk">' + body + '<nav class="taskbar" aria-label="Pixel taskbar"><button type="button" data-act="overlay" data-overlay="settings">Settings</button><button type="button" data-act="tab" data-tab="log">Log</button><button type="button" data-act="tab" data-tab="routines">Routines</button><button type="button" data-act="tab" data-tab="history">History</button><button type="button" data-act="tab" data-tab="analytics">Stats</button><button type="button" data-act="mini-open">Mini</button><span class="muted">' + clock() + '</span>' + finishBtn() + '</nav></div>';
   }
   function clock() { const d = new Date(); return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
   function ironShell(inner) {
@@ -298,52 +341,46 @@
     const set = cur && (cur.sets.find(function (s) { return s.current; }) || cur.sets[0]);
     const pct = viewCache.rest.batman > 0 ? Math.max(0, Math.min(1, viewCache.rest.batman / ((state.rest.batman.total || state.rest.batman.duration) || 1))) : 0;
     const dash = Math.round(pct * 276);
-    return '<div class="dial-stage"><div class="corner-nav"><button type="button" data-act="cycle-ex" data-dir="-1" data-focus="1">Prev</button><button type="button" data-act="overlay" data-overlay="settings">Settings</button><button type="button" data-act="mini-open">Mini</button>' + tabs() + '</div><div class="dial" data-rest-rim="' + dash + '"><svg class="rim" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" stroke="#3f3f46" stroke-width="3"/><circle cx="50" cy="50" r="46" fill="none" stroke="#ff7a18" stroke-width="3" stroke-dasharray="' + dash + ' 276" stroke-linecap="round" transform="rotate(-90 50 50)" opacity="var(--timer-opacity)"/></svg><div class="dial-read"><div>' + esc(cur ? cur.name : 'No exercise') + '</div><div>Set ' + (set ? set.index + 1 : '—') + '</div><div class="timer-readout" data-rest="batman">' + fmtClock(viewCache.rest.batman) + '</div></div>' + (set ? '<button type="button" class="orbit n" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="weight" data-dir="1">+' + esc(String(state.settings.weightStep)) + '</button><button type="button" class="orbit s" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="weight" data-dir="-1">−' + esc(String(state.settings.weightStep)) + '</button><button type="button" class="orbit w" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="reps" data-dir="-1">−</button><button type="button" class="orbit e" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="reps" data-dir="1">+</button>' : '') + '<button type="button" class="hub" data-act="log-set" data-focus="1">LOG SET' + ptag('logSet') + '</button></div><div class="dial-meta row">' + (set ? numInput(cur.id, set.id, 'weight', set.weight, set.hintW) + numInput(cur.id, set.id, 'reps', set.reps, set.hintR) : '') + '<button type="button" data-act="manage" data-ex="' + esc(cur ? cur.id : '') + '">± Sets</button>' + finishBtn() + daySelect() + '</div></div>';
+    return '<div class="dial-stage"><div class="corner-nav"><button type="button" data-act="cycle-ex" data-dir="-1">Previous</button><button type="button" data-act="cycle-ex" data-dir="1">Next</button>' + daySelect() + '<button type="button" data-act="overlay" data-overlay="settings">Settings</button><button type="button" data-act="mini-open">Mini</button>' + tabs() + '</div><h2 style="text-align:center;margin:0">' + esc(cur ? cur.name : 'No exercise') + '</h2><p class="prev" style="text-align:center">Set ' + (set ? set.index + 1 : '—') + (set ? ' · last ' + esc(set.prev) : '') + ' · rest <span class="timer-readout" data-rest="batman">' + fmtClock(viewCache.rest.batman) + '</span></p><div class="dial-wrap"><div class="dial" data-rest-rim="' + dash + '"><svg class="rim" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" fill="none" stroke="#3f3f46" stroke-width="4"/><circle cx="50" cy="50" r="44" fill="none" stroke="#ff7a18" stroke-width="4" stroke-dasharray="' + dash + ' 276" stroke-linecap="round" transform="rotate(-90 50 50)"/></svg>' + (set ? '<button type="button" class="orbit n" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="weight" data-dir="1" aria-label="Increase weight">+' + esc(String(state.settings.weightStep)) + '</button><button type="button" class="orbit s" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−' + esc(String(state.settings.weightStep)) + '</button><button type="button" class="orbit w" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="reps" data-dir="-1" aria-label="Fewer reps">−1</button><button type="button" class="orbit e" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="reps" data-dir="1" aria-label="More reps">+1</button>' : '') + '<button type="button" class="hub" data-act="log-set">LOG SET' + ptag('logSet') + '</button></div></div>' + (set ? '<div class="readout-pair"><label>Weight ' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps ' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label></div>' : '') + '<div class="actions"><button type="button" data-act="manage" data-ex="' + esc(cur ? cur.id : '') + '">Manage sets</button>' + finishBtn() + '</div></div>';
   }
   function chalkShell(inner) {
-    if (ui.tab !== 'log') return '<div class="board"><h1>SIC chalk</h1>' + inner + '</div>';
-    const max = viewCache.exercises.reduce(function (m, e) { return Math.max(m, e.sets.length); }, 0);
-    const head = '<tr><th>Lift</th>' + Array.from({ length: max }, function (_, i) { return '<th>Set ' + (i + 1) + '</th>'; }).join('') + '<th></th></tr>';
+    if (ui.tab !== 'log') return '<div class="board"><h1>SIC chalk</h1>' + tabBar() + inner + '</div>';
     const rows = viewCache.exercises.map(function (ex) {
-      const cells = Array.from({ length: max }, function (_, i) {
-        const s = ex.sets[i];
-        if (!s) return '<td></td>';
-        return '<td>' + numInput(ex.id, s.id, 'weight', s.weight, s.hintW) + '×' + numInput(ex.id, s.id, 'reps', s.reps, s.hintR) + '<button type="button" class="done ' + (s.done ? 'on' : '') + '" data-act="toggle-done" data-ex="' + esc(ex.id) + '" data-set="' + esc(s.id) + '">' + (s.done ? '✓' : '') + '</button></td>';
-      }).join('');
-      return '<tr><th>' + esc(ex.name) + '<div class="muted">' + esc(ex.sets[0] ? ex.sets[0].prev : '—') + '</div></th>' + cells + '<td><button type="button" data-act="add-set" data-ex="' + esc(ex.id) + '">+ set</button><button type="button" data-act="manage" data-ex="' + esc(ex.id) + '">±</button></td></tr>';
+      const sets = ex.sets.map(function (s) { return setBlock(ex, s); }).join('');
+      return '<section class="chalk-ex"><h3>' + esc(ex.name) + '</h3><p class="prev">Last session ' + esc(ex.sets[0] ? ex.sets[0].prev : '—') + '</p>' + sets + '<div class="actions"><button type="button" class="ghost" data-act="add-set" data-ex="' + esc(ex.id) + '">Add set</button><button type="button" class="ghost" data-act="manage" data-ex="' + esc(ex.id) + '">Manage sets</button></div></section>';
     }).join('');
-    return '<div class="board"><div class="spread"><h1>SIC · chalk board</h1>' + daySelect() + '</div><p>Week board · ' + esc(viewCache.routine ? viewCache.routine.name : '') + '</p><div style="overflow:auto"><table class="ledger">' + head + rows + '</table></div>' + restLine() + '<div class="stickies"><button type="button" class="sticky y" data-act="tab" data-tab="log">Log</button><button type="button" class="sticky p" data-act="tab" data-tab="history">History</button><button type="button" class="sticky g" data-act="tab" data-tab="routines">Routines</button><button type="button" class="sticky b" data-act="tab" data-tab="analytics">Stats</button><button type="button" class="sticky y" data-act="log-set">LOG SET</button><button type="button" class="sticky p" data-act="finish">FINISH WORKOUT</button><button type="button" class="sticky b" data-act="overlay" data-overlay="settings">Settings</button><button type="button" class="sticky g" data-act="mini-open">Mini</button></div>' + adder() + '</div>';
+    return '<div class="board"><div class="spread"><h1>SIC chalk board</h1>' + daySelect() + '</div><p>Week board · ' + esc(viewCache.routine ? viewCache.routine.name : '') + '</p>' + rows + restLine() + '<div class="stickies"><button type="button" class="sticky y" data-act="tab" data-tab="log">Log</button><button type="button" class="sticky p" data-act="tab" data-tab="history">History</button><button type="button" class="sticky g" data-act="tab" data-tab="routines">Routines</button><button type="button" class="sticky b" data-act="tab" data-tab="analytics">Stats</button><button type="button" class="sticky y" data-act="log-set">LOG SET</button><button type="button" class="sticky p" data-act="finish">Finish workout</button><button type="button" class="sticky b" data-act="overlay" data-overlay="settings">Settings</button><button type="button" class="sticky g" data-act="mini-open">Mini</button></div>' + adder() + '</div>';
   }
   function scoreShell(inner) {
-    if (ui.tab !== 'log') return '<div class="board-frame"><div class="banner"><span>SIC</span><span>' + esc(ui.tab) + '</span></div>' + inner + '</div>';
+    if (ui.tab !== 'log') return '<div class="board-frame"><div class="banner"><span>SIC</span><span>' + esc(ui.tab) + '</span></div>' + tabBar() + inner + '</div>';
     const cur = viewCache.exercises.find(function (e) { return e.current; }) || viewCache.exercises[0];
     const set = cur && (cur.sets.find(function (s) { return s.current; }) || cur.sets[0]);
-    const led = set && set.weight !== '' ? set.weight : (set ? (set.hintW || '0') : '0');
+    const led = set && String(set.weight) !== '' ? set.weight : '—';
     const done = cur ? cur.sets.filter(function (s) { return s.done; }).length : 0;
-    return '<div class="board-frame"><div class="banner"><span>SIC</span><span>' + (set ? (set.index + 1) : 0) + '</span></div><div class="led" aria-label="Current weight">' + esc(led) + '</div><div class="muted" style="text-align:center">' + esc(cur ? cur.name : '') + ' · SET ' + (set ? (set.index + 1) : 0) + ' OF ' + (cur ? cur.sets.length : 0) + ' · ' + (state.settings.units === 'kg' ? 'KG' : 'LBS') + '</div><button type="button" class="buzzer" data-act="log-set">LOG IT' + ptag('logSet') + '</button><div class="box"><span>' + done + ' done</span><span class="timer-readout" data-rest="batman">' + fmtClock(viewCache.rest.batman) + '</span><span data-metro>' + esc(runtime.phase) + '</span></div><div class="tickets">' + viewCache.exercises.map(function (e) { return '<button type="button" class="ticket" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + esc(e.name) + '</button>'; }).join('') + '</div><div class="row" style="margin-top:8px">' + (set ? numInput(cur.id, set.id, 'weight', set.weight, set.hintW) + numInput(cur.id, set.id, 'reps', set.reps, set.hintR) + stepper(cur.id, set.id, 'weight', '−', '+') : '') + '<button type="button" data-act="manage" data-ex="' + esc(cur ? cur.id : '') + '">± Sets</button>' + daySelect() + finishBtn() + '<button type="button" data-act="overlay" data-overlay="settings">Settings</button></div><div class="tickets" style="margin-top:8px">' + tabs() + '</div></div>';
+    return '<div class="board-frame"><div class="banner"><span>SIC</span><span>Set ' + (set ? (set.index + 1) : 0) + '</span></div><div class="led" aria-label="Typed weight">' + esc(led) + '</div><p class="muted" style="text-align:center">' + esc(cur ? cur.name : '') + ' · set ' + (set ? (set.index + 1) : 0) + ' of ' + (cur ? cur.sets.length : 0) + ' · last ' + esc(set ? set.prev : '—') + '</p><button type="button" class="buzzer" data-act="log-set">LOG IT' + ptag('logSet') + '</button><div class="box"><span>' + done + ' done</span><span class="timer-readout" data-rest="batman">' + fmtClock(viewCache.rest.batman) + '</span><span data-metro>' + esc(runtime.phase) + '</span></div><div class="tickets" aria-label="Exercises">' + viewCache.exercises.map(function (e) { return '<button type="button" class="ticket" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + esc(e.name) + '</button>'; }).join('') + '</div><div class="readout-pair">' + (set ? '<label>Weight ' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps ' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label>' : '') + '</div><div class="actions"><button type="button" data-act="manage" data-ex="' + esc(cur ? cur.id : '') + '">Manage sets</button>' + daySelect() + '<button type="button" data-act="mini-open">Mini</button>' + finishBtn() + '<button type="button" data-act="overlay" data-overlay="settings">Settings</button></div><div class="tabs">' + tabs() + '</div></div>';
   }
   function transitShell(inner) {
-    if (ui.tab !== 'log') return '<div class="departure"><h2>' + esc(ui.tab.toUpperCase()) + '</h2>' + inner + '</div>';
-    const stations = '<div class="route">' + viewCache.exercises.map(function (e, i) { return '<button type="button" class="station ' + (e.current ? 'on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '" aria-label="' + esc(e.name) + '">' + (i + 1) + '</button>'; }).join('') + '</div>';
+    if (ui.tab !== 'log') return '<div class="departure"><h2>' + esc(ui.tab) + '</h2>' + tabBar() + inner + '</div>';
+    const stations = '<div class="line-scroll" aria-label="Stations on this line">' + viewCache.exercises.map(function (e, i) { return '<button type="button" class="station ' + (e.current ? 'on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + (i + 1) + ' ' + esc(e.name.split(' ')[0]) + '</button>'; }).join('') + '</div>';
     const cur = viewCache.exercises.find(function (e) { return e.current; }) || viewCache.exercises[0];
-    const board = cur ? '<h2>NOW BOARDING · ' + esc(cur.name) + '</h2><table class="set-table"><tbody>' + cur.sets.map(function (s) { return '<tr class="' + (s.current ? 'current' : '') + '"><td>' + (s.index + 1) + '</td><td>' + esc(s.prev) + '</td><td>' + numInput(cur.id, s.id, 'weight', s.weight, s.hintW) + '</td><td>' + numInput(cur.id, s.id, 'reps', s.reps, s.hintR) + '</td><td><button type="button" class="done ' + (s.done ? 'on' : '') + '" data-act="toggle-done" data-ex="' + cur.id + '" data-set="' + s.id + '">✓</button></td></tr>'; }).join('') + '</tbody></table><button type="button" class="pill" data-act="log-set">LOG SET</button><div class="row">' + restLine() + '<button type="button" data-act="manage" data-ex="' + cur.id + '">± Sets</button>' + finishBtn() + '</div>' : '<p>No stations on this line.</p>';
-    return '<div class="transit">' + stations + '<div><div style="padding:12px" class="row">' + daySelect() + '<button type="button" data-act="overlay" data-overlay="settings">Settings</button><button type="button" data-act="mini-open">Mini</button>' + tabs() + '</div><div class="departure">' + board + adder() + '</div></div></div>';
+    const board = cur ? '<h2>Now boarding · ' + esc(cur.name) + '</h2>' + cur.sets.map(function (s) { return setBlock(cur, s); }).join('') + '<button type="button" class="pill" data-act="log-set">LOG SET</button><div class="actions">' + restLine() + '<button type="button" class="ghost" data-act="manage" data-ex="' + cur.id + '">Manage sets</button>' + finishBtn() + '</div>' : '<p>No stations on this line.</p>';
+    return '<div class="transit"><div class="actions" style="padding:12px 12px 0">' + daySelect() + '<button type="button" data-act="overlay" data-overlay="settings">Settings</button><button type="button" data-act="mini-open">Mini</button></div><div class="tabs">' + tabs() + '</div>' + stations + '<div class="departure">' + board + adder() + '</div></div>';
   }
   function vinylShell(inner) {
-    if (ui.tab !== 'log') return '<div class="card" style="margin:12px">' + inner + '</div>';
+    if (ui.tab !== 'log') return '<div class="card" style="margin:12px">' + tabBar() + inner + '</div>';
     const cur = viewCache.exercises.find(function (e) { return e.current; }) || viewCache.exercises[0];
     const set = cur && (cur.sets.find(function (s) { return s.current; }) || cur.sets[0]);
     const platter = function (p, on) {
       return '<button type="button" class="platter ' + (on ? '' : 'off') + '" data-act="partner" data-partner="' + p + '"><div><strong>' + esc(state.partnerNames[p]) + '</strong><div>' + (p === 'batman' ? 'A' : 'B') + '</div><div class="muted">' + (state.duoMode || p === 'batman' ? 'on the deck' : 'not in this session') + '</div></div></button>';
     };
-    return '<div style="padding:8px" class="spread"><strong>SIC vinyl deck</strong><div class="row">' + daySelect() + tabs() + '<button type="button" data-act="overlay" data-overlay="settings">Settings</button></div></div><div class="deck">' + platter('batman', partner() === 'batman' || !state.duoMode) + '<div class="mixer"><div class="muted">' + esc(cur ? cur.name : '') + '</div>' + (set ? '<label>LBS ' + numInput(cur.id, set.id, 'weight', set.weight, set.hintW) + '</label><label>REPS ' + numInput(cur.id, set.id, 'reps', set.reps, set.hintR) + '</label>' + stepper(cur.id, set.id, 'weight', '−', '+') : '') + '<input class="cross" type="range" min="0" max="100" value="' + (partner() === 'robin' ? '80' : '20') + '" data-act="cross" data-lockrender="1" aria-label="Partner crossfader"><button type="button" class="rec" data-act="log-set">LOG SET</button><button type="button" data-act="manage" data-ex="' + esc(cur ? cur.id : '') + '">Tracklist</button>' + finishBtn() + '</div>' + platter('robin', state.duoMode && partner() === 'robin') + '</div><div style="padding:8px">' + restLine() + adder() + '</div>';
+    return '<div style="padding:8px" class="spread"><strong>SIC vinyl deck</strong><div class="row">' + daySelect() + '<button type="button" data-act="mini-open">Mini</button><button type="button" data-act="overlay" data-overlay="settings">Settings</button></div></div><div class="tabs">' + tabs() + '</div><div class="deck">' + platter('batman', partner() === 'batman' || !state.duoMode) + '<div class="mixer"><div class="muted">' + esc(cur ? cur.name : '') + '</div>' + (set ? '<label>LBS ' + numInput(cur.id, set.id, 'weight', set.weight, set.hintW) + '</label><label>REPS ' + numInput(cur.id, set.id, 'reps', set.reps, set.hintR) + '</label>' + stepper(cur.id, set.id, 'weight', '−', '+') : '') + '<input class="cross" type="range" min="0" max="100" value="' + (partner() === 'robin' ? '80' : '20') + '" data-act="cross" data-lockrender="1" aria-label="Partner crossfader"><button type="button" class="rec" data-act="log-set">LOG SET</button><button type="button" data-act="manage" data-ex="' + esc(cur ? cur.id : '') + '">Tracklist</button>' + finishBtn() + '</div>' + platter('robin', state.duoMode && partner() === 'robin') + '</div><div style="padding:8px">' + restLine() + adder() + '</div>';
   }
   function hexShell(inner) {
-    if (ui.tab !== 'log') return '<div class="hive"><div class="card">' + inner + '</div></div>';
+    if (ui.tab !== 'log') return '<div class="hive"><div class="card">' + tabBar() + inner + '</div></div>';
     const cur = viewCache.exercises.find(function (e) { return e.current; }) || viewCache.exercises[0];
     const set = cur && (cur.sets.find(function (s) { return s.current; }) || cur.sets[0]);
     if (!cur || !set) return '<div class="hive"><div class="card">Add an exercise to build the hive.</div>' + adder() + '</div>';
-    return '<div class="hive"><div class="flower"><button type="button" class="hex" data-act="nudge" data-ex="' + cur.id + '" data-set="' + set.id + '" data-field="weight" data-dir="-1">− W</button><button type="button" class="hex" data-act="cycle-ex" data-dir="-1">' + esc(cur.name.split(' ')[0]) + '</button><button type="button" class="hex" data-act="nudge" data-ex="' + cur.id + '" data-set="' + set.id + '" data-field="weight" data-dir="1">+ W</button><button type="button" class="hex" data-act="nudge" data-ex="' + cur.id + '" data-set="' + set.id + '" data-field="reps" data-dir="-1">− R</button><button type="button" class="hex main" data-act="log-set">LOG SET<br>' + esc(set.weight || '—') + '×' + esc(set.reps || '—') + '</button><button type="button" class="hex" data-act="nudge" data-ex="' + cur.id + '" data-set="' + set.id + '" data-field="reps" data-dir="1">+ R</button><button type="button" class="hex teal" data-act="manage" data-ex="' + cur.id + '">±</button><button type="button" class="hex teal" data-act="overlay" data-overlay="settings">Set</button><button type="button" class="hex teal" data-act="finish">FINISH</button></div><div class="card" style="margin-top:12px">' + daySelect() + restLine() + '<div class="timer-readout">Set ' + (set.index + 1) + ' of ' + cur.sets.length + ' · ' + esc(cur.name) + '</div>' + numInput(cur.id, set.id, 'weight', set.weight, set.hintW) + numInput(cur.id, set.id, 'reps', set.reps, set.hintR) + '<button type="button" data-act="mini-open">Flower mini</button>' + tabs() + adder() + '</div></div>';
+    return '<div class="hive"><div class="flower"><button type="button" class="hex" data-act="nudge" data-ex="' + cur.id + '" data-set="' + set.id + '" data-field="weight" data-dir="-1">− W</button><button type="button" class="hex" data-act="cycle-ex" data-dir="-1">' + esc(cur.name.split(' ')[0]) + '</button><button type="button" class="hex" data-act="nudge" data-ex="' + cur.id + '" data-set="' + set.id + '" data-field="weight" data-dir="1">+ W</button><button type="button" class="hex" data-act="nudge" data-ex="' + cur.id + '" data-set="' + set.id + '" data-field="reps" data-dir="-1">− R</button><button type="button" class="hex main" data-act="log-set">LOG SET<br>' + esc(set.weight || '—') + '×' + esc(set.reps || '—') + '</button><button type="button" class="hex" data-act="nudge" data-ex="' + cur.id + '" data-set="' + set.id + '" data-field="reps" data-dir="1">+ R</button><button type="button" class="hex teal" data-act="manage" data-ex="' + cur.id + '">±</button><button type="button" class="hex teal" data-act="overlay" data-overlay="settings">Settings</button><button type="button" class="hex teal" data-act="finish">FINISH</button></div><div class="card" style="margin-top:12px">' + daySelect() + restLine() + '<div class="timer-readout">Set ' + (set.index + 1) + ' of ' + cur.sets.length + ' · ' + esc(cur.name) + '</div>' + numInput(cur.id, set.id, 'weight', set.weight, set.hintW) + numInput(cur.id, set.id, 'reps', set.reps, set.hintR) + '<button type="button" data-act="mini-open">Flower mini</button>' + tabs() + adder() + '</div></div>';
   }
 
   function routinesPanel() {
@@ -407,60 +444,100 @@
     const ex = (viewCache || view()).exercises.find(function (e) { return e.id === ui.pop; });
     if (!ex) return '';
     const style = skin().popout || 'sheet';
-    const rows = ex.sets.map(function (s) {
-      return '<div class="row"><span>' + (s.index + 1) + '</span>' + typeSelect(ex.id, s.id, s.type) + numInput(ex.id, s.id, 'weight', s.weight, s.hintW) + numInput(ex.id, s.id, 'reps', s.reps, s.hintR) + '<button type="button" data-act="del-set" data-ex="' + ex.id + '" data-set="' + s.id + '">Delete</button></div>';
-    }).join('');
+    const rows = ex.sets.map(function (s) { return setBlock(ex, s); }).join('');
     return '<div class="pop ' + esc(style) + '" role="dialog" aria-label="Manage sets"><div class="spread"><strong>' + esc(ex.name) + '</strong><button type="button" data-act="pop-close">Close</button></div>' + rows + '<button type="button" class="primary" data-act="add-set" data-ex="' + ex.id + '">Add set</button></div>';
   }
 
+  function settingsCatalog() {
+    return [
+      { id: 'appearance', title: 'Appearance', blurb: 'Skin, colors, motion', keys: 'skin theme classic midnight barbie font weather motion opacity', subs: [['skin', 'Skin'], ['customize', 'Customize'], ['motion', 'Motion']] },
+      { id: 'workout', title: 'Workout', blurb: 'Units, step, duo', keys: 'duo partner units step weight profile', subs: [] },
+      { id: 'timers', title: 'Timers & sound', blurb: 'Rest, tempo, haptics', keys: 'rest tempo metronome sound volume haptics quote', subs: [['sounds', 'Sounds'], ['rest', 'Rest'], ['haptics', 'Haptics']] },
+      { id: 'input', title: 'Input & mini', blurb: 'Controls and the mini', keys: 'gamepad keyboard mini overlay pip xbox playstation', subs: [] },
+      { id: 'data', title: 'Data & files', blurb: 'Save, folders, XML', keys: 'autosave snapshot xml import export folder backup storage', subs: [] },
+      { id: 'notes', title: 'Notifications', blurb: 'Sneak peek and quiet hours', keys: 'notification countdown pump quiet ryan', subs: [] },
+      { id: 'about', title: 'About & support', blurb: 'Bugs, console, reset', keys: 'bug report console privacy clear version', subs: [] }
+    ];
+  }
   function settingsHTML() {
-    const q = (ui.query || '').toLowerCase();
-    const basic = state.settings.basicMode && !q;
-    function group(id, title, advanced, keywords, body) {
-      const blob = (title + ' ' + keywords).toLowerCase();
-      if (q && blob.indexOf(q) < 0 && body.toLowerCase().indexOf(q) < 0) return '';
-      if (basic && advanced) return '';
-      return '<section class="group" data-group="' + id + '"><h3>' + title + '</h3>' + body + '</section>';
+    const q = (ui.query || '').toLowerCase().trim();
+    const cats = settingsCatalog();
+    const head = '<div class="spread"><h2>Settings</h2><button type="button" class="ghost" data-act="close-overlay">Close</button></div><input class="settings-search" data-lockrender="1" data-act="settings-search" placeholder="Search settings" value="' + esc(ui.query || '') + '" aria-label="Search settings">';
+    if (!ui.settingsCat || q) {
+      const matches = cats.filter(function (c) {
+        if (!q) return true;
+        return (c.title + ' ' + c.blurb + ' ' + c.keys + ' ' + c.subs.map(function (s) { return s[1]; }).join(' ')).toLowerCase().indexOf(q) >= 0;
+      });
+      const cards = matches.map(function (c) {
+        const sub = c.subs.find(function (s) { return q && (s[1].toLowerCase().indexOf(q) >= 0 || c.keys.indexOf(q) >= 0); });
+        const go = sub ? sub[0] : (c.subs[0] ? c.subs[0][0] : '');
+        return '<button type="button" class="set-card" data-act="settings-open" data-cat="' + c.id + '" data-sub="' + esc(go) + '"><strong>' + esc(c.title) + '</strong><span>' + esc(c.blurb) + (q && sub ? ' · ' + esc(sub[1]) : '') + '</span></button>';
+      }).join('') || '<p>No setting category matches that search.</p>';
+      return head + '<p class="muted">Choose one area. Search opens that area instead of listing every control.</p><div class="set-home">' + cards + '</div>';
     }
-    const skins = SIC.builtinSkins().concat(state.communitySkins || []).map(function (s) {
-      return '<button type="button" class="' + (state.skinId === s.slug ? 'on' : '') + '" data-act="skin" data-skin="' + esc(s.slug) + '"><strong>' + esc(s.name) + '</strong><div class="muted">' + esc(s.layout) + ' · mini ' + esc(s.mini) + '</div></button>';
-    }).join('');
-    const themes = Object.keys(state.themes).map(function (id) {
-      const t = state.themes[id];
-      return '<button type="button" data-act="theme" data-theme="' + esc(id) + '" style="background:' + esc(t.card) + ';color:' + esc(t.text) + '">' + esc(t.name) + '</button>';
-    }).join('');
-    const look = '<div class="skin-pick">' + skins + '</div><p class="muted">Star Strength Classic keeps the spreadsheet. Midnight Strong, Bulk Barbie, Blue Steel, and Locked-In Lemon are Classic variants. Other skins are separate compositions. Skin Studio is not in this version.</p><div class="row" style="flex-wrap:wrap">' + themes + '</div><label>Panel opacity <input data-lockrender="1" data-act="opacity" type="range" min="0.6" max="1" step="0.05" value="' + esc(state.settings.panelOpacity) + '"></label><div class="row"><button type="button" data-act="motion" data-mode="system">Motion system</button><button type="button" data-act="motion" data-mode="reduce">Reduce</button><button type="button" data-act="motion" data-mode="full">Full</button><span>' + esc(state.settings.motion) + '</span></div><label>Weather <select data-act="fx">' + ['off', 'snow', 'rain', 'ripples', 'fire', 'smoke'].map(function (f) { return '<option' + (state.fx.type === f ? ' selected' : '') + '>' + f + '</option>'; }).join('') + '</select></label><label>Community skin JSON <input type="file" id="skin-file" accept="application/json" data-lockrender="1"></label><button type="button" data-act="skin-reset">Reset skin overrides</button>';
-    const sounds = '<button type="button" class="switch ' + (state.soundEnabled && !state.settings.masterMute ? 'on' : '') + '" data-act="master-sound">' + (state.settings.masterMute || !state.soundEnabled ? 'Muted' : 'Sound on') + '</button>' + Object.keys(state.settings.sounds).map(function (ev) {
-      const s = state.settings.sounds[ev];
-      return '<div class="card"><strong>' + esc(ev) + '</strong><label>On <input type="checkbox" data-act="sound-on" data-ev="' + ev + '"' + (s.on ? ' checked' : '') + '></label><label>Repeats <input data-lockrender="1" data-act="sound-repeats" data-ev="' + ev + '" type="number" min="1" max="6" value="' + esc(s.repeats) + '"></label><label>Instrument <select data-act="sound-inst" data-ev="' + ev + '">' + ['sine', 'square', 'triangle', 'sawtooth'].map(function (i) { return '<option' + (s.instrument === i ? ' selected' : '') + '>' + i + '</option>'; }).join('') + '</select></label><label>Volume <input data-lockrender="1" data-act="sound-vol" data-ev="' + ev + '" type="range" min="0" max="1" step="0.05" value="' + esc(s.volume) + '"></label><button type="button" data-act="sound-test" data-ev="' + ev + '">Preview</button></div>';
-    }).join('') + '<p class="muted">Rest lines are original SIC lines. They are not quotes and have no attribution.</p><div>' + SIC.ORIGINAL_LINES.map(function (l) { return '<div class="selectable">' + esc(l.text) + '</div>'; }).join('') + '</div><button type="button" data-act="quote-mode">' + esc(state.settings.quoteMode) + '</button>';
-    const behavior = '<label>Weight step <input data-lockrender="1" data-act="step" type="number" min="0.5" step="0.5" value="' + esc(state.settings.weightStep) + '"></label><label>Units <select data-act="units"><option value="lb"' + (state.settings.units === 'lb' ? ' selected' : '') + '>lb</option><option value="kg"' + (state.settings.units === 'kg' ? ' selected' : '') + '>kg</option></select></label><p class="muted">Stored numbers stay in pounds so existing logs do not shift. The screen and XML convert.</p><button type="button" class="switch ' + (state.duoMode ? 'on' : '') + '" data-act="duo">' + (state.duoMode ? 'Duo on' : 'Duo off') + '</button><div class="grid-2"><label>Partner 1 <input data-lockrender="1" data-act="pname" data-partner="batman" value="' + esc(state.partnerNames.batman) + '"></label><label>Partner 2 <input data-lockrender="1" data-act="pname" data-partner="robin" value="' + esc(state.partnerNames.robin) + '"></label></div><p>After a partner logs a set, the active logger flips. The other person\'s sets are never completed for them. Finish asks whether to save both or one.</p>';
-    const notes = '<p>Learning is off until you opt in. Web notifications only fire while this page is open. Android alarms are best-effort and were not hardware-tested. Quiet hours and a manual time override are here. Sneak peek idea: Ryan (ryno).</p><button type="button" class="switch ' + (state.settings.notifications.enabled ? 'on' : '') + '" data-act="toggle-path" data-path="notifications.enabled">' + (state.settings.notifications.enabled ? 'On' : 'Off') + '</button><button type="button" data-act="toggle-path" data-path="notifications.learning">Learning ' + (state.settings.notifications.learning ? 'on' : 'off') + '</button><label>Manual time <input data-lockrender="1" data-act="manual-time" type="time" value="' + esc(state.settings.notifications.manualTime || '') + '"></label><label>Quiet <input data-lockrender="1" data-act="quiet" data-which="start" type="time" value="' + esc(state.settings.quietHours.start) + '"></label><label>until <input data-lockrender="1" data-act="quiet" data-which="end" type="time" value="' + esc(state.settings.quietHours.end) + '"></label><button type="button" data-act="toggle-path" data-path="quietHours.enabled">Quiet hours ' + (state.settings.quietHours.enabled ? 'on' : 'off') + '</button><button type="button" data-act="sneak">Preview sneak peek</button><button type="button" data-act="notify-permission">Browser notification permission</button>';
-    const cap = SIC.storageCapability({ nativeSaf: !!(native() && native().pickDirectory), directoryPicker: typeof window.showDirectoryPicker === 'function', mobileWeb: !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches) && window.innerWidth < 900 });
-    const files = '<p>Live workout data is in this app\'s private storage (' + (platformName() === 'android' ? 'the app WebView store' : 'this site\'s localStorage') + '). Folder access status: <strong>' + esc(cap) + '</strong>.</p><p class="warn">Uninstall, a wiped browser, or a full storage eviction can remove data that was not exported. Autosave is not a guarantee.</p>' + ['routines', 'history', 'backups'].map(function (kind) {
-      return '<div class="card"><strong>' + kind + '</strong><div class="muted">' + esc(ui.folderStatus[kind] || 'No folder grant stored.') + '</div><div class="row"><button type="button" data-act="folder" data-kind="' + kind + '">Choose folder</button><button type="button" data-act="xml-export" data-kind="' + (kind === 'backups' ? 'bundle' : kind) + '">Export XML</button><button type="button" data-act="xml-file" data-kind="' + (kind === 'backups' ? 'bundle' : kind) + '">Import XML</button></div></div>';
-    }).join('') + '<button type="button" data-act="folder-reset">Reset folder grants to downloads only</button><input id="xml-file" type="file" accept=".xml,text/xml" class="hidden" data-lockrender="1">'
-      + (native()
-        ? '<div class="card"><strong>Android overlay</strong><p class="muted">Display over other apps is a system permission. The mini sits in a rectangular window. Touches outside that window can reach other apps. Touches in the padding around a shaped mini still hit SIC. This was not tried on a physical phone in this build.</p><div class="row"><button type="button" data-act="overlay-perm">Permission</button><button type="button" data-act="overlay-show">Show mini</button><button type="button" data-act="overlay-hide">Hide</button></div></div>'
-        : '<p class="muted">Mini stays inside this page. A desktop browser may add Document Picture-in-Picture. Mobile web cannot float over other apps.</p><button type="button" data-act="pip">Pop mini out</button>');
-    const inputs = '<p>While SIC is in front, the keyboard, mouse, and a standard gamepad share one map. Prompts follow the last device you used. Brand names are a fallback because gamepad ids are unreliable. Hold-repeat is only on the steppers. Shortcuts pause while you type. Nothing here listens in the background.</p><div class="selectable">' + Object.keys(map()).map(function (k) { return k + ': ' + map()[k].join(', '); }).join('\n') + '</div><button type="button" data-act="ps-swap">PS confirm swap ' + (state.settings.psConfirmSwap ? 'on' : 'off') + '</button><button type="button" data-act="overlay" data-overlay="inputs">Test inputs</button><div>Last input: ' + esc(state.settings.lastInput) + '</div>';
-    const data = '<button type="button" class="switch ' + (state.settings.autosave ? 'on' : '') + '" data-act="toggle-path" data-path="autosave">Autosave ' + (state.settings.autosave ? 'on' : 'off') + '</button>' + (state.settings.autosave ? '' : '<p class="warn">Autosave is off. Use Save now. A crash can drop changes since the last save.</p>') + '<button type="button" class="primary" data-act="save-now">Save now</button><p>' + state.snapshots.length + ' crash snapshots on this device.</p><button type="button" data-act="restore-snap">Restore newest snapshot</button><button type="button" data-act="overlay" data-overlay="console">Open console</button>';
-    const access = '<label>Text size <input data-lockrender="1" data-act="scale" type="range" min="0.9" max="1.4" step="0.05" value="' + esc(state.settings.textScale || 1) + '"></label><p>Buttons stay at least 44px. Inputs and this console remain selectable. Reduced motion turns weather and celebration bursts off.</p>';
-    const profiles = '<p>Active profile: ' + esc((state.profiles.users[state.profiles.activeId] || {}).name || '') + '</p>' + Object.keys(state.profiles.users).map(function (id) { return '<button type="button" data-act="profile" data-id="' + esc(id) + '">' + esc(state.profiles.users[id].name) + '</button>'; }).join('') + '<p class="muted">/newuser and /deleteuser are in the console. Delete asks first and keeps a backup.</p>';
-    const bug = bugBlock();
-    const hapt = '<button type="button" class="switch ' + (state.settings.haptics ? 'on' : '') + '" data-act="toggle-path" data-path="haptics">Haptics ' + (state.settings.haptics ? 'on' : 'off') + '</button><p class="muted">Uses the vibration API when the device allows it.</p><label>Timer scale <input data-lockrender="1" data-act="timer-scale" type="range" min="0.8" max="1.8" step="0.05" value="' + esc(state.settings.timer.scale || 1) + '"></label><label>Metronome scale <input data-lockrender="1" data-act="metro-scale" type="range" min="0.8" max="1.8" step="0.05" value="' + esc(state.settings.metronome.scale || 1) + '"></label>';
-    return '<div class="spread"><h2>Settings</h2><button type="button" data-act="basic">' + (state.settings.basicMode ? 'Basic' : 'Advanced') + '</button><button type="button" data-act="close-overlay">Close</button></div><input class="settings-search" data-lockrender="1" data-act="settings-search" placeholder="Search settings" value="' + esc(ui.query || '') + '" aria-label="Search settings">'
-      + group('look', 'Look & layout', false, 'skin theme opacity density weather font', look)
-      + group('sounds', 'Sounds', false, 'volume metronome quote mute', sounds)
-      + group('haptics', 'Haptics & motion', true, 'vibrate timer scale', hapt)
-      + group('behavior', 'Behavior', false, 'duo step units confirm', behavior)
-      + group('notes', 'Notifications', false, 'countdown pump quiet ryan', notes)
-      + group('files', 'Files & storage', false, 'xml folder saf export import', files)
-      + group('inputs', 'Inputs & controls', true, 'gamepad keyboard xbox playstation remap', inputs)
-      + group('data', 'Data', false, 'autosave snapshot backup', data)
-      + group('access', 'Accessibility', true, 'motion contrast text', access)
-      + group('profiles', 'Profiles & Duo', true, 'user partner', profiles)
-      + group('bug', 'Console & privacy', false, 'bug report diagnostics privacy', bug + '<button type="button" class="ghost" data-act="clear-data">Clear SIC data</button>');
+    const cat = cats.find(function (c) { return c.id === ui.settingsCat; }) || cats[0];
+    const sub = cat.subs.some(function (s) { return s[0] === ui.settingsSub; }) ? ui.settingsSub : (cat.subs[0] ? cat.subs[0][0] : '');
+    const crumbs = '<div class="spread"><button type="button" class="ghost" data-act="settings-back">Back</button><strong>' + esc(cat.title) + '</strong></div>';
+    const subnav = cat.subs.length ? '<div class="set-sub" role="tablist">' + cat.subs.map(function (s) {
+      return '<button type="button" role="tab" aria-selected="' + (sub === s[0] ? 'true' : 'false') + '" data-act="settings-sub" data-sub="' + s[0] + '">' + esc(s[1]) + '</button>';
+    }).join('') + '</div>' : '';
+    return head + crumbs + subnav + '<div class="set-body">' + settingsBody(cat.id, sub) + '</div>';
+  }
+  function settingsBody(cat, sub) {
+    if (cat === 'appearance' && sub === 'skin') {
+      const skins = SIC.builtinSkins().concat(state.communitySkins || []).map(function (s) {
+        return '<button type="button" class="' + (state.skinId === s.slug ? 'on' : '') + '" data-act="skin" data-skin="' + esc(s.slug) + '"><strong>' + esc(s.name) + '</strong><span class="muted">' + esc(s.mini) + ' mini</span></button>';
+      }).join('');
+      return '<p>Pick the layout. Color variants for a skin are on Customize, and only for the skin that is selected.</p><div class="skin-pick">' + skins + '</div><label class="stack">Install a community skin file<input type="file" id="skin-file" accept="application/json" data-lockrender="1"></label>';
+    }
+    if (cat === 'appearance' && sub === 'customize') {
+      const sk = skin();
+      if (state.skinId === 'starclassic') {
+        const themes = Object.keys(state.themes).map(function (id) {
+          const t = state.themes[id];
+          return '<button type="button" data-act="theme" data-theme="' + esc(id) + '" style="background:' + esc(t.card) + ';color:' + esc(t.text) + '">' + esc(t.name) + '</button>';
+        }).join('');
+        return '<p>These variants belong to Star Strength Classic only.</p><div class="actions">' + themes + '</div>';
+      }
+      return '<p><strong>' + esc(sk.name) + '</strong> keeps its own colors. Classic variants stay hidden on this skin.</p><button type="button" class="ghost" data-act="skin-reset">Reset this skin\'s overrides</button>';
+    }
+    if (cat === 'appearance' && sub === 'motion') {
+      return '<div class="actions"><button type="button" data-act="motion" data-mode="system">System</button><button type="button" data-act="motion" data-mode="reduce">Reduce</button><button type="button" data-act="motion" data-mode="full">Full</button></div><p>Motion is ' + esc(state.settings.motion) + '. Reduced motion turns weather and bursts off.</p><label class="stack">Weather<select data-act="fx">' + ['off', 'snow', 'rain', 'ripples', 'fire', 'smoke'].map(function (f) { return '<option' + (state.fx.type === f ? ' selected' : '') + '>' + f + '</option>'; }).join('') + '</select></label><p class="muted">Weather sits faintly behind the controls. Off is the calm default.</p><label class="stack">Text size<input data-lockrender="1" data-act="scale" type="range" min="0.95" max="1.12" step="0.01" value="' + esc(state.settings.textScale || 1) + '"></label>';
+    }
+    if (cat === 'workout') {
+      const profiles = Object.keys(state.profiles.users).map(function (id) { return '<button type="button" data-act="profile" data-id="' + esc(id) + '">' + esc(state.profiles.users[id].name) + '</button>'; }).join('');
+      return '<label class="stack">Weight step<input data-lockrender="1" data-act="step" type="number" min="0.5" step="0.5" value="' + esc(state.settings.weightStep) + '"></label><label class="stack">Units<select data-act="units"><option value="lb"' + (state.settings.units === 'lb' ? ' selected' : '') + '>Pounds</option><option value="kg"' + (state.settings.units === 'kg' ? ' selected' : '') + '>Kilograms</option></select></label><p class="muted">Numbers are stored in pounds. The screen and XML files convert.</p><button type="button" class="switch ' + (state.duoMode ? 'on' : '') + '" data-act="duo">' + (state.duoMode ? 'Duo on' : 'Duo off') + '</button><div class="grid-2"><label class="stack">Partner 1<input data-lockrender="1" data-act="pname" data-partner="batman" value="' + esc(state.partnerNames.batman) + '"></label><label class="stack">Partner 2<input data-lockrender="1" data-act="pname" data-partner="robin" value="' + esc(state.partnerNames.robin) + '"></label></div><p>Logging a set hands the logger to the other partner. Their sets are not filled in for them.</p><h3>Profiles</h3><div class="actions">' + profiles + '</div>';
+    }
+    if (cat === 'timers' && sub === 'sounds') {
+      const more = ui.soundMore ? Object.keys(state.settings.sounds).map(function (ev) {
+        const s = state.settings.sounds[ev];
+        return '<div class="card"><strong>' + esc(ev) + '</strong><label>On <input type="checkbox" data-act="sound-on" data-ev="' + ev + '"' + (s.on ? ' checked' : '') + '></label><label class="stack">Repeats<input data-lockrender="1" data-act="sound-repeats" data-ev="' + ev + '" type="number" min="1" max="6" value="' + esc(s.repeats) + '"></label><label class="stack">Instrument<select data-act="sound-inst" data-ev="' + ev + '">' + ['sine', 'square', 'triangle', 'sawtooth'].map(function (i) { return '<option' + (s.instrument === i ? ' selected' : '') + '>' + i + '</option>'; }).join('') + '</select></label><button type="button" data-act="sound-test" data-ev="' + ev + '">Preview</button></div>';
+      }).join('') : '';
+      return '<button type="button" class="switch ' + (state.soundEnabled && !state.settings.masterMute ? 'on' : '') + '" data-act="master-sound">' + (state.settings.masterMute || !state.soundEnabled ? 'Muted' : 'Sound on') + '</button><p>Rest lines are original SIC lines, not quotations.</p><button type="button" class="ghost" data-act="quote-mode">Line order: ' + esc(state.settings.quoteMode) + '</button><button type="button" class="ghost" data-act="sound-more">' + (ui.soundMore ? 'Hide per-event options' : 'Per-event options') + '</button>' + more;
+    }
+    if (cat === 'timers' && sub === 'rest') {
+      return '<p>Rest is kept as an end time, so it stays accurate if the screen locks.</p><label class="stack">Timer size<input data-lockrender="1" data-act="timer-scale" type="range" min="0.85" max="1.15" step="0.05" value="' + esc(state.settings.timer.scale || 1) + '"></label><label class="stack">Metronome size<input data-lockrender="1" data-act="metro-scale" type="range" min="0.85" max="1.15" step="0.05" value="' + esc(state.settings.metronome.scale || 1) + '"></label><button type="button" data-act="tempo-toggle">' + (state.settings.tempo.running ? 'Stop metronome' : 'Start metronome') + '</button>';
+    }
+    if (cat === 'timers') {
+      return '<button type="button" class="switch ' + (state.settings.haptics ? 'on' : '') + '" data-act="toggle-path" data-path="haptics">Haptics ' + (state.settings.haptics ? 'on' : 'off') + '</button><p class="muted">Vibration is used when the device allows it.</p>';
+    }
+    if (cat === 'input') {
+      const mini = native()
+        ? '<p>Android can draw the mini over other apps after you grant that system permission. The window is rectangular. This build was not checked on a device here.</p><div class="actions"><button type="button" data-act="overlay-perm">Permission</button><button type="button" data-act="overlay-show">Show mini</button><button type="button" data-act="overlay-hide">Hide</button></div>'
+        : '<p>On the web the mini stays in the page. A desktop browser may offer Picture-in-Picture. A phone browser cannot float over other apps.</p><button type="button" data-act="pip">Pop mini out</button>';
+      return '<p>Prompts appear after you use a keyboard or a controller. A touch screen does not stamp "click" on every button.</p><button type="button" data-act="ps-swap">PlayStation confirm swap ' + (state.settings.psConfirmSwap ? 'on' : 'off') + '</button><button type="button" data-act="overlay" data-overlay="inputs">Test inputs</button><p>Last input: ' + esc(state.settings.lastInput) + '</p>' + mini;
+    }
+    if (cat === 'data') {
+      const cap = SIC.storageCapability({ nativeSaf: !!(native() && native().pickDirectory), directoryPicker: typeof window.showDirectoryPicker === 'function', mobileWeb: !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches) && window.innerWidth < 900 });
+      const rows = ['routines', 'history', 'backups'].map(function (kind) {
+        return '<div class="card"><strong>' + kind + '</strong><p class="muted">' + esc(ui.folderStatus[kind] || 'No folder grant yet.') + '</p><div class="actions"><button type="button" data-act="folder" data-kind="' + kind + '">Choose folder</button><button type="button" data-act="xml-export" data-kind="' + (kind === 'backups' ? 'bundle' : kind) + '">Export XML</button><button type="button" data-act="xml-file" data-kind="' + (kind === 'backups' ? 'bundle' : kind) + '">Import XML</button></div></div>';
+      }).join('');
+      return '<button type="button" class="switch ' + (state.settings.autosave ? 'on' : '') + '" data-act="toggle-path" data-path="autosave">Autosave ' + (state.settings.autosave ? 'on' : 'off') + '</button>' + (state.settings.autosave ? '' : '<p class="warn">Autosave is off. Use Save now.</p>') + '<div class="actions"><button type="button" class="primary" data-act="save-now">Save now</button><button type="button" data-act="restore-snap">Restore snapshot</button></div><p>' + state.snapshots.length + ' snapshots on this device. Live data is ' + (platformName() === 'android' ? 'app-private storage' : 'this site\'s localStorage') + '. Folder access: ' + esc(cap) + '.</p><p class="warn">Uninstall or a wiped browser can drop data that was not exported.</p>' + rows + '<button type="button" class="ghost" data-act="folder-reset">Use downloads only</button><input id="xml-file" type="file" accept=".xml,text/xml" class="hidden" data-lockrender="1">';
+    }
+    if (cat === 'notes') {
+      return '<p>Learning stays off until you turn it on. Web notices only fire while this page is open. Android alarms were not hardware-tested. Sneak peek idea: Ryan (ryno).</p><button type="button" class="switch ' + (state.settings.notifications.enabled ? 'on' : '') + '" data-act="toggle-path" data-path="notifications.enabled">' + (state.settings.notifications.enabled ? 'On' : 'Off') + '</button><button type="button" data-act="toggle-path" data-path="notifications.learning">Learning ' + (state.settings.notifications.learning ? 'on' : 'off') + '</button><label class="stack">Manual time<input data-lockrender="1" data-act="manual-time" type="time" value="' + esc(state.settings.notifications.manualTime || '') + '"></label><div class="grid-2"><label class="stack">Quiet from<input data-lockrender="1" data-act="quiet" data-which="start" type="time" value="' + esc(state.settings.quietHours.start) + '"></label><label class="stack">until<input data-lockrender="1" data-act="quiet" data-which="end" type="time" value="' + esc(state.settings.quietHours.end) + '"></label></div><button type="button" data-act="toggle-path" data-path="quietHours.enabled">Quiet hours ' + (state.settings.quietHours.enabled ? 'on' : 'off') + '</button><div class="actions"><button type="button" data-act="sneak">Preview sneak peek</button><button type="button" data-act="notify-permission">Notification permission</button></div>';
+    }
+    return '<p>SIC ' + esc(CFG.appVersion) + '. Bug reports are not live until the owner deploys the Sheet receiver.</p>' + bugBlock() + '<div class="actions"><button type="button" data-act="overlay" data-overlay="console">Open console</button><button type="button" data-act="clear-data">Clear SIC data</button></div>';
   }
   function bugBlock() {
     const status = bugStatus();
@@ -488,8 +565,8 @@
     if (ui.overlay === 'console') return '<div class="overlay"><div class="sheet"><div class="spread"><h2>Console</h2><button type="button" data-act="close-overlay">Close</button></div><div class="console-log" id="console-log">' + ui.console.map(esc).join('\n') + '</div><input id="console-input" data-lockrender="1" data-console="1" placeholder="/help is not required — type a / command" aria-label="Console"></div></div>';
     if (ui.overlay === 'inputs') return '<div class="overlay"><div class="sheet"><div class="spread"><h2>Test inputs</h2><button type="button" data-act="close-overlay">Close</button></div><p>Press a key or gamepad button.</p><div id="input-test" class="selectable">' + esc(ui.testInput) + '</div></div></div>';
     if (ui.overlay === 'import') return '<div class="overlay"><div class="sheet"><div class="spread"><h2>Import share code</h2><button type="button" data-act="close-overlay">Close</button></div><textarea id="share-code" data-lockrender="1" rows="5" placeholder="Paste code"></textarea><button type="button" class="primary" data-act="share-import">Import</button></div></div>';
-    if (ui.overlay === 'builder') return '<div class="overlay"><div class="sheet"><div class="spread"><h2>New routine</h2><button type="button" data-act="close-overlay">Close</button></div><label>Name <input id="builder-name" data-lockrender="1" value="' + esc(ui.builder ? ui.builder.name : '') + '"></label><div id="builder-days">' + builderDays() + '</div><button type="button" data-act="builder-day">Add day</button><button type="button" class="primary" data-act="builder-save">Save routine</button></div></div>';
-    if (ui.overlay === 'xml') return '<div class="overlay"><div class="sheet"><h2>Import preview</h2><pre class="selectable">' + esc(ui.xmlPreview || '') + '</pre><div class="row"><button type="button" class="primary" data-act="xml-apply" data-mode="merge">Merge</button><button type="button" data-act="xml-apply" data-mode="replace">Replace</button><button type="button" data-act="close-overlay">Cancel</button></div></div></div>';
+    if (ui.overlay === 'builder') return '<div class="overlay"><div class="sheet"><div class="spread"><h2>New routine</h2><button type="button" class="ghost" data-act="close-overlay">Cancel</button></div><label class="stack">Routine name<input id="builder-name" data-lockrender="1" value="' + esc(ui.builder ? ui.builder.name : '') + '" placeholder="For example, upper lower" aria-label="Routine name"></label><div id="builder-days">' + builderDays() + '</div><div class="actions"><button type="button" class="ghost" data-act="builder-day">Add day</button><button type="button" class="primary" data-act="builder-save">Save routine</button></div></div></div>';
+    if (ui.overlay === 'xml') return '<div class="overlay"><div class="sheet"><h2>Import preview</h2>' + importPreviewHTML() + '<div class="actions"><button type="button" class="primary" data-act="xml-apply" data-mode="merge">Merge</button><button type="button" class="ghost" data-act="xml-apply" data-mode="replace">Replace</button><button type="button" class="ghost" data-act="close-overlay">Cancel</button></div></div></div>';
     if (ui.overlay === 'history-edit') return '<div class="overlay"><div class="sheet"><h2>Edit workout</h2>' + historyEditor() + '</div></div>';
     if (ui.overlay === 'add') return '<div class="overlay"><div class="sheet"><h2>Add ' + esc(ui.pendingName || '') + '</h2><p>Permanent keeps it on this day of the routine. Today only leaves the routine and your history as they are.</p><div class="row"><button type="button" class="primary" data-act="add-go" data-mode="permanent">Routine from now on</button><button type="button" data-act="add-go" data-mode="today">Today only</button><button type="button" data-act="close-overlay">Cancel</button></div></div></div>';
     if (ui.overlay === 'remove') return '<div class="overlay"><div class="sheet"><h2>Remove exercise</h2><p>History already saved is kept. Today only hides it for this session. From now on removes it from the routine.</p><div class="row"><button type="button" data-act="remove-go" data-mode="today">Today only</button><button type="button" data-act="remove-go" data-mode="permanent">From now on</button><button type="button" data-act="close-overlay">Cancel</button></div></div></div>';
@@ -501,10 +578,17 @@
   function dialogHTML(d) {
     return '<div class="overlay"><div class="sheet"><h2>' + esc(d.title || 'Notice') + '</h2><p>' + esc(d.message || '') + '</p>' + (d.input ? '<input id="dialog-input" data-lockrender="1" value="' + esc(d.value || '') + '">' : '') + '<div class="row"><button type="button" data-act="dialog-no">Cancel</button><button type="button" class="primary" data-act="dialog-yes">' + esc(d.ok || 'OK') + '</button></div></div></div>';
   }
+  function importPreviewHTML() {
+    const p = ui.xmlPreview && typeof ui.xmlPreview === 'object' ? ui.xmlPreview : { routineConflicts: [], historyConflicts: [], routineCount: 0, historyCount: 0 };
+    const routines = (p.routineConflicts || []).map(function (c) {
+      return '<li><strong>' + esc(c.name || c.id) + '</strong> is already on this device as ' + esc(c.existingName || c.id) + '.</li>';
+    }).join('') || '<li>No routine conflicts.</li>';
+    return '<p>' + (p.routineCount || 0) + ' routines and ' + (p.historyCount || 0) + ' history sessions in this file.</p><p>' + ((p.historyConflicts || []).length) + ' history sessions already exist here and will be skipped on merge.</p><ul class="conflict-list">' + routines + '</ul><p class="muted">Merge adds only new ids. Replace overwrites the imported routines or history. A snapshot is kept first.</p>';
+  }
   function builderDays() {
     if (!ui.builder) return '';
     return ui.builder.days.map(function (d, i) {
-      return '<div class="card"><input data-lockrender="1" data-act="builder-name" data-i="' + i + '" value="' + esc(d.name) + '">' + d.exercises.map(function (name, j) { return '<input data-lockrender="1" data-act="builder-ex" data-i="' + i + '" data-j="' + j + '" value="' + esc(name) + '">'; }).join('') + '<button type="button" data-act="builder-ex-add" data-i="' + i + '">Add exercise</button></div>';
+      return '<div class="card"><label class="stack">Day name<input data-lockrender="1" data-act="builder-name" data-i="' + i + '" value="' + esc(d.name) + '" aria-label="Day name"></label>' + d.exercises.map(function (name, j) { return '<label class="stack">Exercise<input data-lockrender="1" data-act="builder-ex" data-i="' + i + '" data-j="' + j + '" value="' + esc(name) + '" placeholder="Exercise name" aria-label="Exercise name"></label>'; }).join('') + '<button type="button" class="ghost" data-act="builder-ex-add" data-i="' + i + '">Add exercise</button></div>';
     }).join('');
   }
   function historyEditor() {
@@ -575,7 +659,12 @@
   }
 
   function toast(text, undo) { ui.toast = { text: text, undo: !!undo }; render({ force: true }); setTimeout(function () { if (ui.toast && ui.toast.text === text) { ui.toast = null; render({ force: true }); } }, 8000); }
-  function openOverlay(name) { ui.overlay = name; if (name === 'builder' && !ui.builder) ui.builder = { name: '', days: [{ name: 'Push', exercises: ['Barbell Bench Press'] }] }; render({ force: true }); }
+  function openOverlay(name) {
+    if (name === 'settings') { ui.settingsCat = null; ui.query = ''; }
+    ui.overlay = name;
+    if (name === 'builder' && !ui.builder) ui.builder = { name: '', days: [{ name: 'Push', exercises: ['Barbell Bench Press'] }] };
+    render({ force: true });
+  }
   function closeOverlay() { ui.overlay = null; ui.dialog = null; render({ force: true }); }
 
   function logSet() {
@@ -837,6 +926,10 @@
     if (act === 'duo') { state.duoMode = !state.duoMode; if (!state.duoMode) { state.activePartner = 'batman'; state.rest.robin.endAt = 0; } markDirty(); render({ force: true }); return; }
     if (act === 'master-sound') { state.soundEnabled = !(state.soundEnabled && !state.settings.masterMute); state.settings.masterMute = !state.soundEnabled; markDirty(); render({ force: true }); return; }
     if (act === 'basic') { state.settings.basicMode = !state.settings.basicMode; render({ force: true }); return; }
+    if (act === 'settings-open') { ui.settingsCat = t.dataset.cat; ui.settingsSub = t.dataset.sub || 'skin'; ui.query = ''; render({ force: true }); return; }
+    if (act === 'settings-back') { ui.settingsCat = null; render({ force: true }); return; }
+    if (act === 'settings-sub') { ui.settingsSub = t.dataset.sub; render({ force: true }); return; }
+    if (act === 'sound-more') { ui.soundMore = !ui.soundMore; render({ force: true }); return; }
     if (act === 'motion') { state.settings.motion = t.dataset.mode; markDirty(); render({ force: true }); return; }
     if (act === 'quote-mode') { state.settings.quoteMode = state.settings.quoteMode === 'cycle' ? 'random' : 'cycle'; markDirty(); render({ force: true }); return; }
     if (act === 'toggle-path') { const path = t.dataset.path.split('.'); let obj = state.settings; for (let i = 0; i < path.length - 1; i++) obj = obj[path[i]]; obj[path[path.length - 1]] = !obj[path[path.length - 1]]; markDirty(); render({ force: true }); return; }
@@ -906,7 +999,7 @@
       markDirty(); return;
     }
     if (t.dataset.act === 'day' || (t.dataset.act == null && t.id === undefined && t.tagName === 'SELECT' && t.parentElement && t.parentElement.classList.contains('routine-bar'))) return;
-    if (t.dataset.act === 'settings-search') { ui.query = t.value; const pos = t.selectionStart; render({ force: true }); const again = document.querySelector('[data-act="settings-search"]'); if (again) { again.focus(); try { again.setSelectionRange(pos, pos); } catch (err) {} } return; }
+    if (t.dataset.act === 'settings-search') { ui.query = t.value; if (t.value.trim()) ui.settingsCat = null; const pos = t.selectionStart; render({ force: true }); const again = document.querySelector('[data-act="settings-search"]'); if (again) { again.focus(); try { again.setSelectionRange(pos, pos); } catch (err) {} } return; }
     if (t.dataset.act === 'opacity') { state.settings.panelOpacity = SIC.clampOpacity(t.value, 0.6); markDirty(); applyChrome(); return; }
     if (t.dataset.act === 'step') { state.settings.weightStep = Number(t.value) || 2.5; markDirty(); return; }
     if (t.dataset.act === 'units') { state.settings.units = t.value === 'kg' ? 'kg' : 'lb'; markDirty(); render({ force: true }); return; }
@@ -1003,8 +1096,7 @@
     const parsed = SIC.importXml(xml);
     if (!parsed.ok) { toast('XML rejected: ' + (parsed.errors || []).join(', ')); return; }
     ui.xmlDoc = parsed.doc;
-    const preview = SIC.previewImport(state, parsed.doc);
-    ui.xmlPreview = JSON.stringify(preview, null, 2);
+    ui.xmlPreview = SIC.previewImport(state, parsed.doc);
     ui.overlay = 'xml';
     render({ force: true });
   }
@@ -1208,7 +1300,13 @@
   document.addEventListener('input', onInput);
   document.addEventListener('change', onChange);
   document.addEventListener('keydown', onKey);
-  document.addEventListener('pointerdown', function () { userSound = true; state.settings.lastInput = 'mouse'; }, { capture: true });
+  document.addEventListener('pointerdown', function (e) {
+    userSound = true;
+    const touch = e.pointerType === 'touch' || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    if (state.settings.lastInput !== 'keyboard' && state.settings.lastInput !== 'xbox' && state.settings.lastInput !== 'playstation') {
+      state.settings.lastInput = touch ? 'touch' : 'mouse';
+    }
+  }, { capture: true });
   document.addEventListener('pointerdown', onPointerDown);
   document.addEventListener('pointermove', onPointerMove);
   document.addEventListener('pointerup', onPointerUp);

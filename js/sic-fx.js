@@ -17,7 +17,7 @@
     FX.raf = requestAnimationFrame(frame);
     const ctx = FX.ctx; if (!ctx) return;
     ctx.clearRect(0, 0, FX.w, FX.h);
-    const n = [24, 48, 80][FX.intensity - 1] || 48;
+    const n = [8, 14, 20][FX.intensity - 1] || 12;
     if (FX.type === 'ripples') {
       if (FX.parts.length < n / 8) FX.parts.push(spawn('ripples'));
       ctx.strokeStyle = 'rgb(' + FX.pal.accent + ')';
