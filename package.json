@@ -1,0 +1,8 @@
+{
+  "name": "sic",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/sic-logic.test.mjs",
+    "bundle": "node scripts/build-web.mjs"
+  }
+}
