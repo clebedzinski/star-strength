@@ -338,11 +338,11 @@
   }
   function classicTabs() {
     return [['log', 'Log', 'lift'], ['routines', 'Routines', 'cal'], ['history', 'History', 'clock'], ['analytics', 'Analytics', 'chart']].map(function (t) {
-      return '<button type="button" class="tab" data-act="tab" data-tab="' + t[0] + '" data-focus="1" aria-current="' + (ui.tab === t[0] ? 'true' : 'false') + '">' + ico(t[2]) + '<span>' + t[1] + '</span></button>';
+      return '<button type="button" class="tab" data-act="tab" data-tab="' + t[0] + '" data-pad="1" data-focus="1" aria-current="' + (ui.tab === t[0] ? 'true' : 'false') + '">' + ico(t[2]) + '<span>' + t[1] + '</span></button>';
     }).join('');
   }
   function classicFinish() {
-    return '<button type="button" class="ss-end" data-act="finish" data-focus="1" aria-label="Finish workout">' + ico('check') + '<span>Finish</span>' + ptag('finishChord') + '</button>';
+    return '<button type="button" class="ss-end" data-act="finish" data-pad="1" data-focus="1" aria-label="Finish workout">' + ico('check') + '<span>Finish</span>' + ptag('finishChord') + '</button>';
   }
   function whatsStrip() {
     if (!ui.whatsBar || ui.overlay === 'whats') return '';
@@ -352,13 +352,11 @@
     const done = ex.sets.filter(function (s) { return s.done; }).length;
     const prBucket = (state.personalRecords && state.personalRecords[partner()]) || {};
     const pr = prBucket[ex.name];
+    const curSet = ex.sets.find(function (s) { return s.current; }) || ex.sets[0];
     const rows = ex.sets.map(function (s) {
       return '<tr class="' + (s.current ? 'ss-current' : '') + '"><td><button type="button" class="icon-btn" data-act="del-set" data-ex="' + esc(ex.id) + '" data-set="' + esc(s.id) + '" aria-label="Delete set ' + (s.index + 1) + '">' + ico('trash') + '</button></td><td class="ss-n">' + (s.index + 1) + '</td><td>' + typeSelect(ex.id, s.id, s.type) + '</td><td class="ss-prev">' + esc(s.prev) + '</td><td>' + numInput(ex.id, s.id, 'weight', s.weight, s.hintW) + '</td><td>' + numInput(ex.id, s.id, 'reps', s.reps, s.hintR) + '</td><td><button type="button" class="ss-done' + (s.done ? ' on' : '') + '" data-act="toggle-done" data-ex="' + esc(ex.id) + '" data-set="' + esc(s.id) + '" aria-label="Mark set ' + (s.index + 1) + ' done">' + ico('check') + '</button></td></tr>';
     }).join('');
-    const partners = state.duoMode ? '<div class="ss-partners">' + ['batman', 'robin'].map(function (p) {
-      return '<button type="button" data-act="partner" data-partner="' + p + '" aria-current="' + (state.activePartner === p ? 'true' : 'false') + '">' + esc(state.partnerNames[p]) + '</button>';
-    }).join('') + '</div>' : '';
-    return '<article class="ss-card' + (ex.current ? ' ss-on' : '') + '"><div class="ss-card-head"><div class="ss-ex"><div class="ss-muscle">' + muscleIcon(ex.muscle) + '</div><div class="ss-ex-copy"><h3>' + esc(ex.name) + '</h3><div class="ss-meta"><span class="ss-chip">' + esc(ex.target) + (ex.source === 'extra' ? ' · today' : '') + '</span>' + (pr ? '<span class="ss-pr">PR ' + fmtW(pr.weight) + '</span>' : '') + '</div></div></div><div class="ss-card-side">' + (ex.current ? '<button type="button" class="log-set ss-log" data-act="log-set" data-focus="1">LOG SET' + ptag('logSet') + '</button>' : '') + '<button type="button" class="icon-btn" data-act="manage" data-ex="' + esc(ex.id) + '" aria-label="Manage sets">' + ico('plus') + '</button><button type="button" class="icon-btn" data-act="remove-ask" data-ex="' + esc(ex.id) + '" aria-label="Remove exercise">' + ico('trash') + '</button></div></div><input class="ss-note" data-lockrender="1" data-act="field" data-ex="' + esc(ex.id) + '" data-field="notes" value="' + esc(ex.notes) + '" placeholder="Add notes..." aria-label="Notes">' + partners + '<table class="ss-table"><thead><tr><th></th><th>SET</th><th>TYPE</th><th>PREV</th><th>LBS</th><th>REPS</th><th>DONE</th></tr></thead><tbody>' + rows + '</tbody></table><div class="ss-foot"><button type="button" class="ss-add" data-act="add-set" data-ex="' + esc(ex.id) + '">' + ico('plus') + ' Add Set</button><span class="ss-count">Completed: ' + done + '/' + ex.sets.length + '</span></div></article>';
+    return '<article class="ss-card' + (ex.current ? ' ss-on' : '') + '"><div class="ss-card-head"><div class="ss-ex"><div class="ss-muscle">' + muscleIcon(ex.muscle) + '</div><div class="ss-ex-copy"><h3 class="' + (ex.current ? 'ex-name' : '') + '">' + esc(ex.name) + '</h3><div class="ss-meta"><span class="ss-chip">' + esc(ex.target) + (ex.source === 'extra' ? ' · today' : '') + '</span>' + (ex.current && curSet ? '<span class="set-progress ss-chip">Set ' + (curSet.index + 1) + ' of ' + ex.sets.length + '</span>' : '') + (pr ? '<span class="ss-pr">PR ' + fmtW(pr.weight) + '</span>' : '') + '</div></div></div><div class="ss-card-side">' + (ex.current ? '<button type="button" class="log-set ss-log" data-act="log-set" data-pad="1" data-focus="1">LOG SET' + ptag('logSet') + '</button>' : '') + '<button type="button" class="icon-btn" data-act="manage" data-ex="' + esc(ex.id) + '" aria-label="Manage sets">' + ico('plus') + '</button><button type="button" class="icon-btn" data-act="remove-ask" data-ex="' + esc(ex.id) + '" aria-label="Remove exercise">' + ico('trash') + '</button></div></div><input class="ss-note" data-lockrender="1" data-act="field" data-ex="' + esc(ex.id) + '" data-field="notes" value="' + esc(ex.notes) + '" placeholder="Add notes..." aria-label="Notes"><table class="ss-table"><thead><tr><th></th><th>SET</th><th>TYPE</th><th>PREV</th><th>LBS</th><th>REPS</th><th>DONE</th></tr></thead><tbody>' + rows + '</tbody></table><div class="ss-foot"><button type="button" class="ss-add" data-act="add-set" data-ex="' + esc(ex.id) + '">' + ico('plus') + ' Add Set</button><span class="ss-count">Completed: ' + done + '/' + ex.sets.length + '</span></div></article>';
   }
   function classicTable(ex) {
     const rows = ex.sets.map(function (s) { return setBlock(ex, s); }).join('');
@@ -372,9 +370,19 @@
   function classicShell(inner) {
     const routine = viewCache.routine;
     const rest = viewCache.rest[viewCache.partner] || 0;
-    const restBit = rest > 0 ? '<span class="ss-rest timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(rest) + '</span>' : '';
-    const duo = partnerBar();
-    return '<div class="classic"><div class="ss-dock"><header class="ss-head"><div class="ss-brand"><div class="ss-star" aria-hidden="true">★</div><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></div><div class="ss-tools"><button type="button" data-act="overlay" data-overlay="bug" aria-label="Bug report" title="Bug report">' + ico('bug') + '</button><button type="button" data-act="overlay" data-overlay="rest" aria-label="Rest timers" title="Rest timers"><span class="ss-zzz">Zzz</span></button><button type="button" data-act="overlay" data-overlay="tempo" aria-label="Tempo" title="Tempo">' + ico('drum') + '</button><button type="button" data-act="overlay" data-overlay="calc" aria-label="Calculator" title="1RM and plates">' + ico('calc') + '</button><button type="button" data-act="mini-open" aria-label="Mini" title="Mini">' + ico('mini') + '</button><button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings" title="Settings">' + ico('gear') + '</button></div></header><nav class="ss-tabs" aria-label="Sections">' + classicTabs() + '</nav><div class="ss-routine"><div class="ss-routine-name"><h2>' + esc(routine ? routine.name : '') + '</h2></div><div class="ss-routine-actions">' + restBit + daySelect() + classicFinish() + '</div></div></div><div class="ss-scroll">' + partnerBar() + whatsStrip() + (ui.tab === 'log' ? '' : backLog()) + inner + '</div></div>';
+    const resting = rest > 0 && state.settings.restEnabled !== false;
+    const pattern = state.settings.tempo[partner()] || { e: 1, p1: 0, c: 1, p2: 0 };
+    const glyphs = ui.padOn ? '<div class="pad-glyphs">' + ({
+      xbox: 'A Log · B Back · X Partner · Y Skip rest',
+      playstation: '✕ Log · ○ Back · □ Partner · △ Skip rest',
+      switch: 'A Log · B Back · X Partner · Y Skip rest',
+      generic: 'A Log · B Back · X Partner · Y Skip rest'
+    }[ui.padFamily] || 'A Log · B Back · X Partner · Y Skip rest') + '</div>' : '';
+    const status = '<div class="ss-status">' + glyphs +
+      '<div class="zone-rest ss-restbar" data-resting="' + (resting ? 'true' : 'false') + '"><span class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(rest) + '</span><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15s</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15s</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1">' + (state.settings.restEnabled === false ? 'Turn rest on' : 'Turn rest off') + '</button></div>' +
+      '<div class="zone-tempo ss-tempobar" data-tempo-live="' + (state.settings.tempo.running ? 'on' : 'off') + '"><span data-metro>' + esc(runtime.phase) + '</span><span class="ss-pattern">' + pattern.e + '-' + pattern.p1 + '-' + pattern.c + '-' + pattern.p2 + '</span><button type="button" data-act="tempo-toggle" data-pad="1">' + (state.settings.tempo.running ? 'Tempo off' : 'Tempo on') + '</button></div></div>';
+    const duo = state.duoMode ? partnerBar() : '';
+    return '<div class="classic"><div class="ss-dock"><header class="ss-head"><div class="ss-brand"><div class="ss-star" aria-hidden="true">★</div><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></div><div class="ss-tools"><button type="button" data-act="overlay" data-overlay="bug" aria-label="Bug report" title="Bug report">' + ico('bug') + '</button><button type="button" data-act="overlay" data-overlay="rest" aria-label="Rest timers" title="Rest timers"><span class="ss-zzz">Zzz</span></button><button type="button" data-act="overlay" data-overlay="tempo" aria-label="Tempo" title="Tempo">' + ico('drum') + '</button><button type="button" data-act="overlay" data-overlay="calc" aria-label="Calculator" title="1RM and plates">' + ico('calc') + '</button><button type="button" data-act="mini-open" data-pad="1" aria-label="Mini" title="Mini">' + ico('mini') + '</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1" aria-label="Settings" title="Settings">' + ico('gear') + '</button></div></header><nav class="ss-tabs" aria-label="Sections">' + classicTabs() + '</nav><div class="ss-routine"><div class="ss-routine-name"><h2>' + esc(routine ? routine.name : '') + '</h2></div><div class="ss-routine-actions">' + daySelect() + classicFinish() + '</div></div>' + duo + status + '</div><div class="ss-scroll">' + whatsStrip() + (ui.tab === 'log' ? '' : backLog()) + inner + '</div></div>';
   }
   function vName() { return state.duoMode ? state.partnerNames[partner()] : 'Star Strength Classic'; }
   function curFocus() {
@@ -416,7 +424,7 @@
     const keys = state.duoMode ? ['batman', 'robin'] : ['batman'];
     return '<div class="who' + (ui.flipped ? ' flip' : '') + '" role="group" aria-label="Active partner">' + keys.map(function (p) {
       const on = partner() === p;
-      return '<button type="button" class="who-btn ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" aria-current="' + (on ? 'true' : 'false') + '"><i></i><span>' + esc(state.partnerNames[p] || (p === 'batman' ? 'Partner 1' : 'Partner 2')) + '</span>' + (on ? '<b>lifting</b>' : '') + '</button>';
+      return '<button type="button" class="who-btn ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" data-pad="1" aria-current="' + (on ? 'true' : 'false') + '"><i></i><span>' + esc(state.partnerNames[p] || (p === 'batman' ? 'Partner 1' : 'Partner 2')) + '</span>' + (on ? '<b>lifting</b>' : '') + '</button>';
     }).join('') + '</div>';
   }
   function backLog() {
@@ -572,6 +580,8 @@
       '</nav></div>';
   }
   function shell() {
+    viewCache = view();
+    if (state.skinId === 'starclassic') return classicShell(ui.tab === 'log' ? classicLog(viewCache) : panel());
     return sharedShell();
   }
 

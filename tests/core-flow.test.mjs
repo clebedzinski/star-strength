@@ -42,12 +42,17 @@ test('core flow works in every skin', async () => {
       await page.getByRole('button', { name: 'Settings' }).click();
       await page.locator('.sheet [data-act="back-log"]').click();
       for (const tab of ['Routines', 'History', 'Stats']) {
-        await page.getByRole('button', { name: tab }).click();
+        const named = tab === 'Stats'
+          ? page.getByRole('button', { name: /^(Stats|Analytics)$/ })
+          : page.getByRole('button', { name: tab, exact: true });
+        await named.click();
         await page.getByRole('button', { name: 'Settings' }).click();
         await page.locator('.sheet [data-act="back-log"]').click();
       }
+      if (skin === 'starclassic') await page.getByRole('button', { name: 'Log', exact: true }).click();
       const overlap = await page.evaluate(() => {
-        const nodes = [...document.querySelectorAll('.zones button, .zones input')].filter((el) => {
+        const root = document.querySelector('.classic') || document.querySelector('.zones');
+        const nodes = [...root.querySelectorAll('button, input')].filter((el) => {
           const r = el.getBoundingClientRect();
           return r.width > 0 && r.height > 0;
         });
@@ -79,14 +84,15 @@ test('core flow works in every skin', async () => {
     }
     await openSkin(page, 'starclassic');
     await page.getByRole('button', { name: 'Settings' }).click();
-    await page.getByRole('button', { name: 'Workout' }).click();
+    await page.locator('.set-card[data-cat="workout"]').click();
     await page.getByRole('button', { name: 'Duo off' }).click();
     await page.locator('.sheet [data-act="back-log"]').click();
-    await page.locator('[data-field="weight"]').fill('111');
+    const weightField = page.locator('.ss-current [data-field="weight"], .entry [data-field="weight"]').first();
+    await weightField.fill('111');
     await page.locator('.log-set').click();
     await page.waitForTimeout(500);
     const partner = await page.locator('.who-btn[aria-current="true"]').innerText();
-    const weight = await page.locator('[data-field="weight"]').inputValue();
+    const weight = await page.locator('.ss-current [data-field="weight"], .entry [data-field="weight"]').first().inputValue();
     if (!/Robin/i.test(partner)) problems.push('duo did not switch: ' + partner);
     if (weight === '111') problems.push('duo kept the other partner weight');
   } finally {
