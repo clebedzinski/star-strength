@@ -120,7 +120,7 @@ public final class SicBridge {
         long when = (long) whenMs;
         if (when < System.currentTimeMillis()) return;
         Intent intent = new Intent(app, NotifyReceiver.class);
-        intent.putExtra("title", title == null ? "SIC" : title);
+        intent.putExtra("title", title == null ? "Strength in Character" : title);
         intent.putExtra("body", body == null ? "" : body);
         int id = (int) (when % 100000);
         PendingIntent pi = PendingIntent.getBroadcast(app, id, intent,

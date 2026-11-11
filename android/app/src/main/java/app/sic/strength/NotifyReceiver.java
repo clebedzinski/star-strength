@@ -18,7 +18,7 @@ public class NotifyReceiver extends BroadcastReceiver {
         String title = intent.getStringExtra("title");
         String body = intent.getStringExtra("body");
         Notification note = new Notification.Builder(context, "sic-pump")
-                .setContentTitle(title == null ? "SIC" : title)
+                .setContentTitle(title == null ? "Strength in Character" : title)
                 .setContentText(body == null ? "" : body)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .build();

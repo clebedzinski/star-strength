@@ -249,10 +249,12 @@
   function applyArt() {
     const packs = {
       pixelforecast: { bg: 'pixelforecast/background.webp', frame: 'pixelforecast/window-frame.webp', sky: 'pixelforecast/sky-tile.webp', mini: 'pixelforecast/mini-window.webp' },
-      irondial: { bg: 'irondial/background.webp', ring: 'irondial/dial-ring.webp', bolt: 'irondial/bolt.webp', mini: 'irondial/mini-puck.webp' }
+      irondial: { bg: 'irondial/background.webp', ring: 'irondial/dial-ring.webp', bolt: 'irondial/bolt.webp', mini: 'irondial/mini-puck.webp' },
+      chalkboard: { bg: 'chalkboard/background.webp', note: 'chalkboard/sticky-note.webp', dust: 'chalkboard/chalk-smudge.webp', mini: 'chalkboard/mini-slate.webp' },
+      scoreboard: { bg: 'scoreboard/background.webp', bezel: 'scoreboard/cabinet-bezel.webp', mini: 'scoreboard/mini-led-strip.webp' }
     };
     const pack = packs[state.skinId] || {};
-    ['bg', 'frame', 'sky', 'ring', 'bolt', 'mini'].forEach(function (key) {
+    ['bg', 'frame', 'sky', 'ring', 'bolt', 'mini', 'note', 'dust', 'bezel'].forEach(function (key) {
       document.documentElement.style.setProperty('--art-' + key, pack[key] ? 'url("' + artUrl(pack[key]) + '")' : 'none');
     });
   }
@@ -630,9 +632,9 @@
     const chrome = '<div class="mini-top" data-drag="1">' + who + rest + '<button type="button" data-act="overlay-hide" aria-label="Close mini">×</button></div>';
     const shut = '<button type="button" class="mini-x" data-act="overlay-hide" aria-label="Close mini">×</button>';
     if (shape === 'puck') return '<div class="mini-body">' + shut + '<div class="mini-puck" data-drag="1"><svg class="mini-arc" viewBox="0 0 100 100" aria-hidden="true"><circle data-rest-arc cx="50" cy="50" r="40"></circle></svg>' + who + '<strong>' + name + '</strong><em>Set ' + (set ? (set.index + 1) : '—') + '</em>' + rest + log + '</div>' + more + fields + '</div>';
-    if (shape === 'stepped-l') return '<div class="mini-body"><div class="mini-window" data-drag="1">' + shut + who + '<strong>' + name + '</strong><p>Set ' + (set ? (set.index + 1) : '—') + ' · ' + prev + '</p>' + rest + '<i class="px-meter" aria-hidden="true"><b data-rest-bar></b></i>' + log + more + fields + '</div></div>';
-    if (shape === 'rail') return '<div class="mini-body"><div class="mini-slate">' + chrome + '<strong>' + name + '</strong><p>prev ' + prev + '</p>' + log + more + fields + '</div></div>';
-    if (shape === 'ticket') return '<div class="mini-body"><div class="mini-led">' + chrome + '<em>' + (set ? esc(set.weight || '---') : '---') + '</em><p>' + prev + '</p>' + log + more + fields + '</div></div>';
+    if (shape === 'stepped-l') return '<div class="mini-body"><div class="mini-window" data-drag="1">' + shut + '<div class="px-mini-card">' + who + '<strong>' + name + '</strong><p>Set ' + (set ? (set.index + 1) : '—') + ' · ' + prev + '</p>' + rest + '<i class="px-meter" aria-hidden="true"><b data-rest-bar></b></i>' + log + '</div>' + more + fields + '</div></div>';
+    if (shape === 'rail') return '<div class="mini-body"><div class="mini-slate" data-drag="1">' + shut + who + '<strong>' + name + '</strong><p>Set ' + (set ? (set.index + 1) : '—') + '</p>' + rest + log + more + fields + '</div></div>';
+    if (shape === 'ticket') return '<div class="mini-body"><div class="mini-led" data-drag="1">' + shut + who + '<strong>' + name + '</strong><p>Set ' + (set ? (set.index + 1) : '—') + '</p>' + rest + log + more + fields + '</div></div>';
     if (shape === 'capsule') return '<div class="mini-body"><div class="mini-pill">' + chrome + '<strong>' + name + '</strong><p>' + prev + '</p>' + log + more + fields + '</div></div>';
     if (shape === 'cassette') return '<div class="mini-body">' + shut + '<div class="mini-disc" data-drag="1"><span>' + name + '</span>' + log + '</div><p>' + prev + ' ' + rest + '</p>' + who + more + fields + '</div>';
     if (shape === 'flower') return '<div class="mini-body">' + shut + '<div class="mini-hexes"><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><div class="mini-core"><b>' + name + '</b><small>' + prev + '</small></div><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button>' + log + '</div>' + who + rest + more + fields + '</div>';
@@ -685,7 +687,7 @@
   function settingsBody(cat, sub) {
     if (cat === 'appearance' && sub === 'skin') {
       const skins = SIC.builtinSkins().concat(state.communitySkins || []).map(function (s) {
-        const finished = s.slug === 'starclassic' || s.slug === 'pixelforecast' || s.slug === 'irondial';
+        const finished = s.slug === 'starclassic' || s.slug === 'pixelforecast' || s.slug === 'irondial' || s.slug === 'chalkboard' || s.slug === 'scoreboard';
         const look = finished ? '' : '<span class="muted">Beta look</span>';
         return '<button type="button" class="' + (state.skinId === s.slug ? 'on' : '') + '" data-act="skin" data-skin="' + esc(s.slug) + '"><strong>' + esc(s.name) + '</strong>' + look + '</button>';
       }).join('');
@@ -785,7 +787,7 @@
     if (ui.overlay === 'remove') return '<div class="overlay"><div class="sheet"><h2>Remove exercise</h2><p>History already saved is kept. Today only hides it for this session. From now on removes it from the routine.</p><div class="row"><button type="button" data-act="remove-go" data-mode="today">Today only</button><button type="button" data-act="remove-go" data-mode="permanent">From now on</button><button type="button" data-act="close-overlay">Cancel</button></div></div></div>';
     if (ui.overlay === 'finish') return '<div class="overlay"><div class="sheet"><h2>Finish workout?</h2><p>This stops every rest timer, the metronome, sounds, and rest alerts. Unlogged sets are not written into history.</p><div class="row">' + (state.duoMode ? '<button type="button" class="primary" data-act="finish-go" data-who="both">Both partners</button><button type="button" data-act="finish-go" data-who="one">Only ' + esc(state.partnerNames[partner()]) + '</button>' : '<button type="button" class="primary" data-act="finish-go" data-who="one">Finish</button>') + '<button type="button" data-act="close-overlay">Cancel</button></div></div></div>';
     if (ui.overlay === 'sneak') return '<div class="overlay"><div class="sheet"><h2>Here\'s a sneak peek of today\'s workout!</h2><p>Countdown to pump:</p><div>' + (viewCache ? viewCache.exercises.map(function (e) { return '<div>' + esc(e.name) + '</div>'; }).join('') : '') + '</div><p class="muted">Idea credited to Ryan (ryno). This preview is inside the app. A system notification depends on the operating system and was not claimed as tested on hardware.</p><button type="button" data-act="close-overlay">Close</button></div></div>';
-    if (ui.overlay === 'clear') return '<div class="overlay"><div class="sheet"><h2>Clear SIC data?</h2><p>This removes SIC keys only, after a JSON backup download. Other websites\' storage is left alone. This cannot be undone from inside SIC.</p><button type="button" data-act="clear-go">Download backup and clear</button><button type="button" data-act="close-overlay">Cancel</button></div></div>';
+    if (ui.overlay === 'clear') return '<div class="overlay"><div class="sheet"><h2>Clear workout data?</h2><p>This removes this app\'s saved keys only, after a JSON backup download. Other websites\' storage is left alone. This cannot be undone from inside the app.</p><button type="button" data-act="clear-go">Download backup and clear</button><button type="button" data-act="close-overlay">Cancel</button></div></div>';
     return '';
   }
   function dialogHTML(d) {
@@ -1482,7 +1484,7 @@
     for (let i = 0; i < storage.length; i++) { const k = storage.key(i); if (SIC.isSicKey(k)) dump[k] = storage.getItem(k); }
     download('sic-backup-' + Date.now() + '.json', JSON.stringify(dump, null, 2), 'application/json');
     SIC.keysToClear(Object.keys(dump)).forEach(function (k) { storage.removeItem(k); });
-    toast('SIC data cleared.');
+    toast('Workout data cleared.');
     setTimeout(function () { location.reload(); }, 400);
   }
   function switchProfile(id) {

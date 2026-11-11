@@ -73,7 +73,7 @@ test('welcome, about, bug share, xml, autosave, and finish', async () => {
     const classicBeta = await page.locator('.skin-pick button', { hasText: 'Star Strength Classic' }).innerText();
     const pixel = await page.locator('.skin-pick button', { hasText: 'Pixel Forecast' }).innerText();
     const iron = await page.locator('.skin-pick button', { hasText: 'Iron Dial' }).innerText();
-    if (beta !== 5) problems.push('beta count ' + beta);
+    if (beta !== 3) problems.push('beta count ' + beta);
     if (/Beta look/.test(classicBeta) || /Beta look/.test(pixel) || /Beta look/.test(iron)) problems.push('finished skin marked beta');
 
     await page.locator('[data-act="settings-back"]').click();

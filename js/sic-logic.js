@@ -1228,7 +1228,7 @@
     opts = opts || {};
     if (!parsed || !parsed.cmd) return { ok: false, message: 'Empty command.' };
     if (parsed.cmd === 'exit') return { ok: true, message: 'saved, safe to close', actions: ['save', 'exit'] };
-    if (parsed.cmd === 'restart') return { ok: true, message: 'Saving and reopening SIC.', actions: ['save', 'restart'] };
+    if (parsed.cmd === 'restart') return { ok: true, message: 'Saving and reopening.', actions: ['save', 'restart'] };
     if (parsed.cmd === 'clearmessages') return { ok: true, message: '', actions: ['clear-console'] };
     if (parsed.cmd === 'soundsoff') { state.soundEnabled = false; state.settings.masterMute = true; return { ok: true, message: 'Sounds off.', actions: ['save'] }; }
     if (parsed.cmd === 'soundson') { state.soundEnabled = true; state.settings.masterMute = false; return { ok: true, message: 'Sounds on.', actions: ['save'] }; }
