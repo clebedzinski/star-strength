@@ -10,8 +10,18 @@ android {
         applicationId "app.sic.strength"
         minSdk 26
         targetSdk 34
-        versionCode 3
-        versionName "1.0.2-sic-debug"
+        versionCode 4
+        versionName "1.0.3-sic-debug"
+    }
+
+    signingConfigs {
+        debug {
+            // Persisted debug key (not a release key). SHA-256 8c342aa682f40761f543ebe855fed1291cbe7b4bc8a08a11acbc7005b229d4c2
+            storeFile file("${rootProject.projectDir}/debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
     }
 
     compileOptions {
@@ -21,8 +31,7 @@ android {
 
     buildTypes {
         debug {
-            // Debug signing is the Android Gradle default debug keystore.
-            // It will not update an APK signed with a different key.
+            signingConfig signingConfigs.debug
         }
     }
 
