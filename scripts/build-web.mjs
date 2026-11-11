@@ -15,9 +15,16 @@ for (const name of ['sic-config', 'sic-data', 'sic-logic', 'sic-fx', 'sic-app'])
   html = html.replace('<script src="js/' + name + '.js"></script>', '<script>\n' + js + '\n</script>');
 }
 const single = path.join(outDir, 'sic.html');
+const named = path.join(outDir, 'strength-in-character-1.1.0.html');
 fs.writeFileSync(single, html);
+fs.writeFileSync(named, html);
 const zip = path.join(outDir, 'sic-web.zip');
+const namedZip = path.join(outDir, 'strength-in-character-1.1.0-web.zip');
 if (fs.existsSync(zip)) fs.unlinkSync(zip);
-execFileSync('zip', ['-r', zip, 'index.html', 'css', 'js', 'gas', 'README.md'], { cwd: root, stdio: 'inherit' });
+if (fs.existsSync(namedZip)) fs.unlinkSync(namedZip);
+execFileSync('zip', ['-r', zip, 'index.html', 'css', 'js', 'gas', 'README.md', 'INSTALL.md', 'CHANGELOG.md'], { cwd: root, stdio: 'inherit' });
+fs.copyFileSync(zip, namedZip);
 console.log(single);
+console.log(named);
 console.log(zip);
+console.log(namedZip);

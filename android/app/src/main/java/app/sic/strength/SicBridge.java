@@ -27,7 +27,18 @@ public final class SicBridge {
     public String getPlatform() { return "android"; }
 
     @JavascriptInterface
-    public String getAppVersion() { return "1.0.7-sic-debug"; }
+    public String getAppVersion() { return "1.1.0"; }
+
+    @JavascriptInterface
+    public void shareText(String title, String text) {
+        activity.runOnUiThread(() -> {
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType("text/plain");
+            send.putExtra(Intent.EXTRA_SUBJECT, title == null || title.isEmpty() ? "Strength in Character bug report" : title);
+            send.putExtra(Intent.EXTRA_TEXT, text == null ? "" : text);
+            activity.startActivity(Intent.createChooser(send, "Share bug report"));
+        });
+    }
 
     @JavascriptInterface
     public String storageInfo() {

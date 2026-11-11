@@ -26,9 +26,9 @@ That writes `artifacts/sic-web.zip` and a single-file `artifacts/sic.html`.
 node --test tests/sic-logic.test.mjs
 ```
 
-## Android debug APK
+## Android app
 
-Requires the Android SDK (platform 34, build-tools 34.0.0) and Gradle 8.7. The script copies the web app into the APK assets and builds a **debug-signed** package.
+Requires the Android SDK (platform 34, build-tools 34.0.0) and Gradle 8.7. `scripts/build-apk.sh` copies the web app into the APK and builds the release package `artifacts/strength-in-character-1.1.0.apk`. It is signed with the persisted debug keystore so an earlier install of this app updates in place. How a friend installs it is in `INSTALL.md`.
 
 ```bash
 export ANDROID_SDK_ROOT="$HOME/android-sdk"
@@ -36,14 +36,7 @@ export ANDROID_HOME="$ANDROID_SDK_ROOT"
 bash scripts/build-apk.sh
 ```
 
-Output: `artifacts/sic-debug.apk`.
-
-```bash
-adb install -r artifacts/sic-debug.apk
-keytool -printcert -jarfile artifacts/sic-debug.apk
-```
-
-This key will not update an older Star Strength APK that was signed with a different key. The launcher name is `SIC (debug build)`. Overlay permission, notifications, and gamepads are implemented and were **not** run on a physical phone or controller in this environment.
+Output: `artifacts/strength-in-character-1.1.0.apk`. The launcher name is Strength in Character. A physical phone and a physical controller were not used for this package.
 
 ## Bug reports
 

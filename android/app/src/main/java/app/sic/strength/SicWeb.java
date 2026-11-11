@@ -19,6 +19,7 @@ final class SicWeb {
     @SuppressLint("SetJavaScriptEnabled")
     static WebView create(Context context, Object bridge) {
         WebView web = new WebView(context);
+        web.setBackgroundColor(0xFF0B0F17);
         WebSettings settings = web.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);

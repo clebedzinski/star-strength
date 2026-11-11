@@ -117,7 +117,7 @@ public class OverlayService extends Service {
     /** Bridge that does not need the activity. Folder and exit stay on the main activity. */
     private final class OverlayBridge {
         @android.webkit.JavascriptInterface public String getPlatform() { return "android"; }
-        @android.webkit.JavascriptInterface public String getAppVersion() { return "1.0.7-sic-debug"; }
+        @android.webkit.JavascriptInterface public String getAppVersion() { return "1.1.0"; }
         @android.webkit.JavascriptInterface public boolean canOverlay() { return true; }
         @android.webkit.JavascriptInterface public void hideOverlay() { stopSelf(); }
         @android.webkit.JavascriptInterface public void openApp() {

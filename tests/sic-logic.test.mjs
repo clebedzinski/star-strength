@@ -279,6 +279,7 @@ test('console commands match the brief, including reserved and future', () => {
 });
 
 test('bug reports confirm only on a matching ack and stay unconfigured without an endpoint', () => {
+  assert.equal(SIC.bugFeatureStatus({ enabled: false, endpoint: 'https://script.google.com/macros/s/abc/exec', verified: true }), 'disabled');
   assert.equal(SIC.bugFeatureStatus({ endpoint: '', verified: false }), 'unconfigured');
   assert.equal(SIC.bugFeatureStatus({ endpoint: 'https://script.google.com/macros/s/abc/exec', verified: false }), 'pending');
   const built = SIC.buildBugPayload({ message: 'Rest timer keeps going', version: '1.0.0-sic', platform: 'web', skin: 'starclassic', rand: () => 0.1 });

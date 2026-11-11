@@ -244,6 +244,12 @@ body.skin-starclassic #app {
 }
 .classic .pad-glyphs { font-size: 10px; color: var(--muted); padding-bottom: 2px; }
 .ss-scroll { flex: 1; min-height: 0; overflow: auto; padding-top: 12px; padding-bottom: 28px; display: flex; flex-direction: column; gap: 12px; }
+.welcome { background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+.welcome h2 { margin: 0; font-size: 18px; }
+.welcome-tag { margin: 2px 0 8px; color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; }
+.welcome ol { margin: 0 0 8px; padding-left: 18px; }
+.welcome li { margin: 4px 0; }
+.welcome button { min-width: 0; }
 .whats-strip {
   display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px;
   background: var(--card); border: 1px solid var(--border); font-size: 12px; font-weight: 800;
@@ -672,10 +678,14 @@ label.hex input { background: #120e08; color: #fff6e4; border: 2px solid #f0b429
 .tempo-lamp { min-height: 44px; font-weight: 900; }
 .zone-tempo[data-tempo-live="on"] .tempo-lamp { outline: 3px solid var(--accent); }
 .zone-nav { position: sticky; bottom: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; background: var(--bg); padding-top: 8px; z-index: 5; }
+@media (max-height: 500px) {
+  .zone-nav { position: static; }
+}
 .zone-nav button { min-width: 0; min-height: 44px; font-size: 12px; }
 .pad-glyphs { font-size: 11px; font-weight: 800; }
 body.show-pad [data-pad="1"].is-pad { outline: 3px solid var(--accent); outline-offset: 2px; }
 #mini-root { pointer-events: auto; }
+.mini-x { position: absolute; top: 4px; right: 4px; width: 28px; min-width: 28px; height: 28px; min-height: 28px; padding: 0; z-index: 2; }
 .escape-hatch { position: fixed; right: 8px; bottom: 8px; z-index: 80; display: flex; gap: 6px; }
 .escape-hatch button { min-width: 44px; min-height: 44px; padding: 8px 10px; font-weight: 900; box-shadow: 0 4px 12px rgba(0,0,0,.35); }
 .taskbar .px-settings { background: #ffe14a; color: #1a120c; }
@@ -808,7 +818,9 @@ body.sic.overlay-only #mini-root { position: relative; left: auto !important; to
 /* Owner deployment fills bugReportEndpoint only after gas/SETUP.md is done.
    Leave verified false until a real response {ok:true,id} has been read back. */
 window.SIC_CONFIG = {
-  appVersion: '1.0.12-sic',
+  appVersion: '1.1.0',
+  /* Receiver stays off until gas/SETUP.md is deployed and a real ack is read. */
+  bugReportEnabled: false,
   bugReportEndpoint: '',
   bugReportVerified: false
 };
@@ -2295,6 +2307,7 @@ const exerciseDatabase = [
   }
   function bugFeatureStatus(config) {
     config = config || {};
+    if (config.enabled === false) return 'disabled';
     if (!config.endpoint) return 'unconfigured';
     if (!config.verified) return 'pending';
     return 'ready';
@@ -2623,6 +2636,7 @@ const exerciseDatabase = [
     pop: null,
     overlay: null,
     whatsBar: false,
+    welcome: false,
     flipped: false,
     miniWide: false,
     padOn: false,
@@ -2731,7 +2745,12 @@ const exerciseDatabase = [
     if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) state.settings.lastInput = 'touch';
     if (params.get('set')) ui.settingsCat = params.get('set');
     if (params.get('sub')) ui.settingsSub = params.get('sub');
-    if (!demo && storage.getItem('ss_seen_version') !== CFG.appVersion) ui.whatsBar = true;
+    if (!demo) {
+      let seenWelcome = '';
+      try { seenWelcome = storage.getItem('ss_seen_welcome') || ''; } catch (e) {}
+      if (!seenWelcome) ui.welcome = true;
+      else if (storage.getItem('ss_seen_version') !== CFG.appVersion) ui.whatsBar = true;
+    }
   }
 
   function seedDemo() {
@@ -2956,7 +2975,11 @@ const exerciseDatabase = [
   }
   function whatsStrip() {
     if (!ui.whatsBar || ui.overlay === 'whats') return '';
-    return '<div class="whats-strip"><span>What\'s new in SIC</span><button type="button" data-act="overlay" data-overlay="whats">Read</button><button type="button" data-act="whats-close">Dismiss</button></div>';
+    return '<div class="whats-strip"><span>What\'s new</span><button type="button" data-act="overlay" data-overlay="whats">Read</button><button type="button" data-act="whats-close">Dismiss</button></div>';
+  }
+  function welcomeHTML() {
+    if (!ui.welcome) return '';
+    return '<section class="welcome" role="region" aria-label="Welcome"><h2>Strength in Character</h2><p class="welcome-tag">BE YOUR OWN BIGGEST FAN</p><ol><li>LOG SET records this set, then moves to the next.</li><li>Duo hands the next set to your partner. Each person keeps their own previous numbers.</li><li>Rest counts down after a set. Tempo is the click on screen.</li></ol><p>A sample routine is already on this day.</p><button type="button" data-act="welcome-skip">Skip welcome</button></section>';
   }
   function classicCard(ex) {
     const done = ex.sets.filter(function (s) { return s.done; }).length;
@@ -2992,7 +3015,7 @@ const exerciseDatabase = [
       '<div class="zone-rest ss-restbar" data-resting="' + (resting ? 'true' : 'false') + '"><span class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(rest) + '</span><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15s</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15s</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1">' + (state.settings.restEnabled === false ? 'Turn rest on' : 'Turn rest off') + '</button></div>' +
       '<div class="zone-tempo ss-tempobar" data-tempo-live="' + (state.settings.tempo.running ? 'on' : 'off') + '"><span data-metro>' + esc(runtime.phase) + '</span><span class="ss-pattern">' + pattern.e + '-' + pattern.p1 + '-' + pattern.c + '-' + pattern.p2 + '</span><button type="button" data-act="tempo-toggle" data-pad="1">' + (state.settings.tempo.running ? 'Tempo off' : 'Tempo on') + '</button></div></div>';
     const duo = state.duoMode ? partnerBar() : '';
-    return '<div class="classic"><div class="ss-dock"><header class="ss-head"><div class="ss-brand"><div class="ss-star" aria-hidden="true">★</div><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></div><div class="ss-tools"><button type="button" data-act="overlay" data-overlay="bug" aria-label="Bug report" title="Bug report">' + ico('bug') + '</button><button type="button" data-act="overlay" data-overlay="rest" aria-label="Rest timers" title="Rest timers"><span class="ss-zzz">Zzz</span></button><button type="button" data-act="overlay" data-overlay="tempo" aria-label="Tempo" title="Tempo">' + ico('drum') + '</button><button type="button" data-act="overlay" data-overlay="calc" aria-label="Calculator" title="1RM and plates">' + ico('calc') + '</button><button type="button" data-act="mini-open" data-pad="1" aria-label="Mini" title="Mini">' + ico('mini') + '</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1" aria-label="Settings" title="Settings">' + ico('gear') + '</button></div></header><nav class="ss-tabs" aria-label="Sections">' + classicTabs() + '</nav><div class="ss-routine"><div class="ss-routine-name"><h2>' + esc(routine ? routine.name : '') + '</h2></div><div class="ss-routine-actions">' + daySelect() + classicFinish() + '</div></div>' + duo + status + '</div><div class="ss-scroll">' + whatsStrip() + (ui.tab === 'log' ? '' : backLog()) + inner + '</div></div>';
+    return '<div class="classic"><div class="ss-dock"><header class="ss-head"><div class="ss-brand"><div class="ss-star" aria-hidden="true">★</div><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></div><div class="ss-tools"><button type="button" data-act="overlay" data-overlay="bug" aria-label="Bug report" title="Bug report">' + ico('bug') + '</button><button type="button" data-act="overlay" data-overlay="rest" aria-label="Rest timers" title="Rest timers"><span class="ss-zzz">Zzz</span></button><button type="button" data-act="overlay" data-overlay="tempo" aria-label="Tempo" title="Tempo">' + ico('drum') + '</button><button type="button" data-act="overlay" data-overlay="calc" aria-label="Calculator" title="1RM and plates">' + ico('calc') + '</button><button type="button" data-act="mini-open" data-pad="1" aria-label="Mini" title="Mini">' + ico('mini') + '</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1" aria-label="Settings" title="Settings">' + ico('gear') + '</button></div></header><nav class="ss-tabs" aria-label="Sections">' + classicTabs() + '</nav><div class="ss-routine"><div class="ss-routine-name"><h2>' + esc(routine ? routine.name : '') + '</h2></div><div class="ss-routine-actions">' + daySelect() + classicFinish() + '</div></div>' + duo + status + '</div><div class="ss-scroll">' + welcomeHTML() + whatsStrip() + (ui.tab === 'log' ? '' : backLog()) + inner + '</div></div>';
   }
   function vName() { return state.duoMode ? state.partnerNames[partner()] : 'Star Strength Classic'; }
   function curFocus() {
@@ -3172,7 +3195,7 @@ const exerciseDatabase = [
       ? '<h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">Set ' + (set.index + 1) + ' of ' + cur.sets.length + '</p><div class="entry"><label>Weight <span class="prev">PREV ' + esc(set.prev) + '</span>' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps <span class="prev">set ' + (set.index + 1) + '</span>' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label></div><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1">LOG SET</button>'
       : '<p>No exercise on this day.</p>';
     const main = ui.tab === 'log' ? logBody : '<div class="zone-panel">' + backLog() + panel() + '</div>';
-    return '<div class="zones">' + glyphs +
+    return '<div class="zones">' + welcomeHTML() + glyphs +
       '<header class="zone zone-head"><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></header>' +
       '<div class="zone zone-partners" role="group" aria-label="Active partner">' + partners + '</div>' +
       '<section class="zone zone-now">' + main + '</section>' +
@@ -3211,13 +3234,14 @@ const exerciseDatabase = [
     const more = '<button type="button" class="mini-more" data-act="mini-wide" aria-expanded="' + (ui.miniWide ? 'true' : 'false') + '">' + (ui.miniWide ? 'Less' : 'More') + '</button>';
     const fields = ui.miniWide ? '<div class="mini-fields">' + (set ? '<label>Lb ' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps ' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label><button type="button" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button><button type="button" data-act="manage" data-ex="' + id + '">Sets</button>' : '') + '<button type="button" data-act="back-log">Log</button><button type="button" data-act="overlay" data-overlay="settings">Settings</button></div>' : '';
     const chrome = '<div class="mini-top" data-drag="1">' + who + rest + '<button type="button" data-act="overlay-hide" aria-label="Close mini">×</button></div>';
-    if (shape === 'puck') return '<div class="mini-body"><div class="mini-puck" data-drag="1"><span>' + (set ? esc(set.weight || '—') : '—') + '</span>' + log + '<small>' + prev + '</small></div>' + who + more + fields + '</div>';
+    const shut = '<button type="button" class="mini-x" data-act="overlay-hide" aria-label="Close mini">×</button>';
+    if (shape === 'puck') return '<div class="mini-body">' + shut + '<div class="mini-puck" data-drag="1"><span>' + (set ? esc(set.weight || '—') : '—') + '</span>' + log + '<small>' + prev + '</small></div>' + who + more + fields + '</div>';
     if (shape === 'stepped-l') return '<div class="mini-body"><div class="mini-window">' + chrome + '<strong>' + name + '</strong><p>' + prev + '</p>' + log + more + fields + '</div></div>';
     if (shape === 'rail') return '<div class="mini-body"><div class="mini-slate">' + chrome + '<strong>' + name + '</strong><p>prev ' + prev + '</p>' + log + more + fields + '</div></div>';
     if (shape === 'ticket') return '<div class="mini-body"><div class="mini-led">' + chrome + '<em>' + (set ? esc(set.weight || '---') : '---') + '</em><p>' + prev + '</p>' + log + more + fields + '</div></div>';
     if (shape === 'capsule') return '<div class="mini-body"><div class="mini-pill">' + chrome + '<strong>' + name + '</strong><p>' + prev + '</p>' + log + more + fields + '</div></div>';
-    if (shape === 'cassette') return '<div class="mini-body"><div class="mini-disc" data-drag="1"><span>' + name + '</span>' + log + '</div><p>' + prev + ' ' + rest + '</p>' + who + more + fields + '</div>';
-    if (shape === 'flower') return '<div class="mini-body"><div class="mini-hexes"><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><div class="mini-core"><b>' + name + '</b><small>' + prev + '</small></div><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button>' + log + '</div>' + who + rest + more + fields + '</div>';
+    if (shape === 'cassette') return '<div class="mini-body">' + shut + '<div class="mini-disc" data-drag="1"><span>' + name + '</span>' + log + '</div><p>' + prev + ' ' + rest + '</p>' + who + more + fields + '</div>';
+    if (shape === 'flower') return '<div class="mini-body">' + shut + '<div class="mini-hexes"><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><div class="mini-core"><b>' + name + '</b><small>' + prev + '</small></div><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button>' + log + '</div>' + who + rest + more + fields + '</div>';
     return '<div class="mini-body"><div class="mini-card">' + chrome + '<strong>' + name + '</strong><p>prev ' + prev + '</p>' + log + more + fields + '</div></div>';
   }
   function popHTML() {
@@ -3267,7 +3291,8 @@ const exerciseDatabase = [
   function settingsBody(cat, sub) {
     if (cat === 'appearance' && sub === 'skin') {
       const skins = SIC.builtinSkins().concat(state.communitySkins || []).map(function (s) {
-        return '<button type="button" class="' + (state.skinId === s.slug ? 'on' : '') + '" data-act="skin" data-skin="' + esc(s.slug) + '"><strong>' + esc(s.name) + '</strong><span class="muted">' + esc(s.mini) + ' mini</span></button>';
+        const look = s.slug === 'starclassic' ? '' : '<span class="muted">Beta look</span>';
+        return '<button type="button" class="' + (state.skinId === s.slug ? 'on' : '') + '" data-act="skin" data-skin="' + esc(s.slug) + '"><strong>' + esc(s.name) + '</strong>' + look + '</button>';
       }).join('');
       return '<p>Pick the layout. Color variants for a skin are on Customize, and only for the skin that is selected.</p><div class="skin-pick">' + skins + '</div><label class="stack">Install a community skin file<input type="file" id="skin-file" accept="application/json" data-lockrender="1"></label>';
     }
@@ -3309,7 +3334,7 @@ const exerciseDatabase = [
     }
     if (cat === 'input') {
       const mini = native()
-        ? '<p>Android can draw the mini over other apps after you grant that system permission. The window is rectangular. This build was not checked on a device here.</p><div class="actions"><button type="button" data-act="overlay-perm">Permission</button><button type="button" data-act="overlay-show">Show mini</button><button type="button" data-act="overlay-hide">Hide</button></div>'
+        ? '<p>Android can draw the mini over other apps after you grant Display over other apps. The window is rectangular.</p><div class="actions"><button type="button" data-act="overlay-perm">Permission</button><button type="button" data-act="overlay-show">Show mini</button><button type="button" data-act="overlay-hide">Hide</button></div>'
         : '<p>On the web the mini stays in the page. A desktop browser may offer Picture-in-Picture. A phone browser cannot float over other apps.</p><button type="button" data-act="pip">Pop mini out</button>';
       return '<p>Prompts appear after you use a keyboard or a controller. A touch screen does not stamp "click" on every button.</p><button type="button" data-act="ps-swap">PlayStation confirm swap ' + (state.settings.psConfirmSwap ? 'on' : 'off') + '</button><button type="button" data-act="overlay" data-overlay="inputs">Test inputs</button><p>Last input: ' + esc(state.settings.lastInput) + '</p>' + mini;
     }
@@ -3321,13 +3346,19 @@ const exerciseDatabase = [
       return '<button type="button" class="switch ' + (state.settings.autosave ? 'on' : '') + '" data-act="toggle-path" data-path="autosave">Autosave ' + (state.settings.autosave ? 'on' : 'off') + '</button>' + (state.settings.autosave ? '' : '<p class="warn">Autosave is off. Use Save now.</p>') + '<div class="actions"><button type="button" class="primary" data-act="save-now">Save now</button><button type="button" data-act="restore-snap">Restore snapshot</button></div><p>' + state.snapshots.length + ' snapshots on this device. Live data is ' + (platformName() === 'android' ? 'app-private storage' : 'this site\'s localStorage') + '. Folder access: ' + esc(cap) + '.</p><p class="warn">Uninstall or a wiped browser can drop data that was not exported.</p>' + rows + '<button type="button" class="ghost" data-act="folder-reset">Use downloads only</button><input id="xml-file" type="file" accept=".xml,text/xml" class="hidden" data-lockrender="1">';
     }
     if (cat === 'notes') {
-      return '<p>Learning stays off until you turn it on. Web notices only fire while this page is open. Android alarms were not hardware-tested. Sneak peek idea: Ryan (ryno).</p><button type="button" class="switch ' + (state.settings.notifications.enabled ? 'on' : '') + '" data-act="toggle-path" data-path="notifications.enabled">' + (state.settings.notifications.enabled ? 'On' : 'Off') + '</button><button type="button" data-act="toggle-path" data-path="notifications.learning">Learning ' + (state.settings.notifications.learning ? 'on' : 'off') + '</button><label class="stack">Manual time<input data-lockrender="1" data-act="manual-time" type="time" value="' + esc(state.settings.notifications.manualTime || '') + '"></label><div class="grid-2"><label class="stack">Quiet from<input data-lockrender="1" data-act="quiet" data-which="start" type="time" value="' + esc(state.settings.quietHours.start) + '"></label><label class="stack">until<input data-lockrender="1" data-act="quiet" data-which="end" type="time" value="' + esc(state.settings.quietHours.end) + '"></label></div><button type="button" data-act="toggle-path" data-path="quietHours.enabled">Quiet hours ' + (state.settings.quietHours.enabled ? 'on' : 'off') + '</button><div class="actions"><button type="button" data-act="sneak">Preview sneak peek</button><button type="button" data-act="notify-permission">Notification permission</button></div>';
+      return '<p>Learning stays off until you turn it on. Web notices only show while this page is open. Android reminders use the system alarm. Sneak peek idea: Ryan (ryno).</p><button type="button" class="switch ' + (state.settings.notifications.enabled ? 'on' : '') + '" data-act="toggle-path" data-path="notifications.enabled">' + (state.settings.notifications.enabled ? 'On' : 'Off') + '</button><button type="button" data-act="toggle-path" data-path="notifications.learning">Learning ' + (state.settings.notifications.learning ? 'on' : 'off') + '</button><label class="stack">Manual time<input data-lockrender="1" data-act="manual-time" type="time" value="' + esc(state.settings.notifications.manualTime || '') + '"></label><div class="grid-2"><label class="stack">Quiet from<input data-lockrender="1" data-act="quiet" data-which="start" type="time" value="' + esc(state.settings.quietHours.start) + '"></label><label class="stack">until<input data-lockrender="1" data-act="quiet" data-which="end" type="time" value="' + esc(state.settings.quietHours.end) + '"></label></div><button type="button" data-act="toggle-path" data-path="quietHours.enabled">Quiet hours ' + (state.settings.quietHours.enabled ? 'on' : 'off') + '</button><div class="actions"><button type="button" data-act="sneak">Preview sneak peek</button><button type="button" data-act="notify-permission">Notification permission</button></div>';
     }
-    return '<p>SIC ' + esc(CFG.appVersion) + '. Bug reports are not live until the owner deploys the Sheet receiver.</p>' + bugBlock() + '<div class="actions"><button type="button" data-act="overlay" data-overlay="console">Open console</button><button type="button" data-act="clear-data">Clear SIC data</button></div>';
+    return '<h2>About</h2><p><strong>Strength in Character</strong> ' + esc(CFG.appVersion) + '</p><p class="welcome-tag">BE YOUR OWN BIGGEST FAN</p><h3>Credits</h3><p>The workout sneak-peek notification idea is from Ryan "ryno".</p><h3>Privacy</h3><p>All workout data stays on this device. Use Data &amp; files to export XML when you want a backup. Nothing here is uploaded.</p><h3>Report a bug</h3>' + bugBlock() + '<div class="actions"><button type="button" data-act="overlay" data-overlay="console">Open console</button><button type="button" data-act="clear-data">Clear data</button></div>';
+  }
+  function bugFields() {
+    return '<textarea id="bug-text" data-lockrender="1" rows="4" placeholder="What went wrong?"></textarea><input id="bug-contact" data-lockrender="1" placeholder="Optional contact"><input id="bug-company" class="hp" tabindex="-1" autocomplete="off" data-lockrender="1"><label><input id="bug-diag" type="checkbox" data-act="bug-diag"' + (ui.bugPreview ? ' checked' : '') + '> Include diagnostics</label><pre class="selectable" id="bug-preview">' + (ui.bugPreview ? esc(JSON.stringify(diagnostics(), null, 2)) : '') + '</pre>';
   }
   function bugBlock() {
+    if (CFG.bugReportEnabled !== true) {
+      return '<p class="bug-status" data-bug-status="disabled">Online bug reporting is coming soon. Share this report with the developer.</p>' + bugFields() + '<div class="actions"><button type="button" data-act="bug-save">Save on this device</button><button type="button" class="primary" data-act="bug-share">Share</button><button type="button" data-act="bug-copy">Copy</button></div><div id="bug-result" class="muted"></div>';
+    }
     const status = bugStatus();
-    return '<p class="bug-status" data-bug-status="' + status + '">Bug reports: ' + (status === 'unconfigured' ? 'not configured. Submit keeps the report on this device.' : status === 'pending' ? 'endpoint saved, waiting for a readable server ack.' : 'a previous ack was received.') + '</p><p class="muted">Reports go to the developer\'s Google Sheet after that owner deploys the Apps Script receiver. Google processes request metadata. Workout logs are not attached. Diagnostics are off unless you preview and include them. No email is required. Setup is in gas/SETUP.md. This build has not verified a live endpoint.</p><label class="selectable">Receiver URL <input data-lockrender="1" data-act="bug-endpoint" value="' + esc(state.settings.bugEndpoint || '') + '" placeholder="https://script.google.com/.../exec"></label><textarea id="bug-text" data-lockrender="1" rows="4" placeholder="What went wrong?"></textarea><input id="bug-contact" data-lockrender="1" placeholder="Optional contact"><input id="bug-company" class="hp" tabindex="-1" autocomplete="off" data-lockrender="1"><label><input id="bug-diag" type="checkbox" data-act="bug-diag"' + (ui.bugPreview ? ' checked' : '') + '> Include diagnostics</label><pre class="selectable" id="bug-preview">' + (ui.bugPreview ? esc(JSON.stringify(diagnostics(), null, 2)) : '') + '</pre><button type="button" class="primary" data-act="bug-submit">Submit</button><div id="bug-result" class="muted"></div>';
+    return '<p class="bug-status" data-bug-status="' + status + '">Bug reports: ' + (status === 'unconfigured' ? 'not configured. Submit keeps the report on this device.' : status === 'pending' ? 'endpoint saved, waiting for a readable server ack.' : 'a previous ack was received.') + '</p><p class="muted">Reports go to the developer\'s Google Sheet after that owner deploys the Apps Script receiver. Google processes request metadata. Workout logs are not attached. Diagnostics are off unless you preview and include them. No email is required. Setup is in gas/SETUP.md. This build has not verified a live endpoint.</p><label class="selectable">Receiver URL <input data-lockrender="1" data-act="bug-endpoint" value="' + esc(state.settings.bugEndpoint || '') + '" placeholder="https://script.google.com/.../exec"></label>' + bugFields() + '<button type="button" class="primary" data-act="bug-submit">Submit</button><div id="bug-result" class="muted"></div>';
   }
   function diagnostics() {
     return { version: CFG.appVersion, platform: platformName(), skin: state.skinId, viewport: window.innerWidth + 'x' + window.innerHeight, saveState: runtime.dirty ? 'dirty' : 'saved', lastError: runtime.lastError || '' };
@@ -3338,7 +3369,7 @@ const exerciseDatabase = [
     if (ui.overlay === 'overlay-ask') return '<div class="overlay"><div class="sheet"><h2>Float over other apps</h2><p>Mini mode is a small Strength in Character window that stays on top of other Android apps, like a chat head. Android asks for "Display over other apps". You can turn that off later in system settings. This is not available on iOS or in a phone browser.</p><div class="row"><button type="button" class="primary" data-act="overlay-perm">Continue to Android settings</button><button type="button" data-act="close-overlay">Not now</button></div></div></div>';
     if (ui.overlay === 'settings') return '<div class="overlay"><div class="sheet">' + settingsHTML() + '</div></div>';
     if (ui.overlay === 'bug') return '<div class="overlay"><div class="sheet"><div class="spread"><h2>Bug report</h2><button type="button" data-act="close-overlay">Close</button></div>' + bugBlock() + '</div></div>';
-    if (ui.overlay === 'whats') return '<div class="overlay"><div class="sheet"><h2>What\'s new</h2><p>Strength in Character. Star Strength Classic is the original spreadsheet skin.</p><ul><li>LOG SET records the current set and starts rest. FINISH WORKOUT is the only control that ends the session.</li><li>Eight layouts share one log: Classic, Pixel Forecast, Iron Dial, Chalk Board, Scoreboard, Transit Line, Vinyl Deck, and Hex Hive.</li><li>Mini mode stays inside the page on the web. A desktop browser may offer Document Picture-in-Picture. Android can request a system overlay. There is no iOS overlay and no cross-app mini on mobile web.</li><li>The workout sneak-peek idea is credited to Ryan (ryno).</li></ul><p class="warn">Bug reports stay on this device until the owner deploys the receiver in gas/SETUP.md and a real acknowledgement comes back.</p><button type="button" class="primary" data-act="whats-close">Continue</button></div></div>';
+    if (ui.overlay === 'whats') return '<div class="overlay"><div class="sheet"><h2>What\'s new</h2><p>Strength in Character ' + esc(CFG.appVersion) + '. Star Strength Classic is the spreadsheet. The other seven looks are marked Beta look and log the same way.</p><ul><li>LOG SET records the current set and starts rest. Finish is the control that ends the session.</li><li>Duo switches partners and keeps each person\'s previous numbers.</li><li>The workout sneak-peek idea is from Ryan "ryno".</li></ul><p>Online bug reporting is coming soon. Share a report from About if you need the developer to see it.</p><button type="button" class="primary" data-act="whats-close">Continue</button></div></div>';
     if (ui.overlay === 'rest') return '<div class="overlay"><div class="sheet"><div class="spread"><h2>Rest timers</h2><button type="button" data-act="close-overlay">Close</button></div>' + ['batman', 'robin'].filter(function (p) { return p === 'batman' || state.duoMode; }).map(function (p) {
       return '<div class="card"><strong>' + esc(state.partnerNames[p]) + '</strong><div class="timer-readout" data-rest="' + p + '">' + fmtClock(SIC.restRemaining(state, p, Date.now())) + '</div><div class="row">' + [30, 60, 90, 120, 180, 240].map(function (s) { return '<button type="button" data-act="rest-dur" data-partner="' + p + '" data-sec="' + s + '">' + s + 's</button>'; }).join('') + '</div><button type="button" data-act="rest-start" data-partner="' + p + '">Start</button> <button type="button" data-act="rest-stop" data-partner="' + p + '">Stop</button></div>';
     }).join('') + '</div></div>';
@@ -3637,24 +3668,49 @@ const exerciseDatabase = [
     return new Promise(function (resolve) { ui.dialog = { title: title, message: message, input: value != null, value: value || '', resolve: resolve }; render({ force: true }); });
   }
 
-  async function submitBug(message, contact) {
+  function rememberBug(message, contact) {
     const built = SIC.buildBugPayload({ message: message, contact: contact, company: ($('bug-company') && $('bug-company').value) || '', includeDiagnostics: ui.bugPreview, diagnostics: diagnostics(), version: CFG.appVersion, platform: platformName(), skin: state.skinId, id: ids('rpt').replace(/^id_/, 'rpt_') });
-    if (!built.ok) { toast(built.error === 'too-large' ? 'Report is over 4 KB.' : 'Add a description first.'); return; }
-    const last = Number(state.settings.bugLast || 0);
-    if (Date.now() - last < 15000) { toast('Wait a few seconds before another report.'); return; }
-    state.settings.bugLast = Date.now();
+    if (!built.ok) { toast(built.error === 'too-large' ? 'Report is over 4 KB.' : 'Add a description first.'); return null; }
     const queue = state.settings.bugQueue || [];
     queue.push(built.payload);
     state.settings.bugQueue = queue.slice(-30);
+    markDirty();
+    return built.payload;
+  }
+  function reportPlain(payload) {
+    const lines = ['Strength in Character bug report', 'Online bug reporting is coming soon. Share this report with the developer.', '', payload.message || ''];
+    if (payload.contact) lines.push('Contact: ' + payload.contact);
+    if (payload.diagnostics) lines.push(JSON.stringify(payload.diagnostics));
+    lines.push(payload.id || '');
+    return lines.join('\n');
+  }
+  async function shareReport(text) {
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Strength in Character bug report', text: text }); return 'shared'; }
+      catch (e) { if (e && e.name === 'AbortError') return 'cancelled'; }
+    }
+    const n = native();
+    if (n && n.shareText) {
+      try { n.shareText('Strength in Character bug report', text); return 'shared'; } catch (e) {}
+    }
+    return (await copyText(text)) ? 'copied' : 'saved';
+  }
+  async function submitBug(message, contact) {
+    if (CFG.bugReportEnabled !== true) return;
+    const built = rememberBug(message, contact);
+    if (!built) return;
+    const last = Number(state.settings.bugLast || 0);
+    if (Date.now() - last < 15000) { toast('Wait a few seconds before another report.'); return; }
+    state.settings.bugLast = Date.now();
     const endpoint = bugEndpoint();
     if (!endpoint) {
-      const note = $('bug-result'); if (note) note.textContent = 'Not configured — saved on this device as ' + built.payload.id + '.';
-      toast('Saved on this device. Receiver is not deployed.'); markDirty(); return;
+      const note = $('bug-result'); if (note) note.textContent = 'Not configured — saved on this device as ' + built.id + '.';
+      toast('Saved on this device. Receiver is not deployed.'); return;
     }
     try {
-      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(built.payload), redirect: 'follow' });
+      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(built), redirect: 'follow' });
       const text = await res.text();
-      const ack = SIC.interpretBugResponse(text, built.payload.id);
+      const ack = SIC.interpretBugResponse(text, built.id);
       const note = $('bug-result');
       if (!ack.confirmed) {
         if (note) note.textContent = 'Not confirmed — saved on this device, will retry. (' + ack.reason + ')';
@@ -3753,6 +3809,7 @@ const exerciseDatabase = [
     if (act === 'overlay') { openOverlay(t.dataset.overlay); return; }
     if (act === 'close-overlay' || act === 'alert-close') { ui.overlay = null; render({ force: true }); return; }
     if (act === 'whats-close') { try { storage.setItem('ss_seen_version', CFG.appVersion); } catch (e) {} ui.whatsBar = false; ui.overlay = null; render({ force: true }); return; }
+    if (act === 'welcome-skip') { try { storage.setItem('ss_seen_welcome', '1'); storage.setItem('ss_seen_version', CFG.appVersion); } catch (e) {} ui.welcome = false; ui.whatsBar = false; render({ force: true }); return; }
     if (act === 'summary-close') { ui.overlay = null; ui.tab = 'history'; render({ force: true }); return; }
     if (act === 'mini-wide') { ui.miniWide = !ui.miniWide; render({ force: true }); return; }
     if (act === 'mini-open') {
@@ -3837,7 +3894,17 @@ const exerciseDatabase = [
     if (act === 'builder-ex-add') { ui.builder.days[Number(t.dataset.i)].exercises.push(''); render({ force: true }); return; }
     if (act === 'builder-save') { saveBuilder(); return; }
     if (act === 'share-import') { importShare(); return; }
-    if (act === 'bug-submit') { submitBug($('bug-text') ? $('bug-text').value : '', $('bug-contact') ? $('bug-contact').value : ''); return; }
+    if (act === 'bug-save' || act === 'bug-share' || act === 'bug-copy') {
+      const payload = rememberBug($('bug-text') ? $('bug-text').value : '', $('bug-contact') ? $('bug-contact').value : '');
+      if (!payload) return;
+      const note = $('bug-result');
+      const text = reportPlain(payload);
+      if (act === 'bug-save') { if (note) note.textContent = 'Saved on this device. Online bug reporting is coming soon.'; toast('Saved on this device.'); return; }
+      if (act === 'bug-copy') { copyText(text).then(function (ok) { const el = $('bug-result'); if (el) el.textContent = ok ? 'Copied. Online bug reporting is coming soon. Share this report with the developer.' : 'Saved on this device. Copy was not available.'; toast(ok ? 'Copied.' : 'Saved on this device.'); }); return; }
+      shareReport(text).then(function (how) { const el = $('bug-result'); if (el) el.textContent = how === 'shared' ? 'Share sheet opened. Online bug reporting is coming soon.' : how === 'copied' ? 'Copied. Online bug reporting is coming soon. Share this report with the developer.' : how === 'cancelled' ? 'Saved on this device.' : 'Saved on this device.'; });
+      return;
+    }
+    if (act === 'bug-submit') { if (CFG.bugReportEnabled === true) submitBug($('bug-text') ? $('bug-text').value : '', $('bug-contact') ? $('bug-contact').value : ''); return; }
     if (act === 'sneak') { ui.overlay = 'sneak'; render({ force: true }); return; }
     if (act === 'notify-permission') { if (window.Notification && Notification.requestPermission) Notification.requestPermission(); else toast('This browser has no notification API.'); return; }
     if (act === 'folder') { chooseFolder(t.dataset.kind); return; }
@@ -4140,6 +4207,7 @@ const exerciseDatabase = [
 
   let drag = null;
   function onPointerDown(e) {
+    if (e.target.closest && e.target.closest('button, input, a, select, textarea')) return;
     const dragHandle = e.target.closest && e.target.closest('[data-drag]');
     if (!dragHandle) return;
     const mini = $('mini-root');

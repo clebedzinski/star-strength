@@ -236,6 +236,12 @@ body.skin-starclassic #app {
 }
 .classic .pad-glyphs { font-size: 10px; color: var(--muted); padding-bottom: 2px; }
 .ss-scroll { flex: 1; min-height: 0; overflow: auto; padding-top: 12px; padding-bottom: 28px; display: flex; flex-direction: column; gap: 12px; }
+.welcome { background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+.welcome h2 { margin: 0; font-size: 18px; }
+.welcome-tag { margin: 2px 0 8px; color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; }
+.welcome ol { margin: 0 0 8px; padding-left: 18px; }
+.welcome li { margin: 4px 0; }
+.welcome button { min-width: 0; }
 .whats-strip {
   display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px;
   background: var(--card); border: 1px solid var(--border); font-size: 12px; font-weight: 800;
@@ -664,10 +670,14 @@ label.hex input { background: #120e08; color: #fff6e4; border: 2px solid #f0b429
 .tempo-lamp { min-height: 44px; font-weight: 900; }
 .zone-tempo[data-tempo-live="on"] .tempo-lamp { outline: 3px solid var(--accent); }
 .zone-nav { position: sticky; bottom: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; background: var(--bg); padding-top: 8px; z-index: 5; }
+@media (max-height: 500px) {
+  .zone-nav { position: static; }
+}
 .zone-nav button { min-width: 0; min-height: 44px; font-size: 12px; }
 .pad-glyphs { font-size: 11px; font-weight: 800; }
 body.show-pad [data-pad="1"].is-pad { outline: 3px solid var(--accent); outline-offset: 2px; }
 #mini-root { pointer-events: auto; }
+.mini-x { position: absolute; top: 4px; right: 4px; width: 28px; min-width: 28px; height: 28px; min-height: 28px; padding: 0; z-index: 2; }
 .escape-hatch { position: fixed; right: 8px; bottom: 8px; z-index: 80; display: flex; gap: 6px; }
 .escape-hatch button { min-width: 44px; min-height: 44px; padding: 8px 10px; font-weight: 900; box-shadow: 0 4px 12px rgba(0,0,0,.35); }
 .taskbar .px-settings { background: #ffe14a; color: #1a120c; }

@@ -11,34 +11,42 @@ async function openSkin(page, skin) {
   await page.waitForSelector('.log-set');
 }
 
+const viewports = [
+  { tag: '390', width: 390, height: 844 },
+  { tag: '360', width: 360, height: 740 },
+  { tag: 'land', width: 740, height: 360 }
+];
+
 test('core flow works in every skin', async () => {
   const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] });
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
   const problems = [];
   try {
+    for (const vp of viewports) {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
     for (const skin of skins) {
       await openSkin(page, skin);
       const title = await page.locator('h1').evaluate((el) => ({ text: el.textContent, clipped: el.scrollWidth > el.clientWidth + 2 }));
-      if (!title.text.includes('Strength in Character') || title.clipped) problems.push(skin + ' title ' + JSON.stringify(title));
+      if (!title.text.includes('Strength in Character') || title.clipped) problems.push(vp.tag + ' ' + skin + ' title ' + JSON.stringify(title));
       for (let i = 0; i < 3; i++) {
         await page.locator('.log-set').click();
         await page.waitForTimeout(500);
       }
       const name = await page.locator('.ex-name').innerText();
-      if (!/Incline/i.test(name)) problems.push(skin + ' did not advance after 3 sets: ' + name);
+      if (!/Incline/i.test(name)) problems.push(vp.tag + ' ' + skin + ' did not advance after 3 sets: ' + name);
       const resting = await page.locator('.zone-rest').getAttribute('data-resting');
       const count = await page.locator('.rest-count').innerText();
-      if (resting !== 'true' || count === '00:00') problems.push(skin + ' rest not visible ' + resting + ' ' + count);
+      if (resting !== 'true' || count === '00:00') problems.push(vp.tag + ' ' + skin + ' rest not visible ' + resting + ' ' + count);
       await page.getByRole('button', { name: 'Skip' }).click();
       await page.waitForTimeout(50);
-      if (await page.locator('.zone-rest').getAttribute('data-resting') !== 'false') problems.push(skin + ' skip failed');
+      if (await page.locator('.zone-rest').getAttribute('data-resting') !== 'false') problems.push(vp.tag + ' ' + skin + ' skip failed');
       await page.getByRole('button', { name: 'Turn rest off' }).click();
       await page.locator('.log-set').click();
       await page.waitForTimeout(500);
-      if (await page.locator('.zone-rest').getAttribute('data-resting') !== 'false') problems.push(skin + ' rest stayed on after disable');
+      if (await page.locator('.zone-rest').getAttribute('data-resting') !== 'false') problems.push(vp.tag + ' ' + skin + ' rest stayed on after disable');
       await page.getByRole('button', { name: 'Tempo on' }).click();
-      if (await page.locator('.zone-tempo').getAttribute('data-tempo-live') !== 'on') problems.push(skin + ' tempo not visible');
-      if (await page.locator('[data-metro]').count() < 1) problems.push(skin + ' metronome missing');
+      if (await page.locator('.zone-tempo').getAttribute('data-tempo-live') !== 'on') problems.push(vp.tag + ' ' + skin + ' tempo not visible');
+      if (await page.locator('[data-metro]').count() < 1) problems.push(vp.tag + ' ' + skin + ' metronome missing');
       await page.getByRole('button', { name: 'Settings' }).click();
       await page.locator('.sheet [data-act="back-log"]').click();
       for (const tab of ['Routines', 'History', 'Stats']) {
@@ -69,7 +77,10 @@ test('core flow works in every skin', async () => {
         }
         return hits.slice(0, 4);
       });
-      if (overlap.length) problems.push(skin + ' overlap ' + overlap.join('; '));
+      if (overlap.length) problems.push(vp.tag + ' ' + skin + ' overlap ' + overlap.join('; '));
+      await page.getByRole('button', { name: 'Mini', exact: true }).click();
+      const miniOpen = await page.locator('#mini-root').evaluate((el) => !el.hidden && el.getBoundingClientRect().width > 0);
+      if (!miniOpen) problems.push(vp.tag + ' ' + skin + ' mini did not open');
       const miniBlocks = await page.evaluate(() => {
         const mini = document.getElementById('mini-root');
         const log = document.querySelector('.log-set');
@@ -80,8 +91,13 @@ test('core flow works in every skin', async () => {
         const h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
         return w > 0 && h > 0;
       });
-      if (miniBlocks) problems.push(skin + ' mini covers LOG SET');
+      if (miniBlocks) problems.push(vp.tag + ' ' + skin + ' mini covers LOG SET');
+      await page.locator('#mini-root [aria-label="Close mini"]').click();
+      const miniClosed = await page.locator('#mini-root').evaluate((el) => el.hidden);
+      if (!miniClosed) problems.push(vp.tag + ' ' + skin + ' mini did not close');
     }
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
     await openSkin(page, 'starclassic');
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.locator('.set-card[data-cat="workout"]').click();
@@ -101,12 +117,12 @@ test('core flow works in every skin', async () => {
   assert.deepEqual(problems, []);
 });
 
-test('gamepad and Android key codes drive two skins', async () => {
+test('gamepad and Android key codes drive every skin', async () => {
   const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] });
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   const problems = [];
   try {
-    for (const skin of ['starclassic', 'transitline']) {
+    for (const skin of skins) {
       await openSkin(page, skin);
       await page.evaluate(() => {
         let down = -1;

@@ -10,8 +10,8 @@ android {
         applicationId "app.sic.strength"
         minSdk 26
         targetSdk 34
-        versionCode 13
-        versionName "1.0.12-sic-debug"
+        versionCode 14
+        versionName "1.1.0"
     }
 
     signingConfigs {
@@ -31,6 +31,13 @@ android {
 
     buildTypes {
         debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            debuggable false
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.debug
         }
     }

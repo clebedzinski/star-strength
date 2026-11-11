@@ -1322,6 +1322,7 @@
   }
   function bugFeatureStatus(config) {
     config = config || {};
+    if (config.enabled === false) return 'disabled';
     if (!config.endpoint) return 'unconfigured';
     if (!config.verified) return 'pending';
     return 'ready';

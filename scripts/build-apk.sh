@@ -12,13 +12,11 @@ cp "$ROOT/index.html" "$ASSETS/index.html"
 cp "$ROOT/css/sic.css" "$ASSETS/css/sic.css"
 cp "$ROOT/js/"*.js "$ASSETS/js/"
 cd "$ROOT/android"
-"$GRADLE" --no-daemon assembleDebug
-APK="$ROOT/android/app/build/outputs/apk/debug/app-debug.apk"
-cp "$APK" "$ROOT/artifacts/sic-debug.apk"
-echo "APK $ROOT/artifacts/sic-debug.apk"
+"$GRADLE" --no-daemon assembleRelease
+APK="$ROOT/android/app/build/outputs/apk/release/app-release.apk"
+cp "$APK" "$ROOT/artifacts/strength-in-character-1.1.0.apk"
+echo "APK $ROOT/artifacts/strength-in-character-1.1.0.apk"
 if [ -x "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" ]; then
-  "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" verify --print-certs "$ROOT/artifacts/sic-debug.apk" || true
+  "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" verify --print-certs "$ROOT/artifacts/strength-in-character-1.1.0.apk" || true
 fi
-keytool -printcert -jarfile "$ROOT/artifacts/sic-debug.apk" || true
-echo "Debug-signed. Install with: adb install -r artifacts/sic-debug.apk"
-echo "A different signature cannot update this package in place."
+echo "Release build, same debug keystore as earlier installs. adb install -r artifacts/strength-in-character-1.1.0.apk"
