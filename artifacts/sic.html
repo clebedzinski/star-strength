@@ -532,16 +532,34 @@ label.hex input { width: 70px; min-height: 44px; text-align: center; background:
 .hex.on { outline: 3px solid #f0b429; }
 
 /* Mini */
-#mini-root { position: fixed; z-index: 40; width: min(240px, calc(100vw - 16px)); max-height: calc(100vh - 24px); overflow: auto; left: 8px; bottom: 8px; }
-#mini-root .mini-body { padding: 8px; display: flex; flex-direction: column; gap: 6px; background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 16px; }
-#mini-root.shape-stepped-l .mini-body { background: #efe7c6; color: #1a120c; border: 3px solid #24160f; border-radius: 0; }
-#mini-root.shape-puck .mini-body { border-radius: 24px; background: #1c2128; color: #f4f1ea; }
-#mini-root.shape-rail .mini-body { background: #f7f4ea; color: #1e293b; border-left: 8px solid #1d4ed8; border-radius: 4px; }
-#mini-root.shape-ticket .mini-body { background: #fff4e8; color: #1a0a00; border-radius: 4px; }
-#mini-root.shape-capsule .mini-body { background: #1e293b; color: #f8fafc; border-radius: 28px; }
-#mini-root.shape-cassette .mini-body { background: #3a291f; color: #f6efe6; box-shadow: inset 0 0 0 3px #e7a05a; }
-#mini-root.shape-flower .mini-body { background: #2a2116; color: #fff6e4; border-radius: 18px; }
-#mini-root button, #mini-root input, #mini-root select { min-height: 44px; }
+#mini-root { position: fixed; z-index: 40; width: 36vw; min-width: 128px; max-width: 168px; max-height: 42vh; overflow: auto; left: 8px; bottom: 8px; background: transparent; }
+#mini-root .mini-body { padding: 0; display: flex; flex-direction: column; gap: 4px; background: transparent; color: var(--text); border: 0; }
+#mini-root button, #mini-root input { min-height: 32px; min-width: 32px; font-size: 12px; }
+.mini-top, .mini-fields { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.mini-who.batman { color: #111; background: #f59e0b; }
+.mini-who.robin { color: #fff; background: #2563eb; }
+.mini-who { border-radius: 999px; padding: 2px 6px; font-size: 10px; }
+.mini-log { font-weight: 900; }
+.mini-card { background: #1e293b; color: #f8fafc; border: 1px solid #f59e0b; border-radius: 12px; padding: 6px; box-shadow: 0 8px 16px rgba(0,0,0,.35); }
+#mini-root.shape-stepped-l { width: 40vw; max-width: 180px; }
+.mini-window { background: #efe7c6; color: #1a120c; border: 3px solid #24160f; box-shadow: 4px 4px 0 #ff4fa3; padding: 6px; font-family: "Press Start 2P", monospace; font-size: 8px; }
+#mini-root.shape-puck { width: 132px; height: 132px; max-height: 132px; overflow: visible; }
+.mini-puck { width: 132px; height: 132px; border-radius: 50%; display: grid; place-items: center; text-align: center; background: radial-gradient(circle at 35% 30%, #9aa3ad, #1c2128 55%, #0c0e12); color: #ffb020; box-shadow: inset 0 0 0 8px #2a3038, 0 10px 18px rgba(0,0,0,.45); }
+.mini-puck span { font-size: 22px; font-weight: 900; }
+#mini-root.shape-rail { width: 40vw; max-width: 176px; }
+.mini-slate { background: #f7f4ea; color: #1e3a8a; border: 8px solid #8a5a32; border-radius: 4px; padding: 6px; font-family: "Permanent Marker", cursive; box-shadow: 0 8px 14px rgba(0,0,0,.25); }
+#mini-root.shape-ticket { width: 42vw; max-width: 200px; min-width: 150px; }
+.mini-led { background: linear-gradient(#2a0a0e, #120406); color: #ff9f1a; border: 4px solid #7f1d1d; border-radius: 8px; padding: 6px; font-family: "Share Tech Mono", monospace; }
+.mini-led em { font-style: normal; font-size: 28px; text-shadow: 0 0 10px #ff6a00; display: block; }
+#mini-root.shape-capsule { width: 34vw; max-width: 150px; }
+.mini-pill { background: #1e293b; color: #fff7ed; border: 3px solid #e4572e; border-radius: 999px; padding: 10px 12px; }
+#mini-root.shape-cassette { width: 140px; height: auto; }
+.mini-disc { width: 120px; height: 120px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; text-align: center; background: radial-gradient(circle at 50% 50%, #f6efe6 0 16%, #1a100c 17% 28%, #3a291f 29% 70%, #120e0c 71%); color: #1a100c; box-shadow: 0 8px 0 #6b4b34; }
+#mini-root.shape-flower { width: 42vw; max-width: 190px; }
+.mini-hexes { display: grid; grid-template-columns: 44px 1fr 44px; gap: 4px; align-items: center; }
+.mini-hexes button, .mini-core { clip-path: polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0 50%); background: #e8a317; color: #1a1408; border: 0; min-height: 48px; }
+.mini-core { background: #1a140c; color: #fff6e4; text-align: center; padding: 6px; }
+.mini-hexes .mini-log { grid-column: 1 / -1; background: #0f766e; color: #042f2e; clip-path: none; border-radius: 8px; }
 
 .who { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
 .who-btn { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; border-width: 2px; font-weight: 900; }
@@ -618,7 +636,8 @@ label.hex input { background: #120e08; color: #fff6e4; border: 2px solid #f0b429
   * { animation: none !important; transition: none !important; }
 }
 body.sic.overlay-only #app, body.sic.overlay-only #chrome-bar { display: none !important; }
-body.sic.overlay-only #mini-root { position: relative; left: auto !important; top: auto !important; bottom: auto; width: 100%; max-height: none; display: block !important; }
+body.sic.overlay-only { background: transparent; }
+body.sic.overlay-only #mini-root { position: relative; left: auto !important; top: auto !important; bottom: auto; margin: 8px auto; max-height: none; display: block !important; }
 
 /* Mockup pass: textures and composition for the seven skins. */
 .skin-pixelforecast { background: #070b22; font-family: "Press Start 2P", ui-monospace, monospace; }
@@ -660,6 +679,9 @@ body.sic.overlay-only #mini-root { position: relative; left: auto !important; to
 .dial .hub-stack .hub small { display: block; font-size: 8px; letter-spacing: 0; }
 .knob { display: flex; gap: 6px; }
 .knob button { width: 44px; height: 44px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #6b7280, #111827); color: #fff; border: 2px solid #9ca3af; }
+.dial-wrap { position: relative; margin-bottom: 48px; }
+.rep-dial { position: absolute; left: 50%; bottom: -36px; transform: translateX(-50%); width: 116px; height: 78px; border-radius: 40px; display: flex; align-items: center; justify-content: center; gap: 6px; background: radial-gradient(circle at 35% 30%, #b6bec6, #2a3038 60%, #121418); color: #f8fafc; box-shadow: inset 0 0 0 5px #3f4650, 0 8px 12px rgba(0,0,0,.4); }
+.rep-dial button { width: 40px; height: 40px; border-radius: 50%; background: #1c2128; color: #fff; border: 2px solid #9ca3af; }
 .iron-foot { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .iron-foot button, .iron-day button { min-height: 44px; background: #1c2128; color: #f4f1ea; border-color: #8a9098; }
 .skin-chalkboard { background: #8a5a32; }
@@ -680,7 +702,7 @@ body.sic.overlay-only #mini-root { position: relative; left: auto !important; to
 .marquee { display: flex; align-items: center; justify-content: space-between; gap: 6px; background: #7f1d1d; color: #fff; padding: 6px 8px; font-weight: 900; letter-spacing: 0.12em; }
 .marquee b { background: #111; color: #ffb020; min-width: 44px; min-height: 44px; display: grid; place-items: center; }
 .jumbo { display: grid; grid-template-columns: 1fr 52px; gap: 6px; background: #070203; margin: 8px; padding: 8px; box-shadow: inset 0 0 24px rgba(255,122,24,.25); }
-.jumbo input, .rep-led input { font-family: "Share Tech Mono", ui-monospace, monospace; font-size: 42px; color: #ff9f1a; background: transparent; border: 0; text-align: center; text-shadow: 0 0 12px #ff6a00; min-height: 64px; }
+.jumbo input, .rep-led input { font-family: "Share Tech Mono", ui-monospace, monospace; font-size: 68px; color: #ffb020; background: transparent; border: 0; text-align: center; text-shadow: 0 0 8px #ff6a00, 0 0 22px #ff4500; min-height: 84px; letter-spacing: 0.06em; }
 .jumbo-side, .rep-led { display: flex; gap: 6px; align-items: center; justify-content: center; }
 .jumbo-side button, .rep-led button, .session-strip button, .score-links button { min-height: 44px; min-width: 44px; background: #3a0d12; color: #ffb020; border: 1px solid #7f1d1d; }
 .buzzer { background: linear-gradient(#ef4444, #991b1b); color: #fff; clip-path: none; border-radius: 8px; box-shadow: 0 6px 0 #450a0a; }
@@ -690,7 +712,7 @@ body.sic.overlay-only #mini-root { position: relative; left: auto !important; to
 .transit.map { background: #f7efe4; color: #2a2118; }
 .map-grid { display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 8px; align-items: start; }
 .capsule { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; justify-content: center; }
-.route { list-style: none; margin: 8px 0 8px 16px; padding: 0 0 0 10px; border-left: 4px solid #e4572e; display: flex; flex-direction: column; gap: 8px; }
+.route { list-style: none; margin: 12px 0 12px 18px; padding: 8px 0 8px 12px; border-left: 6px solid #e4572e; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; min-height: 460px; background: repeating-linear-gradient(#f7efe4, #f7efe4 18px, #efe2d0 19px); }
 .stop-dot { display: flex; align-items: center; gap: 6px; background: transparent; border: 0; color: #7c2d12; min-height: 44px; padding: 0; }
 .stop-dot i { width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 3px solid #e4572e; margin-left: -20px; }
 .stop-dot.on i { background: #e4572e; }
@@ -706,8 +728,8 @@ body.sic.overlay-only #mini-root { position: relative; left: auto !important; to
 .vinyl-page .platter { width: 100%; background: radial-gradient(circle at 50% 50%, #1a100c 0 18%, #3a291f 19% 22%, #1a100c 23% 34%, #2a2118 35% 48%, #1a100c 49% 62%, #3a291f 63% 78%, #120e0c 79%); box-shadow: 0 8px 0 #1a100c; }
 .mixer-face { display: flex; flex-direction: column; gap: 6px; }
 .deck-title { margin: 0; text-align: center; color: #f6efe6; font-size: 11px; letter-spacing: 0.14em; }
-.faders { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.fader { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #f6efe6; font-size: 10px; letter-spacing: 0.12em; }
+.faders { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-height: 210px; }
+.fader { display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 4px; height: 210px; color: #f6efe6; font-size: 10px; letter-spacing: 0.12em; background: linear-gradient(#e7a05a, #e7a05a) center/6px 70% no-repeat; }
 .fader input { width: 100%; min-height: 44px; background: #1a100c; color: #f6efe6; border: 1px solid #e7a05a; text-align: center; }
 .fader button { width: 44px; height: 44px; border-radius: 6px; background: #e7a05a; color: #1a100c; border: 0; }
 .vinyl-log { width: 100%; min-height: 48px; background: #e7a0b4; color: #1a100c; border: 0; border-radius: 8px; font-weight: 900; box-shadow: 0 4px 0 #9d5368; }
@@ -742,7 +764,7 @@ body.sic.overlay-only #mini-root { position: relative; left: auto !important; to
 /* Owner deployment fills bugReportEndpoint only after gas/SETUP.md is done.
    Leave verified false until a real response {ok:true,id} has been read back. */
 window.SIC_CONFIG = {
-  appVersion: '1.0.8-sic',
+  appVersion: '1.0.9-sic',
   bugReportEndpoint: '',
   bugReportVerified: false
 };
@@ -2522,6 +2544,7 @@ const exerciseDatabase = [
     overlay: null,
     whatsBar: false,
     flipped: false,
+    miniWide: false,
     dialog: null,
     historyReverse: false,
     historyMuscle: 'all',
@@ -2934,7 +2957,7 @@ const exerciseDatabase = [
     return numInput(ex.id, set.id, field, field === 'weight' ? set.weight : set.reps, '');
   }
   function pixelTaskbar() {
-    return '<nav class="taskbar" aria-label="Pixel taskbar"><button type="button" data-act="tab" data-tab="log" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" aria-current="' + (ui.tab === 'routines' ? 'true' : 'false') + '">Routines</button><button type="button" data-act="tab" data-tab="history" aria-current="' + (ui.tab === 'history' ? 'true' : 'false') + '">History</button><button type="button" data-act="tab" data-tab="analytics" aria-current="' + (ui.tab === 'analytics' ? 'true' : 'false') + '">Analytics</button><button type="button" class="px-end" data-act="finish" aria-label="Finish workout">End</button><span class="px-clock">' + clock() + '</span></nav>';
+    return '<nav class="taskbar" aria-label="Pixel taskbar"><button type="button" data-act="tab" data-tab="log" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" aria-current="' + (ui.tab === 'routines' ? 'true' : 'false') + '">Routines</button><button type="button" data-act="tab" data-tab="history" aria-current="' + (ui.tab === 'history' ? 'true' : 'false') + '">History</button><button type="button" data-act="tab" data-tab="analytics" aria-current="' + (ui.tab === 'analytics' ? 'true' : 'false') + '">Analytics</button><button type="button" data-act="mini-open">Mini</button><button type="button" class="px-end" data-act="finish" aria-label="Finish workout">End</button><span class="px-clock">' + clock() + '</span></nav>';
   }
   function pixelShell(inner) {
     if (ui.tab !== 'log') return '<div class="pixel-desk">' + backLog() + partnerBar() + '<section class="win px-win"><header><span>' + esc(ui.tab.toUpperCase()) + '</span></header><div class="body">' + inner + '</div></section>' + pixelTaskbar() + '</div>';
@@ -2951,10 +2974,10 @@ const exerciseDatabase = [
     const id = cur ? esc(cur.id) : '', sid = set ? esc(set.id) : '';
     const pct = viewCache.rest.batman > 0 ? Math.max(0, Math.min(1, viewCache.rest.batman / ((state.rest.batman.total || state.rest.batman.duration) || 1))) : 0.08;
     const dash = Math.round(Math.max(0.08, pct) * 276);
-    return '<div class="dial-stage metal">' + partnerBar() + '<p class="iron-kicker">' + esc(cur ? cur.name : 'No plate') + ' · last ' + esc(set ? set.prev : '—') + '</p><div class="dial-wrap"><div class="dial"><svg class="rim" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="steel" cx="40%" cy="35%"><stop offset="0" stop-color="#8b939c"/><stop offset="1" stop-color="#1c2128"/></radialGradient></defs><circle cx="50" cy="50" r="48" fill="url(#steel)"/><circle cx="50" cy="50" r="44" fill="none" stroke="#2a3038" stroke-width="8"/><circle cx="50" cy="50" r="40" fill="none" stroke="#ff7a18" stroke-width="3" stroke-dasharray="' + dash + ' 251" stroke-linecap="round" transform="rotate(-90 50 50)"/></svg><button type="button" class="bolt l" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><button type="button" class="bolt r" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button><div class="hub-stack"><label>LBS' + typed(cur, set, 'weight') + '</label><button type="button" class="hub" data-act="log-set">LOG IT<small>tap to record</small></button><label>REPS' + typed(cur, set, 'reps') + '</label><div class="knob"><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="-1" aria-label="Fewer reps">−</button><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="1" aria-label="More reps">+</button></div></div></div></div><div class="iron-foot">' + dayRocker('iron-day') + '<button type="button" data-act="cycle-ex" data-dir="1">Next</button><button type="button" data-act="add-set" data-ex="' + id + '">Add set</button><button type="button" class="iron-end" data-act="finish">End</button><button type="button" data-act="mini-open" aria-label="Mini">Mini</button><button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings">Settings</button></div></div>';
+    return '<div class="dial-stage metal">' + partnerBar() + '<p class="iron-kicker">' + esc(cur ? cur.name : 'No plate') + ' · last ' + esc(set ? set.prev : '—') + '</p><div class="dial-wrap"><div class="dial"><svg class="rim" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="steel" cx="40%" cy="35%"><stop offset="0" stop-color="#8b939c"/><stop offset="1" stop-color="#1c2128"/></radialGradient></defs><circle cx="50" cy="50" r="48" fill="url(#steel)"/><circle cx="50" cy="50" r="44" fill="none" stroke="#2a3038" stroke-width="8"/><circle cx="50" cy="50" r="40" fill="none" stroke="#ff7a18" stroke-width="3" stroke-dasharray="' + dash + ' 251" stroke-linecap="round" transform="rotate(-90 50 50)"/></svg><button type="button" class="bolt l" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><button type="button" class="bolt r" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button><div class="hub-stack"><label>LBS' + typed(cur, set, 'weight') + '</label><button type="button" class="hub" data-act="log-set">LOG IT<small>tap to record</small></button><label>REPS' + typed(cur, set, 'reps') + '</label></div></div></div><div class="rep-dial"><span>REPS</span><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="-1" aria-label="Fewer reps">−</button><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="1" aria-label="More reps">+</button></div><div class="iron-foot">' + dayRocker('iron-day') + '<button type="button" data-act="cycle-ex" data-dir="1">Next</button><button type="button" data-act="add-set" data-ex="' + id + '">Add set</button><button type="button" class="iron-end" data-act="finish">End</button><button type="button" data-act="mini-open" aria-label="Mini">Mini</button><button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings">Settings</button></div></div>';
   }
   function chalkShell(inner) {
-    const notes = '<div class="stickies"><button type="button" class="sticky y" data-act="tab" data-tab="log">Log</button><button type="button" class="sticky p" data-act="tab" data-tab="history">History</button><button type="button" class="sticky g" data-act="tab" data-tab="analytics">Stats</button><button type="button" class="sticky r" data-act="log-set">Log it</button><button type="button" class="sticky b" data-act="overlay" data-overlay="settings">Settings</button><button type="button" class="sticky y" data-act="finish">Done</button></div>';
+    const notes = '<div class="stickies"><button type="button" class="sticky y" data-act="tab" data-tab="log">Log</button><button type="button" class="sticky p" data-act="tab" data-tab="history">History</button><button type="button" class="sticky g" data-act="tab" data-tab="analytics">Stats</button><button type="button" class="sticky r" data-act="log-set">Log it</button><button type="button" class="sticky b" data-act="overlay" data-overlay="settings">Settings</button><button type="button" class="sticky y" data-act="mini-open">Mini</button><button type="button" class="sticky p" data-act="finish">Done</button></div>';
     if (ui.tab !== 'log') return '<div class="wb-frame"><div class="board">' + backLog() + partnerBar() + '<h1>Chalk board</h1>' + notes + inner + '</div></div>';
     const rows = viewCache.exercises.map(function (ex) {
       const s = ex.sets.find(function (x) { return x.current; }) || ex.sets[0];
@@ -2999,7 +3022,7 @@ const exerciseDatabase = [
     const cells = viewCache.exercises.slice(0, 6).map(function (e) {
       return '<button type="button" class="hex tiny' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + esc(e.name.split(' ')[0]) + '</button>';
     }).join('');
-    return '<div class="hive honey">' + partnerBar() + '<div class="flower mock"><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−<small>lbs</small></button><button type="button" class="hex" data-act="cycle-ex" data-dir="-1">‹</button><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+<small>lbs</small></button><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="-1" aria-label="Fewer reps">−<small>reps</small></button><div class="hex core"><b>' + esc(cur.name.split(' ')[0]) + '</b><small>SET ' + (set.index + 1) + '</small><label>LBS' + typed(cur, set, 'weight') + '</label><label>REPS' + typed(cur, set, 'reps') + '</label></div><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="1" aria-label="More reps">+<small>reps</small></button><button type="button" class="hex teal" data-act="add-set" data-ex="' + id + '">+ set</button><button type="button" class="hex main" data-act="log-set">LOG SET</button><button type="button" class="hex teal" data-act="finish">End</button></div><div class="flower mini-flower">' + cells + '</div>' + dayRocker('hex-day') + '<nav class="hex-nav"><button type="button" data-act="tab" data-tab="routines">Routines</button><button type="button" data-act="tab" data-tab="history">History</button><button type="button" data-act="mini-open">Mini</button><button type="button" data-act="overlay" data-overlay="settings">Settings</button></nav></div>';
+    return '<div class="hive honey">' + partnerBar() + '<div class="flower mock"><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−<small>lbs</small></button><button type="button" class="hex" data-act="cycle-ex" data-dir="-1">‹</button><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+<small>lbs</small></button><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="-1" aria-label="Fewer reps">−<small>reps</small></button><div class="hex core"><b>' + esc(cur.name.split(' ')[0]) + '</b><small>SET ' + (set.index + 1) + '</small><em>' + esc(set.prev) + '</em></div><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="1" aria-label="More reps">+<small>reps</small></button><button type="button" class="hex teal" data-act="add-set" data-ex="' + id + '">+ set</button><button type="button" class="hex main" data-act="log-set">LOG SET</button><button type="button" class="hex teal" data-act="finish">End</button></div><div class="flower mini-flower">' + cells + '</div>' + dayRocker('hex-day') + '<nav class="hex-nav"><button type="button" data-act="tab" data-tab="routines">Routines</button><button type="button" data-act="tab" data-tab="history">History</button><button type="button" data-act="mini-open">Mini</button><button type="button" data-act="overlay" data-overlay="settings">Settings</button></nav></div>';
   }
   function routinesPanel() {
     const cards = Object.keys(state.routines).map(function (id) {
@@ -3053,9 +3076,24 @@ const exerciseDatabase = [
     const cur = v.exercises.find(function (e) { return e.current; }) || v.exercises[0];
     const set = cur && (cur.sets.find(function (s) { return s.current; }) || cur.sets[0]);
     const shape = skin().mini || 'card';
-    const resting = v.rest[v.partner] > 0;
-    const body = '<div class="mini-body" data-shape="' + esc(shape) + '">' + partnerBar() + '<div class="spread" data-drag="1"><strong>' + esc(cur ? cur.name : 'Strength in Character') + '</strong><button type="button" data-act="overlay-hide" aria-label="Close mini">×</button><button type="button" data-act="overlay-expand" aria-label="Open full app">Full</button></div><div>Set ' + (set ? set.index + 1 : '—') + ' · ' + esc(v.name) + '</div>' + (set ? '<div class="row">' + numInput(cur.id, set.id, 'weight', set.weight, set.hintW) + stepper(cur.id, set.id, 'weight', '−', '+') + '</div><div class="row">' + numInput(cur.id, set.id, 'reps', set.reps, set.hintR) + stepper(cur.id, set.id, 'reps', '−', '+') + '</div>' : '') + (resting ? '<div class="timer-readout" data-rest="' + v.partner + '">' + fmtClock(v.rest[v.partner]) + '</div><div class="row"><button type="button" data-act="rest-nudge" data-sec="-15">−15</button><button type="button" data-act="rest-nudge" data-sec="15">+15</button><button type="button" data-act="rest-stop">Skip</button></div>' : '') + '<div class="mini-actions"><button type="button" data-act="manage" data-ex="' + esc(cur ? cur.id : '') + '">± Sets</button>' + logBtn() + '</div><div class="row"><button type="button" data-act="mini-close">Full</button>' + finishBtn() + '</div></div>';
-    return body;
+    const id = cur ? esc(cur.id) : '';
+    const sid = set ? esc(set.id) : '';
+    const name = esc(cur ? cur.name.split(' ').slice(0, 2).join(' ') : 'Lift');
+    const prev = esc(set ? set.prev : '—');
+    const who = '<b class="mini-who ' + partner() + '">' + esc(state.partnerNames[partner()] || 'You') + '</b>';
+    const rest = '<span class="timer-readout" data-rest="' + v.partner + '">' + fmtClock(v.rest[v.partner]) + '</span>';
+    const log = '<button type="button" class="mini-log" data-act="log-set">LOG</button>';
+    const more = '<button type="button" class="mini-more" data-act="mini-wide" aria-expanded="' + (ui.miniWide ? 'true' : 'false') + '">' + (ui.miniWide ? 'Less' : 'More') + '</button>';
+    const fields = (ui.miniWide && set) ? '<div class="mini-fields"><label>Lb ' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps ' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label><button type="button" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button><button type="button" data-act="manage" data-ex="' + id + '">Sets</button></div>' : '';
+    const chrome = '<div class="mini-top" data-drag="1">' + who + rest + '<button type="button" data-act="overlay-hide" aria-label="Close mini">×</button></div>';
+    if (shape === 'puck') return '<div class="mini-body"><div class="mini-puck" data-drag="1"><span>' + (set ? esc(set.weight || '—') : '—') + '</span>' + log + '<small>' + prev + '</small></div>' + who + more + fields + '</div>';
+    if (shape === 'stepped-l') return '<div class="mini-body"><div class="mini-window">' + chrome + '<strong>' + name + '</strong><p>' + prev + '</p>' + log + more + fields + '</div></div>';
+    if (shape === 'rail') return '<div class="mini-body"><div class="mini-slate">' + chrome + '<strong>' + name + '</strong><p>prev ' + prev + '</p>' + log + more + fields + '</div></div>';
+    if (shape === 'ticket') return '<div class="mini-body"><div class="mini-led">' + chrome + '<em>' + (set ? esc(set.weight || '---') : '---') + '</em><p>' + prev + '</p>' + log + more + fields + '</div></div>';
+    if (shape === 'capsule') return '<div class="mini-body"><div class="mini-pill">' + chrome + '<strong>' + name + '</strong><p>' + prev + '</p>' + log + more + fields + '</div></div>';
+    if (shape === 'cassette') return '<div class="mini-body"><div class="mini-disc" data-drag="1"><span>' + name + '</span>' + log + '</div><p>' + prev + ' ' + rest + '</p>' + who + more + fields + '</div>';
+    if (shape === 'flower') return '<div class="mini-body"><div class="mini-hexes"><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><div class="mini-core"><b>' + name + '</b><small>' + prev + '</small></div><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button>' + log + '</div>' + who + rest + more + fields + '</div>';
+    return '<div class="mini-body"><div class="mini-card">' + chrome + '<strong>' + name + '</strong><p>prev ' + prev + '</p>' + log + more + fields + '</div></div>';
   }
   function popHTML() {
     if (!ui.pop) return '';
@@ -3591,6 +3629,7 @@ const exerciseDatabase = [
     if (act === 'close-overlay' || act === 'alert-close') { ui.overlay = null; render({ force: true }); return; }
     if (act === 'whats-close') { try { storage.setItem('ss_seen_version', CFG.appVersion); } catch (e) {} ui.whatsBar = false; ui.overlay = null; render({ force: true }); return; }
     if (act === 'summary-close') { ui.overlay = null; ui.tab = 'history'; render({ force: true }); return; }
+    if (act === 'mini-wide') { ui.miniWide = !ui.miniWide; render({ force: true }); return; }
     if (act === 'mini-open') {
       const n = native();
       if (n && n.showOverlay) {

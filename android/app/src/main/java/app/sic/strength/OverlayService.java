@@ -49,8 +49,8 @@ public class OverlayService extends Service {
         box.addView(handle, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int) (44 * d)));
         box.addView(web, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
         root = box;
-        int size = (int) (220 * d);
-        int height = (int) (320 * d);
+        int size = (int) (168 * d);
+        int height = (int) (230 * d);
         lp = new WindowManager.LayoutParams(
                 size, height,
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
