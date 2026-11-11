@@ -301,9 +301,9 @@
   function stepper(ex, set, field, minus, plus) {
     return '<span class="stepper"><button type="button" data-act="nudge" data-focus="1" data-ex="' + esc(ex) + '" data-set="' + esc(set) + '" data-field="' + field + '" data-dir="-1" aria-label="' + minus + '">' + minus + ptag(field === 'weight' ? 'weightDown' : 'repsDown') + '</button><button type="button" data-act="nudge" data-focus="1" data-ex="' + esc(ex) + '" data-set="' + esc(set) + '" data-field="' + field + '" data-dir="1" aria-label="' + plus + '">' + plus + ptag(field === 'weight' ? 'weightUp' : 'repsUp') + '</button></span>';
   }
-  function numInput(ex, set, field, value, hint) {
+  function numInput(ex, set, field, value, hint, placeholder) {
     const label = field === 'weight' ? (state.settings.units === 'kg' ? 'Kilograms' : 'Pounds') : 'Reps';
-    return '<input data-lockrender="1" data-act="field" data-ex="' + esc(ex) + '" data-set="' + esc(set) + '" data-field="' + field + '" inputmode="decimal" value="' + esc(value) + '" placeholder="" aria-label="' + label + '">';
+    return '<input data-lockrender="1" data-act="field" data-ex="' + esc(ex) + '" data-set="' + esc(set) + '" data-field="' + field + '" inputmode="decimal" value="' + esc(value) + '" placeholder="' + esc(placeholder || '') + '" aria-label="' + label + '">';
   }
   function typeSelect(ex, set, value) {
     return '<select data-act="field" data-ex="' + esc(ex) + '" data-set="' + esc(set) + '" data-field="type">' + SIC.SET_TYPES.map(function (t) { return '<option' + (t === value ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select>';
@@ -565,8 +565,106 @@
     if (ui.tab === 'analytics') return analyticsPanel();
     return '';
   }
+  function padGlyphs() {
+    if (!ui.padOn) return '';
+    return '<div class="pad-glyphs">' + ({
+      xbox: 'A Log · B Back · X Partner · Y Skip rest',
+      playstation: '✕ Log · ○ Back · □ Partner · △ Skip rest',
+      switch: 'A Log · B Back · X Partner · Y Skip rest',
+      generic: 'A Log · B Back · X Partner · Y Skip rest'
+    }[ui.padFamily] || 'A Log · B Back · X Partner · Y Skip rest') + '</div>';
+  }
+  function restBlock() {
+    const resting = viewCache.rest[viewCache.partner] > 0 && state.settings.restEnabled !== false;
+    const off = state.settings.restEnabled === false;
+    return '<section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '"><p class="rest-label">' + (off ? 'Rest off' : (resting ? 'Resting' : 'Rest ready')) + '</p><div class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</div><div class="rest-actions"><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15s</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15s</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1">' + (off ? 'Turn rest on' : 'Turn rest off') + '</button></div></section>';
+  }
+  function tempoBlock() {
+    const pattern = state.settings.tempo[partner()] || { e: 1, p1: 0, c: 1, p2: 0 };
+    return '<section class="zone zone-tempo" data-tempo-live="' + (state.settings.tempo.running ? 'on' : 'off') + '"><p class="tempo-read">Tempo ' + pattern.e + '-' + pattern.p1 + '-' + pattern.c + '-' + pattern.p2 + '</p><div class="px-phases"><span data-phase="LOWER"><b>ECC</b><i>' + pattern.e + '</i></span><span data-phase="BOTTOM"><b>PAUSE</b><i>' + pattern.p1 + '</i></span><span data-phase="LIFT"><b>CON</b><i>' + pattern.c + '</i></span><span data-phase="TOP"><b>PAUSE</b><i>' + pattern.p2 + '</i></span></div><div class="tempo-lamp" data-metro>' + esc(runtime.phase) + '</div><button type="button" data-act="tempo-toggle" data-pad="1">' + (state.settings.tempo.running ? 'Tempo off' : 'Tempo on') + '</button></section>';
+  }
+  function chalkCompose() {
+    const f = curFocus();
+    const cur = f.cur, set = f.set;
+    const days = Object.keys((viewCache.routine && viewCache.routine.days) || {});
+    const dayN = Math.max(1, days.indexOf(state.activeDay) + 1);
+    const weekN = Math.max(1, (state.history || []).length || 1);
+    const maxSets = viewCache.exercises.reduce(function (n, e) { return Math.max(n, e.sets.length); }, 0);
+    const heads = [];
+    for (let i = 0; i < maxSets; i++) {
+      const hint = (cur && cur.sets[i] && cur.sets[i].hintR) || String(i + 1);
+      heads.push('<th scope="col">' + esc(hint) + '</th>');
+    }
+    const rows = viewCache.exercises.map(function (ex) {
+      const doneAll = ex.sets.length && ex.sets.every(function (s) { return s.done; });
+      const cells = [];
+      for (let i = 0; i < maxSets; i++) {
+        const s = ex.sets[i];
+        if (!s) { cells.push('<td></td>'); continue; }
+        const key = ' data-ex="' + esc(ex.id) + '" data-set="' + esc(s.id) + '"';
+        if (s.current) {
+          cells.push('<td class="chalk-now"><span class="cell-k">Set ' + (i + 1) + '</span><div class="entry"><label>Weight' + numInput(ex.id, s.id, 'weight', s.weight, '', s.hintW) + '</label><label>Reps' + numInput(ex.id, s.id, 'reps', s.reps, '', s.hintR) + '</label></div></td>');
+        } else if (s.done) {
+          cells.push('<td><button type="button" class="chalk-ink" data-act="focus-set"' + key + '>' + esc(s.weight || '—') + '×' + esc(s.reps || '—') + '</button></td>');
+        } else if (ex.current && set && i === set.index + 1) {
+          cells.push('<td><button type="button" class="chalk-ink next" data-act="focus-set"' + key + ' aria-label="Next set">+</button></td>');
+        } else {
+          cells.push('<td><button type="button" class="chalk-ink later" data-act="focus-set"' + key + ' aria-label="Later set">?</button></td>');
+        }
+      }
+      return '<tr class="' + (ex.current ? 'is-current' : 'is-collapsed') + '"><th scope="row"><button type="button" class="chalk-name' + (ex.current ? ' ex-name' : '') + '" data-act="focus-ex" data-ex="' + esc(ex.id) + '">' + esc(ex.name) + (doneAll ? ' ✓' : '') + '</button></th>' + cells.join('') + '</tr>';
+    }).join('');
+    const who = ['batman', 'robin'].filter(function (p) { return p === 'batman' || state.duoMode; }).map(function (p) {
+      const on = partner() === p;
+      return '<button type="button" class="who-btn ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" data-pad="1" aria-current="' + (on ? 'true' : 'false') + '">' + esc(state.partnerNames[p] || p) + (on ? ' lifting' : '') + '</button>';
+    }).join('');
+    const id = cur ? esc(cur.id) : '';
+    const grid = '<div class="chalk-scroll"><table class="chalk-grid"><thead><tr><th scope="col"></th>' + heads.join('') + '</tr></thead><tbody>' + rows + '</tbody></table></div><p class="set-progress">Set ' + (set ? set.index + 1 : 0) + ' of ' + (cur ? cur.sets.length : 0) + '</p>';
+    const main = ui.tab === 'log' ? grid : '<div class="zone-panel">' + backLog() + panel() + '</div>';
+    const notes = '<div class="chalk-notes"><button type="button" class="note note-y" data-act="focus-ex" data-ex="' + id + '">' + ico('plus') + '<span>Quick log</span></button><button type="button" class="note note-p" data-act="tab" data-tab="history">' + ico('clock') + '<span>History</span></button><button type="button" class="note note-t" data-act="tab" data-tab="analytics">' + ico('chart') + '<span>Stats</span></button><button type="button" class="log-set note note-r" data-act="log-set" data-pad="1" data-focus="1">' + ico('check') + '<span>LOG IT</span></button></div>';
+    const add = ui.tab === 'log' ? '<section class="zone zone-list">' + '<div class="add-row"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="Add exercise" aria-label="Exercise to add"><button type="button" data-act="add-ask" data-pad="1">Add</button></div>' + datalist() + '</section>' : '';
+    const rail = '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-label="Log" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">L</button><button type="button" data-act="tab" data-tab="routines" data-pad="1" aria-label="Routines">R</button><button type="button" data-act="mini-open" data-pad="1" aria-label="Mini">M</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1" aria-label="Settings">S</button><button type="button" data-act="finish" data-pad="1" aria-label="Finish">F</button></nav>';
+    return '<div class="zones chalk-layout">' + padGlyphs() + '<div class="chalk-main">' + welcomeHTML() +
+      '<header class="zone zone-head"><div class="chalk-title"><h1>Strength in Character <span class="heart" aria-hidden="true">♥</span></h1><p>BE YOUR OWN BIGGEST FAN</p></div><div class="chalk-when"><b>WEEK ' + weekN + '</b><b>DAY ' + dayN + '</b><span>' + esc(state.activeDay || '') + '</span></div></header>' +
+      '<div class="zone zone-partners" role="group" aria-label="Active partner">' + who + '</div>' +
+      restBlock().replace('<section class="zone zone-rest"', '<section class="zone zone-rest chalk-rest"').replace('<p class="rest-label">', '<svg class="chalk-clock" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="46" fill="none" stroke="#94a3b8" stroke-width="4" stroke-dasharray="2 6"/><circle data-rest-arc data-erase cx="60" cy="60" r="46" fill="none" stroke="#1d4ed8" stroke-width="8" stroke-linecap="round" transform="rotate(-90 60 60)"></circle></svg><p class="rest-label">') +
+      '<section class="zone zone-now">' + main + '</section>' +
+      (ui.tab === 'log' ? notes : '') +
+      tempoBlock() + add + '</div>' + rail + '</div>';
+  }
+  function scoreCompose() {
+    const f = curFocus();
+    const cur = f.cur, set = f.set;
+    const ghostW = set && set.prev && set.prev !== '—' ? String(set.prev).split('×')[0] : '0.0';
+    const ghostR = set && set.prev && set.prev !== '—' ? (String(set.prev).split('×')[1] || '0') : '0';
+    let done = 0, total = 0;
+    viewCache.exercises.forEach(function (ex) { ex.sets.forEach(function (s) { total++; if (s.done) done++; }); });
+    const pct = total ? Math.round(done / total * 100) : 0;
+    const who = ['batman', 'robin'].filter(function (p) { return p === 'batman' || state.duoMode; }).map(function (p) {
+      const on = partner() === p;
+      const team = p === 'batman' ? 'HOME' : 'AWAY';
+      return '<button type="button" class="who-btn ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" data-pad="1" aria-current="' + (on ? 'true' : 'false') + '"><b>' + team + '</b><span>' + esc(state.partnerNames[p] || p) + '</span></button>';
+    }).join('');
+    const prevs = cur ? cur.sets.map(function (s) {
+      const shown = s.weight ? s.weight : '—';
+      return '<button type="button" class="prev-led' + (s.current ? ' on' : '') + '" data-act="focus-set" data-ex="' + esc(cur.id) + '" data-set="' + esc(s.id) + '">' + esc(shown) + '</button>';
+    }).join('') : '<span class="prev-led">—</span>';
+    const board = cur && set
+      ? '<div class="jumbo"><span class="rest-takeover" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</span><label class="led-giant">Weight' + numInput(cur.id, set.id, 'weight', set.weight, '', ghostW) + '<span class="led-unit">LBS</span></label><label class="rep-led">Reps' + numInput(cur.id, set.id, 'reps', set.reps, '', ghostR) + '</label></div><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">SET ' + (set.index + 1) + ' OF ' + cur.sets.length + '</p><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span>LOG IT</span></button><div class="prev-row"><span>PREV SETS</span>' + prevs + '</div><div class="session-strip"><span>SESSION · ' + esc(state.activeDay || 'DAY') + '</span><span class="segbar" aria-hidden="true"><i style="width:' + pct + '%"></i></span><b>' + done + '/' + total + '</b><b>' + pct + '%</b></div>'
+      : '<p>No exercise on this day.</p>';
+    const main = ui.tab === 'log' ? board : '<div class="zone-panel">' + backLog() + panel() + '</div>';
+    return '<div class="zones score-layout">' + padGlyphs() + welcomeHTML() +
+      '<header class="zone zone-head"><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></header>' +
+      '<div class="sidelight left" aria-hidden="true"></div><div class="sidelight right" aria-hidden="true"></div>' +
+      '<div class="zone zone-partners" role="group" aria-label="Active partner">' + who + '</div>' +
+      '<section class="zone zone-now">' + main + '</section>' +
+      restBlock() + tempoBlock() +
+      '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button><button type="button" data-act="tab" data-tab="history" data-pad="1">History</button><button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button><button type="button" data-act="mini-open" data-pad="1">Mini</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button><button type="button" data-act="finish" data-pad="1">Finish</button></nav></div>';
+  }
   function sharedShell() {
     viewCache = view();
+    if (state.skinId === 'chalkboard') return chalkCompose();
+    if (state.skinId === 'scoreboard') return scoreCompose();
     const f = curFocus();
     const cur = f.cur, set = f.set;
     const id = cur ? esc(cur.id) : '';
@@ -633,8 +731,11 @@
     const shut = '<button type="button" class="mini-x" data-act="overlay-hide" aria-label="Close mini">×</button>';
     if (shape === 'puck') return '<div class="mini-body">' + shut + '<div class="mini-puck" data-drag="1"><svg class="mini-arc" viewBox="0 0 100 100" aria-hidden="true"><circle data-rest-arc cx="50" cy="50" r="40"></circle></svg>' + who + '<strong>' + name + '</strong><em>Set ' + (set ? (set.index + 1) : '—') + '</em>' + rest + log + '</div>' + more + fields + '</div>';
     if (shape === 'stepped-l') return '<div class="mini-body"><div class="mini-window" data-drag="1">' + shut + '<div class="px-mini-card">' + who + '<strong>' + name + '</strong><p>Set ' + (set ? (set.index + 1) : '—') + ' · ' + prev + '</p>' + rest + '<i class="px-meter" aria-hidden="true"><b data-rest-bar></b></i>' + log + '</div>' + more + fields + '</div></div>';
-    if (shape === 'rail') return '<div class="mini-body"><div class="mini-slate" data-drag="1">' + shut + who + '<strong>' + name + '</strong><p>Set ' + (set ? (set.index + 1) : '—') + '</p>' + rest + log + more + fields + '</div></div>';
-    if (shape === 'ticket') return '<div class="mini-body"><div class="mini-led" data-drag="1">' + shut + who + '<strong>' + name + '</strong><p>Set ' + (set ? (set.index + 1) : '—') + '</p>' + rest + log + more + fields + '</div></div>';
+    if (shape === 'rail') return '<div class="mini-body"><div class="mini-slate" data-drag="1">' + shut + '<strong>' + name + '</strong><p>Set ' + (set ? (set.index + 1) : '—') + '</p>' + rest + log + '</div>' + more + fields + '</div>';
+    if (shape === 'ticket') {
+      const digits = set && set.weight ? esc(set.weight) : (set && set.prev && set.prev !== '—' ? esc(String(set.prev).split('×')[0]) : '0.0');
+      return '<div class="mini-body"><div class="mini-led" data-drag="1">' + shut + '<em>' + digits + '</em>' + rest + log + '</div>' + more + fields + '</div>';
+    }
     if (shape === 'capsule') return '<div class="mini-body"><div class="mini-pill">' + chrome + '<strong>' + name + '</strong><p>' + prev + '</p>' + log + more + fields + '</div></div>';
     if (shape === 'cassette') return '<div class="mini-body">' + shut + '<div class="mini-disc" data-drag="1"><span>' + name + '</span>' + log + '</div><p>' + prev + ' ' + rest + '</p>' + who + more + fields + '</div>';
     if (shape === 'flower') return '<div class="mini-body">' + shut + '<div class="mini-hexes"><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><div class="mini-core"><b>' + name + '</b><small>' + prev + '</small></div><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button>' + log + '</div>' + who + rest + more + fields + '</div>';
@@ -1025,7 +1126,7 @@
     document.querySelectorAll('[data-rest-arc]').forEach(function (el) {
       const r = Number(el.getAttribute('r')) || 46;
       const circ = 2 * Math.PI * r;
-      const wedge = pct * 0.30 * circ;
+      const wedge = el.hasAttribute('data-erase') ? pct * circ : pct * 0.30 * circ;
       el.setAttribute('stroke-dasharray', wedge.toFixed(1) + ' ' + circ.toFixed(1));
     });
     document.querySelectorAll('[data-rest-bar]').forEach(function (el) { el.style.width = Math.round(pct * 100) + '%'; });

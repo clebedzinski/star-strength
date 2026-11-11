@@ -1281,203 +1281,441 @@ body.skin-irondial .sheet input, body.skin-irondial .sheet textarea, body.skin-i
 }
 
 body.skin-chalkboard {
-  background-color: #111;
-  background-image: var(--art-bg);
-  background-size: cover;
-  background-position: center;
-  color: #f8fafc;
-  font-family: "Permanent Marker", cursive;
+  background: #c5cad3;
+  color: #1e293b;
+  font-family: "Permanent Marker", "Comic Sans MS", cursive;
 }
 body.skin-chalkboard #app { background: transparent; }
-body.skin-chalkboard .zones { background: transparent; padding: 8px 12px 88px; gap: 8px; }
+body.skin-chalkboard .zones {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 58px;
+  gap: 8px;
+  margin: 8px;
+  padding: 12px 8px 12px 12px;
+  background-color: #f7f8fb;
+  background-image: radial-gradient(rgba(30, 41, 59, 0.05) 0.7px, transparent 0.8px);
+  background-size: 5px 5px;
+  border: 12px solid #d5d8e0;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 3px #8b919c, inset 0 0 0 7px #eef0f4, 0 10px 18px rgba(15, 23, 42, 0.18);
+  color: #1e293b;
+}
+body.skin-chalkboard .chalk-main { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
 body.skin-chalkboard .zone-head,
 body.skin-chalkboard .zone-now,
 body.skin-chalkboard .zone-rest,
 body.skin-chalkboard .zone-tempo,
 body.skin-chalkboard .zone-list,
-body.skin-chalkboard .zone-panel {
+body.skin-chalkboard .zone-panel,
+body.skin-chalkboard .zone-partners {
   background: transparent;
-  color: #f8fafc;
   border: 0;
   box-shadow: none;
   border-radius: 0;
+  color: #1e293b;
+  padding: 0;
 }
-body.skin-chalkboard h1, body.skin-chalkboard .ex-name, body.skin-chalkboard .log-set, body.skin-chalkboard .rest-count, body.skin-chalkboard .zone-nav button {
-  font-family: "Permanent Marker", cursive;
-}
-body.skin-chalkboard .zone-head h1 { font-size: 22px; color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.35); }
-body.skin-chalkboard .zone-head p { color: #f9a8d4; }
-body.skin-chalkboard .ex-name { font-size: 26px; color: #fff; }
-body.skin-chalkboard .entry input {
-  background: transparent;
-  color: #fff;
-  border: 0;
-  border-bottom: 3px solid rgba(255,255,255,.8);
-  border-radius: 0;
-  font-family: "Permanent Marker", cursive;
-  font-size: 28px;
-  text-align: center;
-}
-body.skin-chalkboard .zone-list .ex-pick, body.skin-chalkboard .rest-actions button, body.skin-chalkboard .add-row button {
-  background: transparent;
-  color: #fff;
-  border: 2px solid rgba(255,255,255,.65);
-  font-family: "Permanent Marker", cursive;
-  text-align: left;
-}
-body.skin-chalkboard .zone-list .ex-pick.on { background: rgba(255,255,255,.14); color: #fff; }
-body.skin-chalkboard .log-set {
-  background: transparent;
-  color: #fff;
-  border: 3px dashed #fff;
-  font-size: 22px;
-  box-shadow: none;
-}
-body.skin-chalkboard .px-meter { display: block; height: 10px; background: transparent; border-bottom: 3px dashed rgba(255,255,255,.75); }
-body.skin-chalkboard [data-rest-bar] { display: block; height: 8px; background: #fff; }
-body.skin-chalkboard .rest-count { font-size: 40px; color: #fff; text-align: center; text-shadow: 0 2px 0 rgba(0,0,0,.4); }
-body.skin-chalkboard .px-phases { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-body.skin-chalkboard .px-phases span { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.7); min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-body.skin-chalkboard .px-phases span.on { background: rgba(255,255,255,.18); }
-body.skin-chalkboard .tempo-lamp { position: absolute; width: 1px; height: 1px; overflow: hidden; min-height: 0; }
+body.skin-chalkboard .zone-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+body.skin-chalkboard .zone-head h1 { color: #1d4ed8; font-size: 22px; line-height: 1.15; font-family: "Permanent Marker", cursive; }
+body.skin-chalkboard .heart { color: #e11d48; }
+body.skin-chalkboard .zone-head p { margin: 0; color: #e11d48; font-size: 14px; letter-spacing: 0.02em; }
+body.skin-chalkboard .chalk-when { color: #e11d48; text-align: right; font-size: 16px; line-height: 1.15; min-width: 72px; }
+body.skin-chalkboard .chalk-when b, body.skin-chalkboard .chalk-when span { display: block; }
+body.skin-chalkboard .chalk-when span { font-size: 14px; }
 body.skin-chalkboard .who-btn,
 body.skin-chalkboard .who-btn.batman,
-body.skin-chalkboard .who-btn.batman.on { background: transparent; color: #f9a8d4; border: 2px solid #f9a8d4; border-radius: 0; font-family: "Permanent Marker", cursive; }
-body.skin-chalkboard .who-btn.robin.on { background: transparent; color: #93c5fd; border-color: #93c5fd; }
-body.skin-chalkboard .zone-nav { position: static; background: transparent; display: flex; flex-wrap: wrap; gap: 6px; }
-body.skin-chalkboard .zone-nav button {
-  flex: 1 1 70px;
-  min-height: 64px;
-  background: var(--art-note) center / 100% 100% no-repeat;
-  color: #1e293b;
+body.skin-chalkboard .who-btn.batman.on,
+body.skin-chalkboard .who-btn.robin,
+body.skin-chalkboard .who-btn.robin.on {
+  background: transparent;
+  color: #1d4ed8;
   border: 0;
-  font-size: 16px;
-  transform: rotate(-2deg);
+  border-radius: 0;
+  box-shadow: none;
+  font-family: "Permanent Marker", cursive;
+  font-size: 18px;
+  min-height: 44px;
 }
-body.skin-chalkboard .zone-nav button:nth-child(2n) { filter: hue-rotate(280deg); transform: rotate(2deg); }
-body.skin-chalkboard .zone-nav button:nth-child(3n) { filter: hue-rotate(140deg); }
-body.skin-chalkboard .sheet, body.skin-chalkboard .pop {
-  background-color: #1a1a1a;
-  background-image: var(--art-bg);
-  background-size: cover;
-  background-position: center;
+body.skin-chalkboard .who-btn.robin,
+body.skin-chalkboard .who-btn.robin.on { color: #e11d48; }
+body.skin-chalkboard .who-btn.on { border-bottom: 4px solid currentColor; border-radius: 0 0 18px 18px; }
+body.skin-chalkboard .ex-name, body.skin-chalkboard .chalk-name { font-family: "Permanent Marker", cursive; font-size: 16px; color: #1e3a8a; text-align: left; }
+body.skin-chalkboard .chalk-name { background: transparent; border: 0; min-height: 44px; padding: 4px 2px; }
+body.skin-chalkboard .set-progress { margin: 4px 0 0; color: #1d4ed8; font-size: 16px; }
+body.skin-chalkboard .chalk-scroll { overflow-x: auto; max-width: 100%; }
+body.skin-chalkboard .chalk-grid { width: 100%; border-collapse: collapse; }
+body.skin-chalkboard .chalk-grid th, body.skin-chalkboard .chalk-grid td {
+  border: 2px solid #94a3b8;
+  padding: 4px;
+  vertical-align: middle;
+  background: rgba(255,255,255,.72);
+}
+body.skin-chalkboard .chalk-grid thead th { color: #1d4ed8; font-size: 16px; text-align: center; }
+body.skin-chalkboard .chalk-now { border: 3px dashed #1d4ed8 !important; background: #fff; }
+body.skin-chalkboard .cell-k { display: block; color: #1d4ed8; font-size: 14px; }
+body.skin-chalkboard .entry { grid-template-columns: 1fr 1fr; }
+body.skin-chalkboard .entry label { color: #1e3a8a; font-size: 14px; font-family: "Permanent Marker", cursive; }
+body.skin-chalkboard .entry input {
+  background: #fff;
+  color: #1e3a8a;
+  border: 2px solid #1d4ed8;
+  border-radius: 6px;
+  min-height: 48px;
+  font-size: 22px;
+  font-family: "Permanent Marker", cursive;
+  text-align: center;
+}
+body.skin-chalkboard .chalk-ink {
+  min-width: 64px;
+  min-height: 44px;
+  background: transparent;
+  color: #1e3a8a;
+  border: 2px solid #94a3b8;
+  font-family: "Permanent Marker", cursive;
+  font-size: 18px;
+}
+body.skin-chalkboard .chalk-ink.next, body.skin-chalkboard .chalk-ink.later { color: #64748b; font-size: 22px; }
+body.skin-chalkboard .chalk-notes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+body.skin-chalkboard .note {
+  min-height: 78px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 0;
+  border-radius: 2px 2px 10px 2px;
+  color: #1e293b;
+  font-family: "Permanent Marker", cursive;
+  font-size: 14px;
+  line-height: 1.1;
+  box-shadow: 2px 3px 0 rgba(15, 23, 42, 0.12);
+  padding: 6px 4px;
+}
+body.skin-chalkboard .note .ico { width: 18px; height: 18px; }
+body.skin-chalkboard .note-y { background: #fde047; transform: rotate(-2deg); }
+body.skin-chalkboard .note-p { background: #f9a8d4; transform: rotate(1.5deg); }
+body.skin-chalkboard .note-t { background: #5eead4; transform: rotate(-1deg); }
+body.skin-chalkboard .note-r { background: #fb7185; color: #1e293b; transform: rotate(2deg); }
+body.skin-chalkboard .chalk-rest { position: relative; min-height: 120px; }
+body.skin-chalkboard .zone-rest[data-resting="true"] { outline: none; }
+body.skin-chalkboard .chalk-clock { width: 120px; height: 120px; display: block; }
+body.skin-chalkboard .rest-label { position: absolute; left: 132px; top: 18px; margin: 0; color: #1d4ed8; font-size: 16px; }
+body.skin-chalkboard .rest-count {
+  position: absolute;
+  left: 0;
+  top: 42px;
+  width: 120px;
+  margin: 0;
+  font-size: 22px;
+  color: #1e3a8a;
+  text-align: center;
+  font-family: "Permanent Marker", cursive;
+  pointer-events: none;
+}
+body.skin-chalkboard .rest-actions { margin-top: 6px; }
+body.skin-chalkboard .rest-actions button, body.skin-chalkboard .zone-tempo button, body.skin-chalkboard .add-row button {
+  background: #fff;
+  color: #1e3a8a;
+  border: 2px solid #1d4ed8;
+  font-family: "Permanent Marker", cursive;
+  font-size: 14px;
+}
+body.skin-chalkboard .rest-actions button:last-child { background: #fee2e2; color: #be123c; border-color: #e11d48; }
+body.skin-chalkboard .px-phases { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+body.skin-chalkboard .px-phases span {
+  background: #fff;
+  color: #1e3a8a;
+  border: 2px solid #1d4ed8;
+  min-height: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+body.skin-chalkboard .px-phases span.on { background: #dbeafe; }
+body.skin-chalkboard .tempo-read { margin: 0 0 4px; color: #1d4ed8; font-size: 16px; }
+body.skin-chalkboard .tempo-lamp { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+body.skin-chalkboard .zone-nav {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: transparent;
+  padding: 0;
+  align-self: start;
+}
+body.skin-chalkboard .zone-nav button {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  min-height: 52px;
+  padding: 0;
+  border-radius: 8px 0 0 8px;
+  border: 2px solid #fff;
   color: #fff;
-  border: 14px solid #8a5a32;
+  font-family: "Permanent Marker", cursive;
+  font-size: 22px;
+}
+body.skin-chalkboard .zone-nav button:nth-child(1) { background: #16a34a; }
+body.skin-chalkboard .zone-nav button:nth-child(2) { background: #2563eb; }
+body.skin-chalkboard .zone-nav button:nth-child(3) { background: #eab308; color: #1e293b; }
+body.skin-chalkboard .zone-nav button:nth-child(4) { background: #7c3aed; }
+body.skin-chalkboard .zone-nav button:nth-child(5) { background: #e11d48; }
+body.skin-chalkboard .add-row input { background: #fff; color: #1e3a8a; border: 2px solid #1d4ed8; font-size: 16px; }
+body.skin-chalkboard .sheet, body.skin-chalkboard .pop {
+  background-color: #f7f8fb;
+  background-image: radial-gradient(rgba(30, 41, 59, 0.05) 0.7px, transparent 0.8px);
+  background-size: 5px 5px;
+  color: #1e293b;
+  border: 12px solid #d5d8e0;
+  box-shadow: inset 0 0 0 3px #8b919c;
   font-family: "Permanent Marker", cursive;
 }
-body.skin-chalkboard .sheet h2, body.skin-chalkboard .sheet p, body.skin-chalkboard .sheet li { color: #fff; }
-body.skin-chalkboard .sheet button { background: transparent; color: #fff; border: 2px solid #fff; font-family: "Permanent Marker", cursive; }
-body.skin-chalkboard .sheet .primary, body.skin-chalkboard .sheet .back-log { background: #fff; color: #1e293b; }
+body.skin-chalkboard .sheet h2, body.skin-chalkboard .sheet h3, body.skin-chalkboard .sheet p, body.skin-chalkboard .sheet li { color: #1e3a8a; }
+body.skin-chalkboard .sheet button, body.skin-chalkboard .pop button { background: #fff; color: #1e3a8a; border: 2px solid #1d4ed8; font-family: "Permanent Marker", cursive; }
+body.skin-chalkboard .sheet .primary, body.skin-chalkboard .sheet .back-log { background: #1d4ed8; color: #fff; }
 body.skin-chalkboard .sheet input, body.skin-chalkboard .sheet textarea, body.skin-chalkboard .sheet select {
-  background: rgba(0,0,0,.35); color: #fff; border-color: #fff;
+  background: #fff; color: #1e3a8a; border: 2px solid #1d4ed8; font-size: 16px;
+}
+@media (max-width: 700px) {
+  body.skin-chalkboard .chalk-grid, body.skin-chalkboard .chalk-grid tbody { display: block; width: 100%; }
+  body.skin-chalkboard .chalk-grid thead tr { display: flex; }
+  body.skin-chalkboard .chalk-grid thead th { flex: 1; border: 0; border-bottom: 3px solid #1d4ed8; background: transparent; }
+  body.skin-chalkboard .chalk-grid thead th:first-child { display: none; }
+  body.skin-chalkboard .chalk-grid tr { display: block; }
+  body.skin-chalkboard .chalk-grid tr.is-collapsed th { display: block; border: 0; border-bottom: 2px solid #94a3b8; background: transparent; }
+  body.skin-chalkboard .chalk-grid tr.is-collapsed td { display: none; }
+  body.skin-chalkboard .chalk-grid tr.is-current { display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; }
+  body.skin-chalkboard .chalk-grid tr.is-current th { flex: 1 0 100%; border: 0; background: transparent; }
+  body.skin-chalkboard .chalk-grid tr.is-current td { flex: 0 0 56px; }
+  body.skin-chalkboard .chalk-grid tr.is-current td.chalk-now { flex: 1 1 150px; min-width: 150px; }
+body.skin-chalkboard .zone-rest[data-resting="true"] { outline: none; }
+}
+@media (min-width: 701px) {
+  body.skin-chalkboard .cell-k { position: absolute; width: 1px; height: 1px; overflow: hidden; }
 }
 
 body.skin-scoreboard {
-  background-color: #070203;
-  background-image: var(--art-bg);
-  background-size: cover;
-  background-position: center;
+  background: #14080c radial-gradient(circle at 50% 0, #3a1014, #070203 62%);
   color: #ffb020;
   font-family: "Share Tech Mono", ui-monospace, monospace;
 }
 body.skin-scoreboard #app { background: transparent; }
-body.skin-scoreboard .zones { background: transparent; gap: 8px; }
-body.skin-scoreboard .zone-head h1 { color: #fff4e8; font-family: "Share Tech Mono", monospace; letter-spacing: 0.04em; font-size: 18px; }
-body.skin-scoreboard .zone-head p { color: #ef4444; }
-body.skin-scoreboard .zone-now {
-  background: var(--art-bezel) center / 100% 100% no-repeat;
-  border: 0;
-  border-radius: 0;
-  color: #ffb020;
-  padding: 22px 18px 16px;
-  box-shadow: none;
-}
-body.skin-scoreboard .ex-name { color: #fff4e8; text-align: center; }
-body.skin-scoreboard .entry input {
+body.skin-scoreboard .zones { background: transparent; gap: 8px; position: relative; }
+body.skin-scoreboard .zone-head,
+body.skin-scoreboard .zone-now,
+body.skin-scoreboard .zone-rest,
+body.skin-scoreboard .zone-tempo,
+body.skin-scoreboard .zone-panel,
+body.skin-scoreboard .zone-partners {
   background: transparent;
-  color: #ffb020;
   border: 0;
-  font-family: "Share Tech Mono", monospace;
-  font-size: 42px;
-  text-align: center;
-  text-shadow: 0 0 10px #ff6a00;
-  min-height: 56px;
-}
-body.skin-scoreboard .log-set {
-  width: 100%;
-  background: linear-gradient(#ef4444, #991b1b);
-  color: #fff;
-  border: 0;
-  border-radius: 6px;
-  box-shadow: 0 4px 0 #450a0a;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-}
-body.skin-scoreboard .zone-rest, body.skin-scoreboard .zone-tempo, body.skin-scoreboard .zone-list, body.skin-scoreboard .zone-panel {
-  background: rgba(7, 2, 3, 0.82);
+  box-shadow: none;
   color: #ffb020;
-  border: 1px solid #7f1d1d;
-  border-radius: 8px;
 }
-body.skin-scoreboard .rest-count {
-  font-family: "Share Tech Mono", monospace;
-  font-size: 46px;
-  color: #ffb020;
-  text-align: center;
-  text-shadow: 0 0 12px #ff4500;
-  background: #070203;
-  border: 2px solid #7f1d1d;
+body.skin-scoreboard .zone-head { background: #7f1d1d; border-radius: 4px; padding: 6px 10px; }
+body.skin-scoreboard .zone-head h1 { color: #fff4e8; font-family: Orbitron, "Share Tech Mono", sans-serif; font-size: 15px; letter-spacing: 0.04em; white-space: normal; }
+body.skin-scoreboard .zone-head p { color: #fecaca; font-size: 12px; margin: 0; }
+body.skin-scoreboard .sidelight { position: fixed; top: 28%; width: 14px; height: 22%; border-radius: 7px; background: #5a1014; pointer-events: none; z-index: 3; box-shadow: inset 0 0 0 2px #2a0608; }
+body.skin-scoreboard .sidelight.left { left: 2px; }
+body.skin-scoreboard .sidelight.right { right: 2px; }
+body.skin-scoreboard .zones:has(.zone-rest[data-resting="true"]) .sidelight {
+  background: #ff1a1a;
+  box-shadow: 0 0 16px #ff2a2a;
+  animation: score-pulse 0.7s ease-in-out infinite;
 }
-body.skin-scoreboard .tempo-lamp { color: #ffb020; font-size: 22px; letter-spacing: 0.14em; text-shadow: 0 0 8px #ff6a00; }
+@keyframes score-pulse { 50% { opacity: 0.28; } }
 body.skin-scoreboard .who-btn,
 body.skin-scoreboard .who-btn.batman,
-body.skin-scoreboard .who-btn.batman.on { background: #3a0d12; color: #ffb020; border: 1px solid #ef4444; font-family: "Share Tech Mono", monospace; box-shadow: 0 0 8px rgba(239,68,68,.45); }
-body.skin-scoreboard .who-btn.robin.on { background: #172554; color: #93c5fd; border-color: #60a5fa; }
-body.skin-scoreboard .zone-nav { position: static; background: rgba(7,2,3,.9); }
-body.skin-scoreboard .zone-nav button, body.skin-scoreboard .zone-list .ex-pick, body.skin-scoreboard .rest-actions button {
+body.skin-scoreboard .who-btn.batman.on,
+body.skin-scoreboard .who-btn.robin,
+body.skin-scoreboard .who-btn.robin.on {
+  background: #14080c;
+  color: #7f1d1d;
+  border: 2px solid #3f1216;
+  font-family: Orbitron, "Share Tech Mono", sans-serif;
+  letter-spacing: 0.08em;
+  box-shadow: none;
+  min-height: 44px;
+}
+body.skin-scoreboard .who-btn b { display: block; font-size: 12px; }
+body.skin-scoreboard .who-btn.batman.on { color: #ffb020; border-color: #ff7a18; box-shadow: 0 0 12px rgba(255, 122, 24, 0.75); background: #2a0c08; }
+body.skin-scoreboard .who-btn.robin.on { color: #93c5fd; border-color: #60a5fa; box-shadow: 0 0 12px rgba(96, 165, 250, 0.7); background: #0b1a33; }
+body.skin-scoreboard .jumbo {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 78px;
+  gap: 8px;
+  align-items: stretch;
+  background: #070203;
+  border: 3px solid #7f1d1d;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: inset 0 0 24px rgba(255, 90, 0, 0.25);
+  min-height: 108px;
+}
+body.skin-scoreboard .led-giant, body.skin-scoreboard .rep-led { display: flex; flex-direction: column; justify-content: center; min-width: 0; font-size: 0; position: relative; }
+body.skin-scoreboard .led-giant input {
+  width: 100%;
+  min-height: 84px;
+  font-family: Orbitron, "Share Tech Mono", monospace;
+  font-size: clamp(48px, 14vw, 76px);
+  font-weight: 800;
+  color: #ff9f1a;
+  background: transparent;
+  border: 0;
+  text-align: center;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 10px #ff6a00, 0 0 22px rgba(255, 69, 0, 0.65);
+  padding: 0;
+}
+body.skin-scoreboard .led-giant input::placeholder { color: rgba(255, 159, 26, 0.32); }
+body.skin-scoreboard .led-unit { position: absolute; right: 4px; bottom: 2px; font-size: 14px; color: #ffb020; letter-spacing: 0.14em; }
+body.skin-scoreboard .rep-led { background: #3a0a0e; border: 2px solid #ef4444; border-radius: 4px; }
+body.skin-scoreboard .rep-led input {
+  width: 100%;
+  min-height: 64px;
+  font-family: Orbitron, "Share Tech Mono", monospace;
+  font-size: 28px;
+  color: #ff4d4d;
+  background: transparent;
+  border: 0;
+  text-align: center;
+  text-shadow: 0 0 8px #ff1a1a;
+  padding: 0;
+}
+body.skin-scoreboard .rep-led input::placeholder { color: rgba(255, 77, 77, 0.35); }
+body.skin-scoreboard .rest-takeover {
+  display: none;
+  position: absolute;
+  left: 8px;
+  right: 94px;
+  top: 8px;
+  bottom: 8px;
+  z-index: 2;
+  align-items: center;
+  justify-content: center;
+  font-family: Orbitron, "Share Tech Mono", monospace;
+  font-size: clamp(42px, 12vw, 68px);
+  font-weight: 800;
+  color: #5cff6a;
+  text-shadow: 0 0 12px #22c55e;
+  pointer-events: none;
+  text-align: center;
+}
+body.skin-scoreboard .zones:has(.zone-rest[data-resting="true"]) .rest-takeover { display: flex; }
+body.skin-scoreboard .zones:has(.zone-rest[data-resting="true"]) .led-giant input,
+body.skin-scoreboard .zones:has(.zone-rest[data-resting="true"]) .led-giant input::placeholder { color: transparent; text-shadow: none; }
+body.skin-scoreboard .ex-name { text-align: center; color: #fff4e8; font-size: 16px; font-family: "Share Tech Mono", monospace; }
+body.skin-scoreboard .set-progress { margin: 0; text-align: center; color: #fecaca; letter-spacing: 0.12em; font-size: 16px; }
+body.skin-scoreboard .log-set {
+  width: 176px;
+  height: 74px;
+  margin: 6px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  clip-path: polygon(22% 0, 78% 0, 100% 50%, 78% 100%, 22% 100%, 0 50%);
+  background: linear-gradient(#ff3b3b, #9f1239);
+  color: #fff;
+  border: 0;
+  font-family: Orbitron, "Share Tech Mono", sans-serif;
+  letter-spacing: 0.08em;
+  font-size: 16px;
+}
+body.skin-scoreboard .log-set .ico { width: 18px; height: 18px; }
+body.skin-scoreboard .prev-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+body.skin-scoreboard .prev-row > span { letter-spacing: 0.08em; font-size: 13px; }
+body.skin-scoreboard .prev-led {
+  min-width: 56px;
+  min-height: 44px;
+  background: #070203;
+  color: #ffb020;
+  border: 1px solid #7f1d1d;
+  font-family: Orbitron, "Share Tech Mono", monospace;
+  font-size: 16px;
+}
+body.skin-scoreboard .prev-led.on { outline: 2px solid #ffb020; }
+body.skin-scoreboard .session-strip {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  background: #1a0a0c;
+  border: 1px solid #7f1d1d;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 13px;
+}
+body.skin-scoreboard .segbar { display: block; height: 16px; background: #052e16; border: 1px solid #166534; }
+body.skin-scoreboard .segbar i { display: block; height: 100%; background: repeating-linear-gradient(90deg, #4ade80 0 10px, #052e16 10px 12px); }
+body.skin-scoreboard .zone-rest, body.skin-scoreboard .zone-tempo { background: rgba(7, 2, 3, 0.82); border: 1px solid #7f1d1d; border-radius: 8px; padding: 8px; }
+body.skin-scoreboard .rest-count { font-family: Orbitron, "Share Tech Mono", monospace; font-size: 36px; color: #ffb020; text-shadow: 0 0 10px #ff6a00; }
+body.skin-scoreboard .zones:has(.zone-rest[data-resting="true"]) .rest-count { color: #5cff6a; text-shadow: 0 0 10px #22c55e; }
+body.skin-scoreboard .rest-actions button, body.skin-scoreboard .zone-tempo button, body.skin-scoreboard .zone-nav button {
   background: #1a0508;
   color: #ffb020;
   border: 1px solid #7f1d1d;
-}
-body.skin-scoreboard .zone-list .ex-pick.on { outline: 2px solid #ffb020; }
-body.skin-scoreboard .sheet, body.skin-scoreboard .pop {
-  background-color: #14080c;
-  background-image: var(--art-bg);
-  background-size: cover;
-  background-position: center;
-  color: #ffb020;
-  border: 4px solid #7f1d1d;
   font-family: "Share Tech Mono", monospace;
 }
-body.skin-scoreboard .sheet h2, body.skin-scoreboard .sheet p, body.skin-scoreboard .sheet li { color: #fff4e8; }
-body.skin-scoreboard .sheet button { background: #1a0508; color: #ffb020; border-color: #7f1d1d; }
+body.skin-scoreboard .rest-actions button:last-child { background: #7f1d1d; color: #fff; }
+body.skin-scoreboard .px-phases { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+body.skin-scoreboard .px-phases span { background: #070203; color: #7f1d1d; border: 1px solid #3f1216; min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; letter-spacing: 0.08em; }
+body.skin-scoreboard .px-phases span.on { color: #ffb020; border-color: #ff7a18; text-shadow: 0 0 8px #ff6a00; }
+body.skin-scoreboard .tempo-lamp { color: #ffb020; letter-spacing: 0.14em; font-size: 18px; }
+body.skin-scoreboard .zone-nav { position: static; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #14080c; }
+body.skin-scoreboard .sheet, body.skin-scoreboard .pop {
+  background: #14080c;
+  color: #ffb020;
+  border: 6px solid #3f3f46;
+  box-shadow: inset 0 0 0 2px #7f1d1d;
+  font-family: "Share Tech Mono", monospace;
+}
+body.skin-scoreboard .sheet h2, body.skin-scoreboard .sheet h3, body.skin-scoreboard .sheet p, body.skin-scoreboard .sheet li { color: #fff4e8; }
+body.skin-scoreboard .sheet button, body.skin-scoreboard .pop button { background: #1a0508; color: #ffb020; border-color: #7f1d1d; }
 body.skin-scoreboard .sheet .primary, body.skin-scoreboard .sheet .back-log { background: #ef4444; color: #fff; border-color: #ef4444; }
 body.skin-scoreboard .sheet input, body.skin-scoreboard .sheet textarea, body.skin-scoreboard .sheet select {
-  background: #070203; color: #ffb020; border-color: #7f1d1d;
+  background: #070203; color: #ffb020; border-color: #7f1d1d; font-size: 16px;
 }
-#mini-root.shape-rail { width: 176px; max-width: 176px; }
+#mini-root.shape-rail { width: 168px; max-width: 168px; left: auto; right: 8px; bottom: 8px; }
 #mini-root.shape-rail .mini-slate {
-  background: var(--art-mini) center / cover no-repeat;
-  color: #f8fafc;
-  min-height: 176px;
-  padding: 36px 18px 22px;
-  border: 0;
+  background: #f7f8fb;
+  color: #1d4ed8;
+  min-height: 132px;
+  padding: 10px 10px 8px;
+  border: 8px solid #d5d8e0;
+  box-shadow: inset 0 0 0 2px #8b919c;
   font-family: "Permanent Marker", cursive;
-  text-shadow: 0 1px 0 rgba(0,0,0,.45);
+  text-shadow: none;
 }
-#mini-root.shape-rail .mini-log { background: transparent; color: #fff; border: 2px dashed #fff; }
-#mini-root.shape-ticket { width: min(88vw, 300px); max-width: 300px; }
+#mini-root.shape-rail .mini-slate strong, #mini-root.shape-rail .mini-slate p { color: #1e3a8a; font-size: 14px; }
+#mini-root.shape-rail .timer-readout { color: #e11d48; font-size: 16px; }
+#mini-root.shape-rail .mini-log { background: #fb7185; color: #1e293b; border: 0; font-family: "Permanent Marker", cursive; }
+#mini-root.shape-ticket { width: min(88vw, 280px); max-width: 280px; left: auto; right: 8px; bottom: 8px; }
 #mini-root.shape-ticket .mini-led {
-  background: var(--art-mini) center / 100% 100% no-repeat;
+  background: #070203;
   color: #ffb020;
-  min-height: 78px;
-  padding: 14px 16px 8px;
-  border: 0;
-  font-family: "Share Tech Mono", monospace;
+  min-height: 72px;
+  padding: 8px 10px 6px;
+  border: 3px solid #3f3f46;
+  box-shadow: inset 0 0 0 2px #7f1d1d;
+  font-family: Orbitron, "Share Tech Mono", monospace;
 }
+#mini-root.shape-ticket .mini-led em { font-style: normal; font-size: 28px; color: #ff9f1a; text-shadow: 0 0 8px #ff6a00; display: block; }
 #mini-root.shape-ticket .mini-log { background: #ef4444; color: #fff; border: 0; }
-#mini-root.shape-ticket .timer-readout { color: #ffb020; font-size: 16px; text-shadow: 0 0 6px #ff6a00; }
-
+#mini-root.shape-ticket .timer-readout { color: #5cff6a; font-size: 14px; text-shadow: 0 0 6px #22c55e; }
+@media (max-height: 500px) {
+  #mini-root.shape-rail, #mini-root.shape-ticket { top: 8px; bottom: auto; max-height: 120px; }
+  body.skin-scoreboard .led-giant input { font-size: 42px; min-height: 56px; }
+  body.skin-scoreboard .jumbo { min-height: 72px; }
+  body.skin-chalkboard .chalk-clock { width: 72px; height: 72px; }
+  body.skin-chalkboard .rest-count { width: 72px; top: 22px; font-size: 16px; }
+  body.skin-chalkboard .rest-label { left: 84px; }
+}
 
 </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -3605,9 +3843,9 @@ const exerciseDatabase = [
   function stepper(ex, set, field, minus, plus) {
     return '<span class="stepper"><button type="button" data-act="nudge" data-focus="1" data-ex="' + esc(ex) + '" data-set="' + esc(set) + '" data-field="' + field + '" data-dir="-1" aria-label="' + minus + '">' + minus + ptag(field === 'weight' ? 'weightDown' : 'repsDown') + '</button><button type="button" data-act="nudge" data-focus="1" data-ex="' + esc(ex) + '" data-set="' + esc(set) + '" data-field="' + field + '" data-dir="1" aria-label="' + plus + '">' + plus + ptag(field === 'weight' ? 'weightUp' : 'repsUp') + '</button></span>';
   }
-  function numInput(ex, set, field, value, hint) {
+  function numInput(ex, set, field, value, hint, placeholder) {
     const label = field === 'weight' ? (state.settings.units === 'kg' ? 'Kilograms' : 'Pounds') : 'Reps';
-    return '<input data-lockrender="1" data-act="field" data-ex="' + esc(ex) + '" data-set="' + esc(set) + '" data-field="' + field + '" inputmode="decimal" value="' + esc(value) + '" placeholder="" aria-label="' + label + '">';
+    return '<input data-lockrender="1" data-act="field" data-ex="' + esc(ex) + '" data-set="' + esc(set) + '" data-field="' + field + '" inputmode="decimal" value="' + esc(value) + '" placeholder="' + esc(placeholder || '') + '" aria-label="' + label + '">';
   }
   function typeSelect(ex, set, value) {
     return '<select data-act="field" data-ex="' + esc(ex) + '" data-set="' + esc(set) + '" data-field="type">' + SIC.SET_TYPES.map(function (t) { return '<option' + (t === value ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select>';
@@ -3869,8 +4107,106 @@ const exerciseDatabase = [
     if (ui.tab === 'analytics') return analyticsPanel();
     return '';
   }
+  function padGlyphs() {
+    if (!ui.padOn) return '';
+    return '<div class="pad-glyphs">' + ({
+      xbox: 'A Log · B Back · X Partner · Y Skip rest',
+      playstation: '✕ Log · ○ Back · □ Partner · △ Skip rest',
+      switch: 'A Log · B Back · X Partner · Y Skip rest',
+      generic: 'A Log · B Back · X Partner · Y Skip rest'
+    }[ui.padFamily] || 'A Log · B Back · X Partner · Y Skip rest') + '</div>';
+  }
+  function restBlock() {
+    const resting = viewCache.rest[viewCache.partner] > 0 && state.settings.restEnabled !== false;
+    const off = state.settings.restEnabled === false;
+    return '<section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '"><p class="rest-label">' + (off ? 'Rest off' : (resting ? 'Resting' : 'Rest ready')) + '</p><div class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</div><div class="rest-actions"><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15s</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15s</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1">' + (off ? 'Turn rest on' : 'Turn rest off') + '</button></div></section>';
+  }
+  function tempoBlock() {
+    const pattern = state.settings.tempo[partner()] || { e: 1, p1: 0, c: 1, p2: 0 };
+    return '<section class="zone zone-tempo" data-tempo-live="' + (state.settings.tempo.running ? 'on' : 'off') + '"><p class="tempo-read">Tempo ' + pattern.e + '-' + pattern.p1 + '-' + pattern.c + '-' + pattern.p2 + '</p><div class="px-phases"><span data-phase="LOWER"><b>ECC</b><i>' + pattern.e + '</i></span><span data-phase="BOTTOM"><b>PAUSE</b><i>' + pattern.p1 + '</i></span><span data-phase="LIFT"><b>CON</b><i>' + pattern.c + '</i></span><span data-phase="TOP"><b>PAUSE</b><i>' + pattern.p2 + '</i></span></div><div class="tempo-lamp" data-metro>' + esc(runtime.phase) + '</div><button type="button" data-act="tempo-toggle" data-pad="1">' + (state.settings.tempo.running ? 'Tempo off' : 'Tempo on') + '</button></section>';
+  }
+  function chalkCompose() {
+    const f = curFocus();
+    const cur = f.cur, set = f.set;
+    const days = Object.keys((viewCache.routine && viewCache.routine.days) || {});
+    const dayN = Math.max(1, days.indexOf(state.activeDay) + 1);
+    const weekN = Math.max(1, (state.history || []).length || 1);
+    const maxSets = viewCache.exercises.reduce(function (n, e) { return Math.max(n, e.sets.length); }, 0);
+    const heads = [];
+    for (let i = 0; i < maxSets; i++) {
+      const hint = (cur && cur.sets[i] && cur.sets[i].hintR) || String(i + 1);
+      heads.push('<th scope="col">' + esc(hint) + '</th>');
+    }
+    const rows = viewCache.exercises.map(function (ex) {
+      const doneAll = ex.sets.length && ex.sets.every(function (s) { return s.done; });
+      const cells = [];
+      for (let i = 0; i < maxSets; i++) {
+        const s = ex.sets[i];
+        if (!s) { cells.push('<td></td>'); continue; }
+        const key = ' data-ex="' + esc(ex.id) + '" data-set="' + esc(s.id) + '"';
+        if (s.current) {
+          cells.push('<td class="chalk-now"><span class="cell-k">Set ' + (i + 1) + '</span><div class="entry"><label>Weight' + numInput(ex.id, s.id, 'weight', s.weight, '', s.hintW) + '</label><label>Reps' + numInput(ex.id, s.id, 'reps', s.reps, '', s.hintR) + '</label></div></td>');
+        } else if (s.done) {
+          cells.push('<td><button type="button" class="chalk-ink" data-act="focus-set"' + key + '>' + esc(s.weight || '—') + '×' + esc(s.reps || '—') + '</button></td>');
+        } else if (ex.current && set && i === set.index + 1) {
+          cells.push('<td><button type="button" class="chalk-ink next" data-act="focus-set"' + key + ' aria-label="Next set">+</button></td>');
+        } else {
+          cells.push('<td><button type="button" class="chalk-ink later" data-act="focus-set"' + key + ' aria-label="Later set">?</button></td>');
+        }
+      }
+      return '<tr class="' + (ex.current ? 'is-current' : 'is-collapsed') + '"><th scope="row"><button type="button" class="chalk-name' + (ex.current ? ' ex-name' : '') + '" data-act="focus-ex" data-ex="' + esc(ex.id) + '">' + esc(ex.name) + (doneAll ? ' ✓' : '') + '</button></th>' + cells.join('') + '</tr>';
+    }).join('');
+    const who = ['batman', 'robin'].filter(function (p) { return p === 'batman' || state.duoMode; }).map(function (p) {
+      const on = partner() === p;
+      return '<button type="button" class="who-btn ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" data-pad="1" aria-current="' + (on ? 'true' : 'false') + '">' + esc(state.partnerNames[p] || p) + (on ? ' lifting' : '') + '</button>';
+    }).join('');
+    const id = cur ? esc(cur.id) : '';
+    const grid = '<div class="chalk-scroll"><table class="chalk-grid"><thead><tr><th scope="col"></th>' + heads.join('') + '</tr></thead><tbody>' + rows + '</tbody></table></div><p class="set-progress">Set ' + (set ? set.index + 1 : 0) + ' of ' + (cur ? cur.sets.length : 0) + '</p>';
+    const main = ui.tab === 'log' ? grid : '<div class="zone-panel">' + backLog() + panel() + '</div>';
+    const notes = '<div class="chalk-notes"><button type="button" class="note note-y" data-act="focus-ex" data-ex="' + id + '">' + ico('plus') + '<span>Quick log</span></button><button type="button" class="note note-p" data-act="tab" data-tab="history">' + ico('clock') + '<span>History</span></button><button type="button" class="note note-t" data-act="tab" data-tab="analytics">' + ico('chart') + '<span>Stats</span></button><button type="button" class="log-set note note-r" data-act="log-set" data-pad="1" data-focus="1">' + ico('check') + '<span>LOG IT</span></button></div>';
+    const add = ui.tab === 'log' ? '<section class="zone zone-list">' + '<div class="add-row"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="Add exercise" aria-label="Exercise to add"><button type="button" data-act="add-ask" data-pad="1">Add</button></div>' + datalist() + '</section>' : '';
+    const rail = '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-label="Log" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">L</button><button type="button" data-act="tab" data-tab="routines" data-pad="1" aria-label="Routines">R</button><button type="button" data-act="mini-open" data-pad="1" aria-label="Mini">M</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1" aria-label="Settings">S</button><button type="button" data-act="finish" data-pad="1" aria-label="Finish">F</button></nav>';
+    return '<div class="zones chalk-layout">' + padGlyphs() + '<div class="chalk-main">' + welcomeHTML() +
+      '<header class="zone zone-head"><div class="chalk-title"><h1>Strength in Character <span class="heart" aria-hidden="true">♥</span></h1><p>BE YOUR OWN BIGGEST FAN</p></div><div class="chalk-when"><b>WEEK ' + weekN + '</b><b>DAY ' + dayN + '</b><span>' + esc(state.activeDay || '') + '</span></div></header>' +
+      '<div class="zone zone-partners" role="group" aria-label="Active partner">' + who + '</div>' +
+      restBlock().replace('<section class="zone zone-rest"', '<section class="zone zone-rest chalk-rest"').replace('<p class="rest-label">', '<svg class="chalk-clock" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="46" fill="none" stroke="#94a3b8" stroke-width="4" stroke-dasharray="2 6"/><circle data-rest-arc data-erase cx="60" cy="60" r="46" fill="none" stroke="#1d4ed8" stroke-width="8" stroke-linecap="round" transform="rotate(-90 60 60)"></circle></svg><p class="rest-label">') +
+      '<section class="zone zone-now">' + main + '</section>' +
+      (ui.tab === 'log' ? notes : '') +
+      tempoBlock() + add + '</div>' + rail + '</div>';
+  }
+  function scoreCompose() {
+    const f = curFocus();
+    const cur = f.cur, set = f.set;
+    const ghostW = set && set.prev && set.prev !== '—' ? String(set.prev).split('×')[0] : '0.0';
+    const ghostR = set && set.prev && set.prev !== '—' ? (String(set.prev).split('×')[1] || '0') : '0';
+    let done = 0, total = 0;
+    viewCache.exercises.forEach(function (ex) { ex.sets.forEach(function (s) { total++; if (s.done) done++; }); });
+    const pct = total ? Math.round(done / total * 100) : 0;
+    const who = ['batman', 'robin'].filter(function (p) { return p === 'batman' || state.duoMode; }).map(function (p) {
+      const on = partner() === p;
+      const team = p === 'batman' ? 'HOME' : 'AWAY';
+      return '<button type="button" class="who-btn ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" data-pad="1" aria-current="' + (on ? 'true' : 'false') + '"><b>' + team + '</b><span>' + esc(state.partnerNames[p] || p) + '</span></button>';
+    }).join('');
+    const prevs = cur ? cur.sets.map(function (s) {
+      const shown = s.weight ? s.weight : '—';
+      return '<button type="button" class="prev-led' + (s.current ? ' on' : '') + '" data-act="focus-set" data-ex="' + esc(cur.id) + '" data-set="' + esc(s.id) + '">' + esc(shown) + '</button>';
+    }).join('') : '<span class="prev-led">—</span>';
+    const board = cur && set
+      ? '<div class="jumbo"><span class="rest-takeover" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</span><label class="led-giant">Weight' + numInput(cur.id, set.id, 'weight', set.weight, '', ghostW) + '<span class="led-unit">LBS</span></label><label class="rep-led">Reps' + numInput(cur.id, set.id, 'reps', set.reps, '', ghostR) + '</label></div><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">SET ' + (set.index + 1) + ' OF ' + cur.sets.length + '</p><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span>LOG IT</span></button><div class="prev-row"><span>PREV SETS</span>' + prevs + '</div><div class="session-strip"><span>SESSION · ' + esc(state.activeDay || 'DAY') + '</span><span class="segbar" aria-hidden="true"><i style="width:' + pct + '%"></i></span><b>' + done + '/' + total + '</b><b>' + pct + '%</b></div>'
+      : '<p>No exercise on this day.</p>';
+    const main = ui.tab === 'log' ? board : '<div class="zone-panel">' + backLog() + panel() + '</div>';
+    return '<div class="zones score-layout">' + padGlyphs() + welcomeHTML() +
+      '<header class="zone zone-head"><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></header>' +
+      '<div class="sidelight left" aria-hidden="true"></div><div class="sidelight right" aria-hidden="true"></div>' +
+      '<div class="zone zone-partners" role="group" aria-label="Active partner">' + who + '</div>' +
+      '<section class="zone zone-now">' + main + '</section>' +
+      restBlock() + tempoBlock() +
+      '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button><button type="button" data-act="tab" data-tab="history" data-pad="1">History</button><button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button><button type="button" data-act="mini-open" data-pad="1">Mini</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button><button type="button" data-act="finish" data-pad="1">Finish</button></nav></div>';
+  }
   function sharedShell() {
     viewCache = view();
+    if (state.skinId === 'chalkboard') return chalkCompose();
+    if (state.skinId === 'scoreboard') return scoreCompose();
     const f = curFocus();
     const cur = f.cur, set = f.set;
     const id = cur ? esc(cur.id) : '';
@@ -3937,8 +4273,11 @@ const exerciseDatabase = [
     const shut = '<button type="button" class="mini-x" data-act="overlay-hide" aria-label="Close mini">×</button>';
     if (shape === 'puck') return '<div class="mini-body">' + shut + '<div class="mini-puck" data-drag="1"><svg class="mini-arc" viewBox="0 0 100 100" aria-hidden="true"><circle data-rest-arc cx="50" cy="50" r="40"></circle></svg>' + who + '<strong>' + name + '</strong><em>Set ' + (set ? (set.index + 1) : '—') + '</em>' + rest + log + '</div>' + more + fields + '</div>';
     if (shape === 'stepped-l') return '<div class="mini-body"><div class="mini-window" data-drag="1">' + shut + '<div class="px-mini-card">' + who + '<strong>' + name + '</strong><p>Set ' + (set ? (set.index + 1) : '—') + ' · ' + prev + '</p>' + rest + '<i class="px-meter" aria-hidden="true"><b data-rest-bar></b></i>' + log + '</div>' + more + fields + '</div></div>';
-    if (shape === 'rail') return '<div class="mini-body"><div class="mini-slate" data-drag="1">' + shut + who + '<strong>' + name + '</strong><p>Set ' + (set ? (set.index + 1) : '—') + '</p>' + rest + log + more + fields + '</div></div>';
-    if (shape === 'ticket') return '<div class="mini-body"><div class="mini-led" data-drag="1">' + shut + who + '<strong>' + name + '</strong><p>Set ' + (set ? (set.index + 1) : '—') + '</p>' + rest + log + more + fields + '</div></div>';
+    if (shape === 'rail') return '<div class="mini-body"><div class="mini-slate" data-drag="1">' + shut + '<strong>' + name + '</strong><p>Set ' + (set ? (set.index + 1) : '—') + '</p>' + rest + log + '</div>' + more + fields + '</div>';
+    if (shape === 'ticket') {
+      const digits = set && set.weight ? esc(set.weight) : (set && set.prev && set.prev !== '—' ? esc(String(set.prev).split('×')[0]) : '0.0');
+      return '<div class="mini-body"><div class="mini-led" data-drag="1">' + shut + '<em>' + digits + '</em>' + rest + log + '</div>' + more + fields + '</div>';
+    }
     if (shape === 'capsule') return '<div class="mini-body"><div class="mini-pill">' + chrome + '<strong>' + name + '</strong><p>' + prev + '</p>' + log + more + fields + '</div></div>';
     if (shape === 'cassette') return '<div class="mini-body">' + shut + '<div class="mini-disc" data-drag="1"><span>' + name + '</span>' + log + '</div><p>' + prev + ' ' + rest + '</p>' + who + more + fields + '</div>';
     if (shape === 'flower') return '<div class="mini-body">' + shut + '<div class="mini-hexes"><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><div class="mini-core"><b>' + name + '</b><small>' + prev + '</small></div><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button>' + log + '</div>' + who + rest + more + fields + '</div>';
@@ -4329,7 +4668,7 @@ const exerciseDatabase = [
     document.querySelectorAll('[data-rest-arc]').forEach(function (el) {
       const r = Number(el.getAttribute('r')) || 46;
       const circ = 2 * Math.PI * r;
-      const wedge = pct * 0.30 * circ;
+      const wedge = el.hasAttribute('data-erase') ? pct * circ : pct * 0.30 * circ;
       el.setAttribute('stroke-dasharray', wedge.toFixed(1) + ' ' + circ.toFixed(1));
     });
     document.querySelectorAll('[data-rest-bar]').forEach(function (el) { el.style.width = Math.round(pct * 100) + '%'; });
