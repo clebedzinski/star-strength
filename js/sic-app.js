@@ -427,7 +427,7 @@
     return numInput(ex.id, set.id, field, field === 'weight' ? set.weight : set.reps, '');
   }
   function pixelTaskbar() {
-    return '<nav class="taskbar" aria-label="Pixel taskbar"><button type="button" data-act="tab" data-tab="log" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" aria-current="' + (ui.tab === 'routines' ? 'true' : 'false') + '">Routines</button><button type="button" data-act="tab" data-tab="history" aria-current="' + (ui.tab === 'history' ? 'true' : 'false') + '">History</button><button type="button" data-act="tab" data-tab="analytics" aria-current="' + (ui.tab === 'analytics' ? 'true' : 'false') + '">Analytics</button><button type="button" data-act="mini-open">Mini</button><button type="button" class="px-end" data-act="finish" aria-label="Finish workout">End</button><span class="px-clock">' + clock() + '</span></nav>';
+    return '<nav class="taskbar" aria-label="Pixel taskbar"><button type="button" data-act="tab" data-tab="log" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" aria-current="' + (ui.tab === 'routines' ? 'true' : 'false') + '">Routines</button><button type="button" data-act="tab" data-tab="history" aria-current="' + (ui.tab === 'history' ? 'true' : 'false') + '">History</button><button type="button" data-act="tab" data-tab="analytics" aria-current="' + (ui.tab === 'analytics' ? 'true' : 'false') + '">Analytics</button><button type="button" class="px-settings" data-act="overlay" data-overlay="settings">Settings</button><button type="button" data-act="mini-open">Mini</button><button type="button" class="px-end" data-act="finish" aria-label="Finish workout">End</button><span class="px-clock">' + clock() + '</span></nav>';
   }
   function pixelShell(inner) {
     if (ui.tab !== 'log') return '<div class="pixel-desk">' + backLog() + partnerBar() + '<section class="win px-win"><header><span>' + esc(ui.tab.toUpperCase()) + '</span></header><div class="body">' + inner + '</div></section>' + pixelTaskbar() + '</div>';
@@ -554,7 +554,7 @@
     const rest = '<span class="timer-readout" data-rest="' + v.partner + '">' + fmtClock(v.rest[v.partner]) + '</span>';
     const log = '<button type="button" class="mini-log" data-act="log-set">LOG</button>';
     const more = '<button type="button" class="mini-more" data-act="mini-wide" aria-expanded="' + (ui.miniWide ? 'true' : 'false') + '">' + (ui.miniWide ? 'Less' : 'More') + '</button>';
-    const fields = (ui.miniWide && set) ? '<div class="mini-fields"><label>Lb ' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps ' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label><button type="button" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button><button type="button" data-act="manage" data-ex="' + id + '">Sets</button></div>' : '';
+    const fields = ui.miniWide ? '<div class="mini-fields">' + (set ? '<label>Lb ' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps ' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label><button type="button" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button><button type="button" data-act="manage" data-ex="' + id + '">Sets</button>' : '') + '<button type="button" data-act="back-log">Log</button><button type="button" data-act="overlay" data-overlay="settings">Settings</button></div>' : '';
     const chrome = '<div class="mini-top" data-drag="1">' + who + rest + '<button type="button" data-act="overlay-hide" aria-label="Close mini">×</button></div>';
     if (shape === 'puck') return '<div class="mini-body"><div class="mini-puck" data-drag="1"><span>' + (set ? esc(set.weight || '—') : '—') + '</span>' + log + '<small>' + prev + '</small></div>' + who + more + fields + '</div>';
     if (shape === 'stepped-l') return '<div class="mini-body"><div class="mini-window">' + chrome + '<strong>' + name + '</strong><p>' + prev + '</p>' + log + more + fields + '</div></div>';
@@ -744,7 +744,7 @@
   function renderNow() {
     applyChrome();
     viewCache = view();
-    $('app').innerHTML = shell();
+    $('app').innerHTML = shell() + '<div class="escape-hatch"><button type="button" class="escape-log" data-act="back-log">Log</button><button type="button" class="escape-gear" data-act="overlay" data-overlay="settings" aria-label="Settings">Settings</button></div>';
     const mini = $('mini-root');
     mini.hidden = !ui.miniOpen;
     mini.className = 'shape-' + (skin().mini || 'card');
@@ -1497,7 +1497,14 @@
       if (msg.type === 'import') previewXml(msg.text || '');
       if (msg.type === 'overlay') { ui.folderStatus.overlay = msg.ok ? 'Overlay permission granted. Hardware pass-through was not certified in this build.' : 'Overlay permission is off.'; }
     },
-    state: function () { return state; }
+    state: function () { return state; },
+    onHardwareBack: function () {
+      if (ui.overlay || ui.pop || ui.dialog) { ui.overlay = null; ui.pop = null; ui.dialog = null; render({ force: true }); return; }
+      if (ui.miniOpen && ui.miniWide) { ui.miniWide = false; render({ force: true }); return; }
+      if (ui.tab !== 'log') { ui.tab = 'log'; render({ force: true }); return; }
+      ui.overlay = 'settings';
+      render({ force: true });
+    }
   };
 
   document.addEventListener('click', onClick);
@@ -1511,6 +1518,22 @@
       state.settings.lastInput = touch ? 'touch' : 'mouse';
     }
   }, { capture: true });
+  let holdSettings = null;
+  function holdTarget(e) { return e.target.closest && e.target.closest('h1, .ss-titles, .who-btn, .mini-who'); }
+  document.addEventListener('pointerdown', function (e) {
+    if (!holdTarget(e)) return;
+    clearTimeout(holdSettings);
+    holdSettings = setTimeout(function () { ui.overlay = 'settings'; render({ force: true }); }, 550);
+  }, true);
+  document.addEventListener('pointerup', function () { clearTimeout(holdSettings); }, true);
+  document.addEventListener('pointercancel', function () { clearTimeout(holdSettings); }, true);
+  document.addEventListener('pointermove', function (e) { if (e.buttons === 0) return; clearTimeout(holdSettings); }, true);
+  document.addEventListener('contextmenu', function (e) {
+    if (!holdTarget(e)) return;
+    e.preventDefault();
+    ui.overlay = 'settings';
+    render({ force: true });
+  });
   document.addEventListener('pointerdown', onPointerDown);
   document.addEventListener('pointermove', onPointerMove);
   document.addEventListener('pointerup', onPointerUp);

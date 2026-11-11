@@ -535,7 +535,7 @@ label.hex input { width: 70px; min-height: 44px; text-align: center; background:
 .mini-card { background: #1e293b; color: #f8fafc; border: 1px solid #f59e0b; border-radius: 12px; padding: 6px; box-shadow: 0 8px 16px rgba(0,0,0,.35); }
 #mini-root.shape-stepped-l { width: 40vw; max-width: 180px; }
 .mini-window { background: #efe7c6; color: #1a120c; border: 3px solid #24160f; box-shadow: 4px 4px 0 #ff4fa3; padding: 6px; font-family: "Press Start 2P", monospace; font-size: 8px; }
-#mini-root.shape-puck { width: 132px; height: 132px; max-height: 132px; overflow: visible; }
+#mini-root.shape-puck { width: 148px; height: auto; max-height: 42vh; overflow: auto; }
 .mini-puck { width: 132px; height: 132px; border-radius: 50%; display: grid; place-items: center; text-align: center; background: radial-gradient(circle at 35% 30%, #9aa3ad, #1c2128 55%, #0c0e12); color: #ffb020; box-shadow: inset 0 0 0 8px #2a3038, 0 10px 18px rgba(0,0,0,.45); }
 .mini-puck span { font-size: 22px; font-weight: 900; }
 #mini-root.shape-rail { width: 40vw; max-width: 176px; }
@@ -627,6 +627,9 @@ label.hex input { background: #120e08; color: #fff6e4; border: 2px solid #f0b429
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+.escape-hatch { position: fixed; right: 8px; bottom: 8px; z-index: 80; display: flex; gap: 6px; }
+.escape-hatch button { min-width: 44px; min-height: 44px; padding: 8px 10px; font-weight: 900; box-shadow: 0 4px 12px rgba(0,0,0,.35); }
+.taskbar .px-settings { background: #ffe14a; color: #1a120c; }
 body.sic.overlay-only #app, body.sic.overlay-only #chrome-bar { display: none !important; }
 body.sic.overlay-only { background: transparent; }
 body.sic.overlay-only #mini-root { position: relative; left: auto !important; top: auto !important; bottom: auto; margin: 8px auto; max-height: none; display: block !important; }

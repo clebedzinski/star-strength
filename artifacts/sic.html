@@ -543,7 +543,7 @@ label.hex input { width: 70px; min-height: 44px; text-align: center; background:
 .mini-card { background: #1e293b; color: #f8fafc; border: 1px solid #f59e0b; border-radius: 12px; padding: 6px; box-shadow: 0 8px 16px rgba(0,0,0,.35); }
 #mini-root.shape-stepped-l { width: 40vw; max-width: 180px; }
 .mini-window { background: #efe7c6; color: #1a120c; border: 3px solid #24160f; box-shadow: 4px 4px 0 #ff4fa3; padding: 6px; font-family: "Press Start 2P", monospace; font-size: 8px; }
-#mini-root.shape-puck { width: 132px; height: 132px; max-height: 132px; overflow: visible; }
+#mini-root.shape-puck { width: 148px; height: auto; max-height: 42vh; overflow: auto; }
 .mini-puck { width: 132px; height: 132px; border-radius: 50%; display: grid; place-items: center; text-align: center; background: radial-gradient(circle at 35% 30%, #9aa3ad, #1c2128 55%, #0c0e12); color: #ffb020; box-shadow: inset 0 0 0 8px #2a3038, 0 10px 18px rgba(0,0,0,.45); }
 .mini-puck span { font-size: 22px; font-weight: 900; }
 #mini-root.shape-rail { width: 40vw; max-width: 176px; }
@@ -635,6 +635,9 @@ label.hex input { background: #120e08; color: #fff6e4; border: 2px solid #f0b429
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+.escape-hatch { position: fixed; right: 8px; bottom: 8px; z-index: 80; display: flex; gap: 6px; }
+.escape-hatch button { min-width: 44px; min-height: 44px; padding: 8px 10px; font-weight: 900; box-shadow: 0 4px 12px rgba(0,0,0,.35); }
+.taskbar .px-settings { background: #ffe14a; color: #1a120c; }
 body.sic.overlay-only #app, body.sic.overlay-only #chrome-bar { display: none !important; }
 body.sic.overlay-only { background: transparent; }
 body.sic.overlay-only #mini-root { position: relative; left: auto !important; top: auto !important; bottom: auto; margin: 8px auto; max-height: none; display: block !important; }
@@ -764,7 +767,7 @@ body.sic.overlay-only #mini-root { position: relative; left: auto !important; to
 /* Owner deployment fills bugReportEndpoint only after gas/SETUP.md is done.
    Leave verified false until a real response {ok:true,id} has been read back. */
 window.SIC_CONFIG = {
-  appVersion: '1.0.9-sic',
+  appVersion: '1.0.10-sic',
   bugReportEndpoint: '',
   bugReportVerified: false
 };
@@ -2957,7 +2960,7 @@ const exerciseDatabase = [
     return numInput(ex.id, set.id, field, field === 'weight' ? set.weight : set.reps, '');
   }
   function pixelTaskbar() {
-    return '<nav class="taskbar" aria-label="Pixel taskbar"><button type="button" data-act="tab" data-tab="log" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" aria-current="' + (ui.tab === 'routines' ? 'true' : 'false') + '">Routines</button><button type="button" data-act="tab" data-tab="history" aria-current="' + (ui.tab === 'history' ? 'true' : 'false') + '">History</button><button type="button" data-act="tab" data-tab="analytics" aria-current="' + (ui.tab === 'analytics' ? 'true' : 'false') + '">Analytics</button><button type="button" data-act="mini-open">Mini</button><button type="button" class="px-end" data-act="finish" aria-label="Finish workout">End</button><span class="px-clock">' + clock() + '</span></nav>';
+    return '<nav class="taskbar" aria-label="Pixel taskbar"><button type="button" data-act="tab" data-tab="log" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" aria-current="' + (ui.tab === 'routines' ? 'true' : 'false') + '">Routines</button><button type="button" data-act="tab" data-tab="history" aria-current="' + (ui.tab === 'history' ? 'true' : 'false') + '">History</button><button type="button" data-act="tab" data-tab="analytics" aria-current="' + (ui.tab === 'analytics' ? 'true' : 'false') + '">Analytics</button><button type="button" class="px-settings" data-act="overlay" data-overlay="settings">Settings</button><button type="button" data-act="mini-open">Mini</button><button type="button" class="px-end" data-act="finish" aria-label="Finish workout">End</button><span class="px-clock">' + clock() + '</span></nav>';
   }
   function pixelShell(inner) {
     if (ui.tab !== 'log') return '<div class="pixel-desk">' + backLog() + partnerBar() + '<section class="win px-win"><header><span>' + esc(ui.tab.toUpperCase()) + '</span></header><div class="body">' + inner + '</div></section>' + pixelTaskbar() + '</div>';
@@ -3084,7 +3087,7 @@ const exerciseDatabase = [
     const rest = '<span class="timer-readout" data-rest="' + v.partner + '">' + fmtClock(v.rest[v.partner]) + '</span>';
     const log = '<button type="button" class="mini-log" data-act="log-set">LOG</button>';
     const more = '<button type="button" class="mini-more" data-act="mini-wide" aria-expanded="' + (ui.miniWide ? 'true' : 'false') + '">' + (ui.miniWide ? 'Less' : 'More') + '</button>';
-    const fields = (ui.miniWide && set) ? '<div class="mini-fields"><label>Lb ' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps ' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label><button type="button" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button><button type="button" data-act="manage" data-ex="' + id + '">Sets</button></div>' : '';
+    const fields = ui.miniWide ? '<div class="mini-fields">' + (set ? '<label>Lb ' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps ' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label><button type="button" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button><button type="button" data-act="manage" data-ex="' + id + '">Sets</button>' : '') + '<button type="button" data-act="back-log">Log</button><button type="button" data-act="overlay" data-overlay="settings">Settings</button></div>' : '';
     const chrome = '<div class="mini-top" data-drag="1">' + who + rest + '<button type="button" data-act="overlay-hide" aria-label="Close mini">×</button></div>';
     if (shape === 'puck') return '<div class="mini-body"><div class="mini-puck" data-drag="1"><span>' + (set ? esc(set.weight || '—') : '—') + '</span>' + log + '<small>' + prev + '</small></div>' + who + more + fields + '</div>';
     if (shape === 'stepped-l') return '<div class="mini-body"><div class="mini-window">' + chrome + '<strong>' + name + '</strong><p>' + prev + '</p>' + log + more + fields + '</div></div>';
@@ -3274,7 +3277,7 @@ const exerciseDatabase = [
   function renderNow() {
     applyChrome();
     viewCache = view();
-    $('app').innerHTML = shell();
+    $('app').innerHTML = shell() + '<div class="escape-hatch"><button type="button" class="escape-log" data-act="back-log">Log</button><button type="button" class="escape-gear" data-act="overlay" data-overlay="settings" aria-label="Settings">Settings</button></div>';
     const mini = $('mini-root');
     mini.hidden = !ui.miniOpen;
     mini.className = 'shape-' + (skin().mini || 'card');
@@ -4027,7 +4030,14 @@ const exerciseDatabase = [
       if (msg.type === 'import') previewXml(msg.text || '');
       if (msg.type === 'overlay') { ui.folderStatus.overlay = msg.ok ? 'Overlay permission granted. Hardware pass-through was not certified in this build.' : 'Overlay permission is off.'; }
     },
-    state: function () { return state; }
+    state: function () { return state; },
+    onHardwareBack: function () {
+      if (ui.overlay || ui.pop || ui.dialog) { ui.overlay = null; ui.pop = null; ui.dialog = null; render({ force: true }); return; }
+      if (ui.miniOpen && ui.miniWide) { ui.miniWide = false; render({ force: true }); return; }
+      if (ui.tab !== 'log') { ui.tab = 'log'; render({ force: true }); return; }
+      ui.overlay = 'settings';
+      render({ force: true });
+    }
   };
 
   document.addEventListener('click', onClick);
@@ -4041,6 +4051,22 @@ const exerciseDatabase = [
       state.settings.lastInput = touch ? 'touch' : 'mouse';
     }
   }, { capture: true });
+  let holdSettings = null;
+  function holdTarget(e) { return e.target.closest && e.target.closest('h1, .ss-titles, .who-btn, .mini-who'); }
+  document.addEventListener('pointerdown', function (e) {
+    if (!holdTarget(e)) return;
+    clearTimeout(holdSettings);
+    holdSettings = setTimeout(function () { ui.overlay = 'settings'; render({ force: true }); }, 550);
+  }, true);
+  document.addEventListener('pointerup', function () { clearTimeout(holdSettings); }, true);
+  document.addEventListener('pointercancel', function () { clearTimeout(holdSettings); }, true);
+  document.addEventListener('pointermove', function (e) { if (e.buttons === 0) return; clearTimeout(holdSettings); }, true);
+  document.addEventListener('contextmenu', function (e) {
+    if (!holdTarget(e)) return;
+    e.preventDefault();
+    ui.overlay = 'settings';
+    render({ force: true });
+  });
   document.addEventListener('pointerdown', onPointerDown);
   document.addEventListener('pointermove', onPointerMove);
   document.addEventListener('pointerup', onPointerUp);
