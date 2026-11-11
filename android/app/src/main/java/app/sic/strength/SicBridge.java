@@ -27,7 +27,7 @@ public final class SicBridge {
     public String getPlatform() { return "android"; }
 
     @JavascriptInterface
-    public String getAppVersion() { return "1.0.1-sic-debug"; }
+    public String getAppVersion() { return "1.0.7-sic-debug"; }
 
     @JavascriptInterface
     public String storageInfo() {

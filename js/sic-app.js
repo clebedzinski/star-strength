@@ -169,6 +169,7 @@
       runtime.dirty = false;
       runtime.lastError = '';
       paintSave('saved');
+      try { storage.setItem('ss_rev', String(Date.now())); runtime.rev = storage.getItem('ss_rev'); } catch (err) {}
       pushNativeState();
       return { ok: true };
     } catch (e) {
@@ -565,7 +566,7 @@
     const set = cur && (cur.sets.find(function (s) { return s.current; }) || cur.sets[0]);
     const shape = skin().mini || 'card';
     const resting = v.rest[v.partner] > 0;
-    const body = '<div class="mini-body" data-shape="' + esc(shape) + '">' + partnerBar() + '<div class="spread" data-drag="1"><strong>' + esc(cur ? cur.name : 'Strength in Character') + '</strong><button type="button" data-act="mini-min" aria-label="Minimize">_</button></div><div>Set ' + (set ? set.index + 1 : '—') + ' · ' + esc(v.name) + '</div>' + (set ? '<div class="row">' + numInput(cur.id, set.id, 'weight', set.weight, set.hintW) + stepper(cur.id, set.id, 'weight', '−', '+') + '</div><div class="row">' + numInput(cur.id, set.id, 'reps', set.reps, set.hintR) + stepper(cur.id, set.id, 'reps', '−', '+') + '</div>' : '') + (resting ? '<div class="timer-readout" data-rest="' + v.partner + '">' + fmtClock(v.rest[v.partner]) + '</div><div class="row"><button type="button" data-act="rest-nudge" data-sec="-15">−15</button><button type="button" data-act="rest-nudge" data-sec="15">+15</button><button type="button" data-act="rest-stop">Skip</button></div>' : '') + '<div class="mini-actions"><button type="button" data-act="manage" data-ex="' + esc(cur ? cur.id : '') + '">± Sets</button>' + logBtn() + '</div><div class="row"><button type="button" data-act="mini-close">Full</button>' + finishBtn() + '</div></div>';
+    const body = '<div class="mini-body" data-shape="' + esc(shape) + '">' + partnerBar() + '<div class="spread" data-drag="1"><strong>' + esc(cur ? cur.name : 'Strength in Character') + '</strong><button type="button" data-act="overlay-hide" aria-label="Close mini">×</button><button type="button" data-act="overlay-expand" aria-label="Open full app">Full</button></div><div>Set ' + (set ? set.index + 1 : '—') + ' · ' + esc(v.name) + '</div>' + (set ? '<div class="row">' + numInput(cur.id, set.id, 'weight', set.weight, set.hintW) + stepper(cur.id, set.id, 'weight', '−', '+') + '</div><div class="row">' + numInput(cur.id, set.id, 'reps', set.reps, set.hintR) + stepper(cur.id, set.id, 'reps', '−', '+') + '</div>' : '') + (resting ? '<div class="timer-readout" data-rest="' + v.partner + '">' + fmtClock(v.rest[v.partner]) + '</div><div class="row"><button type="button" data-act="rest-nudge" data-sec="-15">−15</button><button type="button" data-act="rest-nudge" data-sec="15">+15</button><button type="button" data-act="rest-stop">Skip</button></div>' : '') + '<div class="mini-actions"><button type="button" data-act="manage" data-ex="' + esc(cur ? cur.id : '') + '">± Sets</button>' + logBtn() + '</div><div class="row"><button type="button" data-act="mini-close">Full</button>' + finishBtn() + '</div></div>';
     return body;
   }
   function popHTML() {
@@ -683,6 +684,7 @@
   function overlayHTML() {
     if (ui.dialog) return dialogHTML(ui.dialog);
     if (!ui.overlay) return '';
+    if (ui.overlay === 'overlay-ask') return '<div class="overlay"><div class="sheet"><h2>Float over other apps</h2><p>Mini mode is a small Strength in Character window that stays on top of other Android apps, like a chat head. Android asks for "Display over other apps". You can turn that off later in system settings. This is not available on iOS or in a phone browser.</p><div class="row"><button type="button" class="primary" data-act="overlay-perm">Continue to Android settings</button><button type="button" data-act="close-overlay">Not now</button></div></div></div>';
     if (ui.overlay === 'settings') return '<div class="overlay"><div class="sheet">' + settingsHTML() + '</div></div>';
     if (ui.overlay === 'bug') return '<div class="overlay"><div class="sheet"><div class="spread"><h2>Bug report</h2><button type="button" data-act="close-overlay">Close</button></div>' + bugBlock() + '</div></div>';
     if (ui.overlay === 'whats') return '<div class="overlay"><div class="sheet"><h2>What\'s new</h2><p>Strength in Character. Star Strength Classic is the original spreadsheet skin.</p><ul><li>LOG SET records the current set and starts rest. FINISH WORKOUT is the only control that ends the session.</li><li>Eight layouts share one log: Classic, Pixel Forecast, Iron Dial, Chalk Board, Scoreboard, Transit Line, Vinyl Deck, and Hex Hive.</li><li>Mini mode stays inside the page on the web. A desktop browser may offer Document Picture-in-Picture. Android can request a system overlay. There is no iOS overlay and no cross-app mini on mobile web.</li><li>The workout sneak-peek idea is credited to Ryan (ryno).</li></ul><p class="warn">Bug reports stay on this device until the owner deploys the receiver in gas/SETUP.md and a real acknowledgement comes back.</p><button type="button" class="primary" data-act="whats-close">Continue</button></div></div>';
@@ -1101,7 +1103,17 @@
     if (act === 'close-overlay' || act === 'alert-close') { ui.overlay = null; render({ force: true }); return; }
     if (act === 'whats-close') { try { storage.setItem('ss_seen_version', CFG.appVersion); } catch (e) {} ui.whatsBar = false; ui.overlay = null; render({ force: true }); return; }
     if (act === 'summary-close') { ui.overlay = null; ui.tab = 'history'; render({ force: true }); return; }
-    if (act === 'mini-open') { ui.miniOpen = true; render({ force: true }); return; }
+    if (act === 'mini-open') {
+      const n = native();
+      if (n && n.showOverlay) {
+        if (n.canOverlay && !n.canOverlay()) { ui.overlay = 'overlay-ask'; render({ force: true }); return; }
+        persist('mini');
+        n.showOverlay();
+        return;
+      }
+      ui.miniOpen = true; render({ force: true }); return;
+    }
+    if (act === 'overlay-expand') { const n = native(); if (n && n.openApp) n.openApp(); return; }
     if (act === 'mini-close') { ui.miniOpen = false; render({ force: true }); return; }
     if (act === 'mini-min') { ui.miniOpen = false; render({ force: true }); return; }
     if (act === 'day') { /* select change */ return; }
@@ -1183,7 +1195,7 @@
     if (act === 'pip') { openPip(); return; }
     if (act === 'overlay-perm') { if (native() && native().requestOverlay) native().requestOverlay(); return; }
     if (act === 'overlay-show') { if (native() && native().showOverlay) native().showOverlay(); return; }
-    if (act === 'overlay-hide') { if (native() && native().hideOverlay) native().hideOverlay(); return; }
+    if (act === 'overlay-hide') { ui.miniOpen = false; if (native() && native().hideOverlay) native().hideOverlay(); render({ force: true }); return; }
   }
   function onInput(e) {
     const t = e.target;
@@ -1509,12 +1521,21 @@
   window.addEventListener('beforeunload', function (e) { if (runtime.dirty && !state.settings.autosave) { e.preventDefault(); e.returnValue = ''; } });
 
   bootState();
-  if (params.get('overlay') === '1') document.body.classList.add('overlay-only');
+  if (params.get('overlay') === '1') { document.body.classList.add('overlay-only'); ui.miniOpen = true; }
+  runtime.rev = storage.getItem('ss_rev') || '';
   if (window.SICFx) window.SICFx.init();
   applyChrome();
   render({ force: true });
   paintSave(demo ? 'saved' : 'saved');
   setInterval(tick, 250);
+  setInterval(function () {
+    let rev = '';
+    try { rev = storage.getItem('ss_rev') || ''; } catch (e) { return; }
+    if (!rev || rev === runtime.rev) return;
+    if (document.activeElement && document.activeElement.dataset && document.activeElement.dataset.lockrender === '1') return;
+    runtime.rev = rev;
+    if (params.get('overlay') === '1' || document.hidden) location.reload();
+  }, 1200);
   window.addEventListener('gamepadconnected', function () {
     state.settings.lastInput = 'xbox';
     if (!runtime.padTimer) runtime.padTimer = setInterval(pollPad, 200);

@@ -610,4 +610,4 @@ label.hex input { background: #120e08; color: #fff6e4; border: 2px solid #f0b429
   * { animation: none !important; transition: none !important; }
 }
 body.sic.overlay-only #app, body.sic.overlay-only #chrome-bar { display: none !important; }
-body.sic.overlay-only #mini-root { position: relative; left: auto; bottom: auto; width: 100%; max-height: none; }
+body.sic.overlay-only #mini-root { position: relative; left: auto !important; top: auto !important; bottom: auto; width: 100%; max-height: none; display: block !important; }

@@ -10,8 +10,8 @@ android {
         applicationId "app.sic.strength"
         minSdk 26
         targetSdk 34
-        versionCode 7
-        versionName "1.0.6-sic-debug"
+        versionCode 8
+        versionName "1.0.7-sic-debug"
     }
 
     signingConfigs {
