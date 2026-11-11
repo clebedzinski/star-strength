@@ -12,6 +12,7 @@
     miniOpen: params.get('mini') === '1',
     pop: null,
     overlay: null,
+    whatsBar: false,
     dialog: null,
     historyReverse: false,
     historyMuscle: 'all',
@@ -115,7 +116,7 @@
     if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) state.settings.lastInput = 'touch';
     if (params.get('set')) ui.settingsCat = params.get('set');
     if (params.get('sub')) ui.settingsSub = params.get('sub');
-    if (!demo && storage.getItem('ss_seen_version') !== CFG.appVersion) ui.overlay = ui.overlay || 'whats';
+    if (!demo && storage.getItem('ss_seen_version') !== CFG.appVersion) ui.whatsBar = true;
   }
 
   function seedDemo() {
@@ -123,11 +124,13 @@
     state.activeDay = 'Push';
     const data = SIC.ensureExerciseSession(state, ex, ids);
     if (data.sets.length < 4) SIC.addSet(state, ex.id, ids);
-    data.sets[0].weight = '185'; data.sets[0].reps = '5'; data.sets[0].done = true;
-    data.sets[1].weight = '205'; data.sets[1].reps = '5'; data.sets[1].done = true;
-    data.sets[2].weight = '225'; data.sets[2].reps = '5'; data.sets[2].done = true;
-    data.sets[3].weight = '225'; data.sets[3].reps = '';
-    state.focus = { exerciseId: ex.id, setId: data.sets[3].id };
+    if (params.get('blank') !== '1') {
+      data.sets[0].weight = '185'; data.sets[0].reps = '5'; data.sets[0].done = true;
+      data.sets[1].weight = '205'; data.sets[1].reps = '5'; data.sets[1].done = true;
+      data.sets[2].weight = '225'; data.sets[2].reps = '5'; data.sets[2].done = true;
+      data.sets[3].weight = '225'; data.sets[3].reps = '';
+    }
+    state.focus = { exerciseId: ex.id, setId: data.sets[params.get('blank') === '1' ? 0 : 3].id };
     state.history.unshift({ id: 'demo_prev', ts: Date.now() - 86400000, date: 'Yesterday', routineName: state.routines.bls5.name, dayName: 'Push', duo: false, exercises: [{ exercise: ex.name, muscle: 'CHEST', partner: 'batman', sets: [{ type: 'Normal', weight: '205', reps: '5' }, { type: 'Normal', weight: '205', reps: '5' }, { type: 'Normal', weight: '225', reps: '3' }] }] });
     state.personalRecords = SIC.recalcPRs(state.history);
   }
@@ -309,17 +312,62 @@
     const unit = state.settings.units === 'kg' ? 'kg' : 'lb';
     return '<div class="setline' + (s.current ? ' current' : '') + '"><div class="setline-top"><button type="button" class="ghost" data-act="del-set" data-ex="' + esc(ex.id) + '" data-set="' + esc(s.id) + '" aria-label="Delete set ' + (s.index + 1) + '">Delete</button><strong>Set ' + (s.index + 1) + '</strong>' + typeSelect(ex.id, s.id, s.type) + '<span class="prev">Last ' + esc(s.prev) + '</span><button type="button" class="done ' + (s.done ? 'on' : '') + '" data-act="toggle-done" data-ex="' + esc(ex.id) + '" data-set="' + esc(s.id) + '" aria-label="Mark set ' + (s.index + 1) + ' done">' + (s.done ? 'Done' : 'Log') + '</button></div><label>' + unit + ' ' + numInput(ex.id, s.id, 'weight', s.weight, s.hintW) + '</label><label>Reps ' + numInput(ex.id, s.id, 'reps', s.reps, s.hintR) + '</label></div>';
   }
+  function ico(name) {
+    const paths = {
+      bug: '<path d="M8 9h8v6a4 4 0 0 1-8 0V9z"/><path d="M9 9V7a3 3 0 0 1 6 0v2M5 13h3M16 13h3M7 7 5 5M17 7l2-2M7 17l-2 2M17 17l2 2"/>',
+      drum: '<ellipse cx="12" cy="14" rx="7" ry="4"/><path d="M5 14V10c0-2 3-4 7-4s7 2 7 4v4M12 6V3M9 3h6"/>',
+      calc: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/>',
+      gear: '<circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/>',
+      mini: '<rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="12" width="7" height="5" rx="1"/>',
+      lift: '<path d="M6 9v6M18 9v6M3 10v4M21 10v4M6 12h12"/>',
+      cal: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>',
+      clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/>',
+      chart: '<path d="M4 19h16M7 16l3-5 3 3 4-7"/>',
+      trash: '<path d="M5 7h14M9 7V5h6v2M8 7l1 12h6l1-12"/>',
+      check: '<path d="M5 12l5 5L20 7"/>',
+      plus: '<path d="M12 5v14M5 12h14"/>'
+    };
+    return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + (paths[name] || '') + '</svg>';
+  }
+  function classicTabs() {
+    return [['log', 'Log', 'lift'], ['routines', 'Routines', 'cal'], ['history', 'History', 'clock'], ['analytics', 'Analytics', 'chart']].map(function (t) {
+      return '<button type="button" class="tab" data-act="tab" data-tab="' + t[0] + '" data-focus="1" aria-current="' + (ui.tab === t[0] ? 'true' : 'false') + '">' + ico(t[2]) + '<span>' + t[1] + '</span></button>';
+    }).join('');
+  }
+  function classicFinish() {
+    return '<button type="button" class="ss-end" data-act="finish" data-focus="1" aria-label="Finish workout">' + ico('check') + '<span>Finish</span>' + ptag('finishChord') + '</button>';
+  }
+  function whatsStrip() {
+    if (!ui.whatsBar || ui.overlay === 'whats') return '';
+    return '<div class="whats-strip"><span>What\'s new in SIC</span><button type="button" data-act="overlay" data-overlay="whats">Read</button><button type="button" data-act="whats-close">Dismiss</button></div>';
+  }
+  function classicCard(ex) {
+    const done = ex.sets.filter(function (s) { return s.done; }).length;
+    const prBucket = (state.personalRecords && state.personalRecords[partner()]) || {};
+    const pr = prBucket[ex.name];
+    const rows = ex.sets.map(function (s) {
+      return '<tr class="' + (s.current ? 'ss-current' : '') + '"><td><button type="button" class="icon-btn" data-act="del-set" data-ex="' + esc(ex.id) + '" data-set="' + esc(s.id) + '" aria-label="Delete set ' + (s.index + 1) + '">' + ico('trash') + '</button></td><td class="ss-n">' + (s.index + 1) + '</td><td>' + typeSelect(ex.id, s.id, s.type) + '</td><td class="ss-prev">' + esc(s.prev) + '</td><td>' + numInput(ex.id, s.id, 'weight', s.weight, s.hintW) + '</td><td>' + numInput(ex.id, s.id, 'reps', s.reps, s.hintR) + '</td><td><button type="button" class="ss-done' + (s.done ? ' on' : '') + '" data-act="toggle-done" data-ex="' + esc(ex.id) + '" data-set="' + esc(s.id) + '" aria-label="Mark set ' + (s.index + 1) + ' done">' + ico('check') + '</button></td></tr>';
+    }).join('');
+    const partners = state.duoMode ? '<div class="ss-partners">' + ['batman', 'robin'].map(function (p) {
+      return '<button type="button" data-act="partner" data-partner="' + p + '" aria-current="' + (state.activePartner === p ? 'true' : 'false') + '">' + esc(state.partnerNames[p]) + '</button>';
+    }).join('') + '</div>' : '';
+    return '<article class="ss-card' + (ex.current ? ' ss-on' : '') + '"><div class="ss-card-head"><div class="ss-ex"><div class="ss-muscle">' + muscleIcon(ex.muscle) + '</div><div class="ss-ex-copy"><h3>' + esc(ex.name) + '</h3><div class="ss-meta"><span class="ss-chip">' + esc(ex.target) + (ex.source === 'extra' ? ' · today' : '') + '</span>' + (pr ? '<span class="ss-pr">PR ' + fmtW(pr.weight) + '</span>' : '') + '</div></div></div><div class="ss-card-side">' + (ex.current ? '<button type="button" class="log-set ss-log" data-act="log-set" data-focus="1">LOG SET' + ptag('logSet') + '</button>' : '') + '<button type="button" class="icon-btn" data-act="manage" data-ex="' + esc(ex.id) + '" aria-label="Manage sets">' + ico('plus') + '</button><button type="button" class="icon-btn" data-act="remove-ask" data-ex="' + esc(ex.id) + '" aria-label="Remove exercise">' + ico('trash') + '</button></div></div><input class="ss-note" data-lockrender="1" data-act="field" data-ex="' + esc(ex.id) + '" data-field="notes" value="' + esc(ex.notes) + '" placeholder="Add notes..." aria-label="Notes">' + partners + '<table class="ss-table"><thead><tr><th></th><th>SET</th><th>TYPE</th><th>PREV</th><th>LBS</th><th>REPS</th><th>DONE</th></tr></thead><tbody>' + rows + '</tbody></table><div class="ss-foot"><button type="button" class="ss-add" data-act="add-set" data-ex="' + esc(ex.id) + '">' + ico('plus') + ' Add Set</button><span class="ss-count">Completed: ' + done + '/' + ex.sets.length + '</span></div></article>';
+  }
   function classicTable(ex) {
     const rows = ex.sets.map(function (s) { return setBlock(ex, s); }).join('');
     const current = ex.sets.find(function (s) { return s.current; }) || ex.sets[0];
     return '<article class="card"><div class="spread"><div class="row">' + muscleIcon(ex.muscle) + '<div><h3 style="margin:0">' + esc(ex.name) + '</h3><div class="muted">' + esc(ex.target) + (ex.source === 'extra' ? ' · today only' : '') + '</div></div></div>' + partners() + '</div><label class="stack">Notes<input data-lockrender="1" data-act="field" data-ex="' + esc(ex.id) + '" data-field="notes" value="' + esc(ex.notes) + '" placeholder="Optional note" aria-label="Notes"></label>' + rows + '<div class="actions"><button type="button" class="ghost" data-act="add-set" data-ex="' + esc(ex.id) + '">Add set</button><button type="button" class="ghost" data-act="manage" data-ex="' + esc(ex.id) + '">Manage sets' + ptag('manageSets') + '</button><button type="button" class="ghost" data-act="remove-ask" data-ex="' + esc(ex.id) + '">Remove</button></div><div class="actions">' + (current ? stepper(ex.id, current.id, 'weight', '− lb', '+ lb') + stepper(ex.id, current.id, 'reps', '− rep', '+ rep') : '') + logBtn() + '</div></article>';
   }
   function classicLog(v) {
-    const cards = v.exercises.map(classicTable).join('') || '<div class="card">No exercises on this day.</div>';
-    return cards + adder();
+    const cards = v.exercises.map(classicCard).join('') || '<div class="ss-card">No exercises on this day.</div>';
+    return cards + '<div class="ss-card ss-append"><h3>' + ico('plus') + ' Add Extra Exercise Today</h3><div class="ss-addrow"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="Type exercise name to append..." aria-label="Exercise to add"><button type="button" class="ss-end" data-act="add-ask" data-focus="1">Append</button></div>' + datalist() + '</div>';
   }
   function classicShell(inner) {
-    return '<div class="classic"><header class="topbar spread"><div class="brand"><div class="star">★</div><div><h1>SIC</h1><p>STRENGTH IN CHARACTER</p></div></div><div class="iconrow"><button type="button" data-act="overlay" data-overlay="bug" aria-label="Bug report">Bug</button><button type="button" data-act="overlay" data-overlay="calc" aria-label="Calculator">1RM</button><button type="button" data-act="mini-open" aria-label="Mini">Mini</button><button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings">Settings</button></div></header><nav class="tabs">' + tabs() + '</nav><div class="routine-bar spread"><div><div class="muted">' + esc(vName()) + '</div><strong>' + esc(viewCache.routine ? viewCache.routine.name : '') + '</strong></div><div class="row">' + daySelect() + finishBtn() + '</div></div><div style="padding:12px;display:flex;flex-direction:column;gap:12px">' + restLine() + inner + '</div></div>';
+    const routine = viewCache.routine;
+    const rest = viewCache.rest[viewCache.partner] || 0;
+    const restBit = rest > 0 ? '<span class="ss-rest timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(rest) + '</span>' : '';
+    const duo = state.duoMode ? '<span class="ss-duo">DUO</span>' : '';
+    return '<div class="classic"><div class="ss-dock"><header class="ss-head"><div class="ss-brand"><div class="ss-star" aria-hidden="true">★</div><h1>SIC</h1><p>STRENGTH IN CHARACTER</p></div><div class="ss-tools"><button type="button" data-act="overlay" data-overlay="bug" aria-label="Bug report" title="Bug report">' + ico('bug') + '</button><button type="button" data-act="overlay" data-overlay="rest" aria-label="Rest timers" title="Rest timers"><span class="ss-zzz">Zzz</span></button><button type="button" data-act="overlay" data-overlay="tempo" aria-label="Tempo" title="Tempo">' + ico('drum') + '</button><button type="button" data-act="overlay" data-overlay="calc" aria-label="Calculator" title="1RM and plates">' + ico('calc') + '</button><button type="button" data-act="mini-open" aria-label="Mini" title="Mini">' + ico('mini') + '</button><button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings" title="Settings">' + ico('gear') + '</button></div></header><nav class="ss-tabs" aria-label="Sections">' + classicTabs() + '</nav><div class="ss-routine"><div class="ss-routine-name">' + duo + '<h2>' + esc(routine ? routine.name : '') + '</h2></div><div class="ss-routine-actions">' + restBit + daySelect() + classicFinish() + '</div></div></div><div class="ss-scroll">' + whatsStrip() + inner + '</div></div>';
   }
   function vName() { return state.duoMode ? state.partnerNames[partner()] : 'Star Strength Classic'; }
   function pixelLog(v) {
@@ -914,7 +962,7 @@
     if (act === 'undo') { SIC.undoLast(state, runtime, Date.now()); ui.toast = null; markDirty(); render({ force: true }); return; }
     if (act === 'overlay') { openOverlay(t.dataset.overlay); return; }
     if (act === 'close-overlay' || act === 'alert-close') { ui.overlay = null; render({ force: true }); return; }
-    if (act === 'whats-close') { try { storage.setItem('ss_seen_version', CFG.appVersion); } catch (e) {} ui.overlay = null; render({ force: true }); return; }
+    if (act === 'whats-close') { try { storage.setItem('ss_seen_version', CFG.appVersion); } catch (e) {} ui.whatsBar = false; ui.overlay = null; render({ force: true }); return; }
     if (act === 'summary-close') { ui.overlay = null; ui.tab = 'history'; render({ force: true }); return; }
     if (act === 'mini-open') { ui.miniOpen = true; render({ force: true }); return; }
     if (act === 'mini-close') { ui.miniOpen = false; render({ force: true }); return; }
