@@ -585,16 +585,17 @@
       return '<button type="button" class="ex-pick' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '" data-pad="1">' + esc(e.name) + '</button>';
     }).join('');
     const logBody = cur && set
-      ? '<svg class="iron-arc" viewBox="0 0 100 100" aria-hidden="true"><circle data-rest-arc cx="50" cy="50" r="40"></circle></svg><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">Set ' + (set.index + 1) + ' of ' + cur.sets.length + '</p><div class="entry"><label>Weight <span class="prev">PREV ' + esc(set.prev) + '</span>' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps <span class="prev">set ' + (set.index + 1) + '</span>' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label></div><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1">LOG SET</button>'
+      ? '<svg class="iron-arc" viewBox="0 0 100 100" aria-hidden="true"><circle data-rest-arc cx="50" cy="50" r="38"></circle></svg><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">Set ' + (set.index + 1) + ' of ' + cur.sets.length + '</p><button type="button" class="bolt bolt-l" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" data-step="5" data-pad="1" aria-label="Decrease weight">−5</button><button type="button" class="bolt bolt-r" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" data-step="5" data-pad="1" aria-label="Increase weight">+5</button><div class="entry"><label>Weight <span class="prev">PREV ' + esc(set.prev) + '</span>' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps <span class="prev">set ' + (set.index + 1) + '</span>' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label></div><div class="rep-dial"><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="-1" data-pad="1" aria-label="Fewer reps">−</button><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="1" data-pad="1" aria-label="More reps">+</button></div><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1"><span class="log-word">LOG SET</span><span class="log-it">LOG IT</span><small class="log-tap">TAP TO RECORD SET</small></button>'
       : '<p>No exercise on this day.</p>';
     const main = ui.tab === 'log' ? logBody : '<div class="zone-panel">' + backLog() + panel() + '</div>';
     return '<div class="zones">' + welcomeHTML() + glyphs +
       '<header class="zone zone-head"><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></header>' +
       '<div class="zone zone-partners" role="group" aria-label="Active partner">' + partners + '</div>' +
       '<section class="zone zone-now">' + main + '</section>' +
-      '<section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '"><p class="rest-label">' + (state.settings.restEnabled === false ? 'Rest off' : (resting ? 'Resting' : 'Rest ready')) + '</p><div class="px-meter" aria-hidden="true"><i data-rest-bar></i></div><div class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</div><div class="rest-actions"><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15s</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15s</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1">' + (state.settings.restEnabled === false ? 'Turn rest on' : 'Turn rest off') + '</button></div></section>' +
-      '<section class="zone zone-tempo" data-tempo-live="' + (state.settings.tempo.running ? 'on' : 'off') + '"><p>Tempo ' + pattern.e + '-' + pattern.p1 + '-' + pattern.c + '-' + pattern.p2 + '</p><div class="tempo-lamp" data-metro>' + esc(runtime.phase) + '</div><button type="button" data-act="tempo-toggle" data-pad="1">' + (state.settings.tempo.running ? 'Tempo off' : 'Tempo on') + '</button></section>' +
+      '<section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '"><p class="rest-caption">REST TIMER</p><p class="rest-label">' + (state.settings.restEnabled === false ? 'Rest off' : (resting ? 'Resting' : 'Rest ready')) + '</p><div class="px-meter" aria-hidden="true"><i data-rest-bar></i></div><div class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</div><div class="rest-actions"><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15s</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15s</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1">' + (state.settings.restEnabled === false ? 'Turn rest on' : 'Turn rest off') + '</button></div></section>' +
+      '<section class="zone zone-tempo" data-tempo-live="' + (state.settings.tempo.running ? 'on' : 'off') + '"><p>Tempo ' + pattern.e + '-' + pattern.p1 + '-' + pattern.c + '-' + pattern.p2 + '</p><div class="px-phases"><span data-phase="LOWER"><b>ECC</b><i>' + pattern.e + '</i></span><span data-phase="BOTTOM"><b>PAUSE</b><i>' + pattern.p1 + '</i></span><span data-phase="LIFT"><b>CON</b><i>' + pattern.c + '</i></span><span data-phase="TOP"><b>PAUSE</b><i>' + pattern.p2 + '</i></span></div><div class="tempo-lamp" data-metro>' + esc(runtime.phase) + '</div><button type="button" data-act="tempo-toggle" data-pad="1">' + (state.settings.tempo.running ? 'Tempo off' : 'Tempo on') + '</button></section>' +
       (ui.tab === 'log' ? '<section class="zone zone-list" aria-label="Exercises">' + list + '<div class="add-row"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="Add exercise" aria-label="Exercise to add"><button type="button" data-act="add-ask" data-pad="1">Add</button></div>' + datalist() + '</section>' : '') +
+      '<div class="px-skyline" aria-hidden="true"></div>' +
       '<nav class="zone zone-nav" aria-label="Main">' +
       '<button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button>' +
       '<button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button>' +
@@ -603,7 +604,7 @@
       '<button type="button" data-act="mini-open" data-pad="1">Mini</button>' +
       '<button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button>' +
       '<button type="button" data-act="finish" data-pad="1">Finish</button>' +
-      '</nav></div>';
+      '<span class="task-clock">' + clock() + '</span></nav></div>';
   }
   function shell() {
     viewCache = view();
@@ -1008,7 +1009,10 @@
       playEvent('metronome'); paintMetro();
     }, 1000);
   }
-  function paintMetro() { document.querySelectorAll('[data-metro]').forEach(function (el) { el.textContent = runtime.phase; }); }
+  function paintMetro() {
+    document.querySelectorAll('[data-metro]').forEach(function (el) { el.textContent = runtime.phase; });
+    document.querySelectorAll('[data-phase]').forEach(function (el) { el.classList.toggle('on', el.getAttribute('data-phase') === runtime.phase); });
+  }
   function haptic(ms) { if (!state.settings.haptics || !navigator.vibrate) return; try { navigator.vibrate(ms || 15); } catch (e) {} }
   function paintRestArt(now) {
     const p = partner();
@@ -1019,7 +1023,8 @@
     document.querySelectorAll('[data-rest-arc]').forEach(function (el) {
       const r = Number(el.getAttribute('r')) || 46;
       const circ = 2 * Math.PI * r;
-      el.setAttribute('stroke-dasharray', (pct * circ).toFixed(1) + ' ' + circ.toFixed(1));
+      const wedge = pct * 0.30 * circ;
+      el.setAttribute('stroke-dasharray', wedge.toFixed(1) + ' ' + circ.toFixed(1));
     });
     document.querySelectorAll('[data-rest-bar]').forEach(function (el) { el.style.width = Math.round(pct * 100) + '%'; });
   }
@@ -1188,7 +1193,7 @@
     if (act === 'finish') { ui.overlay = 'finish'; render({ force: true }); return; }
     if (act === 'finish-go') { doFinish(t.dataset.who); return; }
     if (act === 'nudge') {
-      SIC.nudgeSet(state, t.dataset.ex, t.dataset.set, t.dataset.field, Number(t.dataset.dir), partner());
+      SIC.nudgeSet(state, t.dataset.ex, t.dataset.set, t.dataset.field, Number(t.dataset.dir), partner(), t.dataset.step ? Number(t.dataset.step) : null);
       markDirty(); render({ force: true }); return;
     }
     if (act === 'toggle-done') {

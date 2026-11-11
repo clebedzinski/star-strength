@@ -500,7 +500,7 @@
     } else return { ok: false, reason: 'field' };
     return { ok: true };
   }
-  function nudgeSet(state, exerciseId, setId, field, dir, partner) {
+  function nudgeSet(state, exerciseId, setId, field, dir, partner, stepOverride) {
     const hit = findExercise(state, exerciseId);
     if (!hit) return { ok: false };
     const data = ensureExerciseSession(state, hit.exercise);
@@ -510,7 +510,7 @@
     const key = fieldPair(p, field);
     const cur = parseFloat(set[key]);
     const base = Number.isFinite(cur) ? cur : 0;
-    const step = field === 'weight' ? (Number(state.settings.weightStep) || 2.5) : 1;
+    const step = stepOverride != null ? Number(stepOverride) : (field === 'weight' ? (Number(state.settings.weightStep) || 2.5) : 1);
     const next = Math.max(0, Math.round((base + (dir < 0 ? -1 : 1) * step) * 1000) / 1000);
     set[key] = String(next);
     return { ok: true, value: set[key] };
