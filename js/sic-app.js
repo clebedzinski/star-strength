@@ -140,7 +140,8 @@
   function paintSave(kind) {
     const el = $('save-state'); if (!el) return;
     el.dataset.kind = kind;
-    el.textContent = kind === 'error' ? 'Save error' : kind === 'dirty' ? (state.settings.autosave ? 'Saving…' : 'Unsaved') : (demo ? 'Demo only' : 'Saved');
+    el.textContent = kind === 'error' ? 'Save error' : kind === 'dirty' ? (state.settings.autosave ? 'Saving…' : 'Unsaved') : 'Saved';
+    el.hidden = kind !== 'error' && kind !== 'dirty';
   }
   function executeOps(ops) {
     ops.forEach(function (op) {
@@ -405,61 +406,100 @@
     return '<div class="skin-bar">' + daySelect() + '<button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings">' + ico('gear') + '</button><button type="button" data-act="mini-open" aria-label="Mini">' + ico('mini') + '</button>' + finishBtn() + '</div>';
   }
   function clock() { const d = new Date(); return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
+  function dayRocker(cls) {
+    return '<div class="' + cls + '"><button type="button" data-act="day-step" data-dir="-1" aria-label="Previous day">‹</button><strong>' + esc(state.activeDay || '') + '</strong><button type="button" data-act="day-step" data-dir="1" aria-label="Next day">›</button></div>';
+  }
+  function typed(ex, set, field) {
+    if (!ex || !set) return '';
+    return numInput(ex.id, set.id, field, field === 'weight' ? set.weight : set.reps, '');
+  }
   function pixelTaskbar() {
-    return '<nav class="taskbar" aria-label="Pixel taskbar"><button type="button" data-act="tab" data-tab="log" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" aria-current="' + (ui.tab === 'routines' ? 'true' : 'false') + '">Routines</button><button type="button" data-act="tab" data-tab="history" aria-current="' + (ui.tab === 'history' ? 'true' : 'false') + '">History</button><button type="button" data-act="tab" data-tab="analytics" aria-current="' + (ui.tab === 'analytics' ? 'true' : 'false') + '">Stats</button><button type="button" data-act="mini-open" aria-label="Mini">Mini</button><button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings">Settings</button><span class="px-clock">' + clock() + '</span>' + finishBtn() + '</nav>';
+    return '<nav class="taskbar" aria-label="Pixel taskbar"><button type="button" data-act="tab" data-tab="log" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" aria-current="' + (ui.tab === 'routines' ? 'true' : 'false') + '">Plans</button><button type="button" data-act="tab" data-tab="history" aria-current="' + (ui.tab === 'history' ? 'true' : 'false') + '">Past</button><button type="button" data-act="tab" data-tab="analytics" aria-current="' + (ui.tab === 'analytics' ? 'true' : 'false') + '">Chart</button><button type="button" class="px-end" data-act="finish" aria-label="Finish workout">End</button><span class="px-clock">' + clock() + '</span></nav>';
   }
   function pixelShell(inner) {
-    if (ui.tab !== 'log') return '<div class="pixel-desk"><section class="win"><header><span>' + esc(ui.tab.toUpperCase()) + '</span></header><div class="body">' + inner + '</div></section>' + pixelTaskbar() + '</div>';
-    const f = curFocus();
-    const cur = f.cur, set = f.set;
-    return '<div class="pixel-desk"><div class="px-city" aria-hidden="true"></div><section class="win"><header><span>SET LOG</span><span>SET ' + (set ? set.index + 1 : '—') + '</span></header><div class="body"><h2 class="px-name">' + esc(cur ? cur.name : 'No exercise') + '</h2>' + nudgePad(cur, set) + '<div class="setdots">' + setDots(cur) + '</div>' + logBtn() + manageRow(cur) + '</div></section><section class="win"><header><span>FORECAST</span>' + daySelect() + '</header><div class="body">' + exOverview() + addRow() + '</div></section>' + pixelTaskbar() + '</div>';
+    if (ui.tab !== 'log') return '<div class="pixel-desk"><section class="win"><header><span>' + esc(ui.tab.toUpperCase()) + '</span><button type="button" data-act="tab" data-tab="log">Back</button></header><div class="body">' + inner + '</div></section>' + pixelTaskbar() + '</div>';
+    const f = curFocus(), cur = f.cur, set = f.set;
+    const id = cur ? esc(cur.id) : '', sid = set ? esc(set.id) : '';
+    const cell = function (field, label) {
+      return '<div class="px-cell"><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="1" aria-label="Increase ' + label + '">+</button>' + typed(cur, set, field) + '<button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="-1" aria-label="Decrease ' + label + '">−</button><span>' + label + '</span></div>';
+    };
+    const menu = viewCache.exercises.map(function (e) {
+      return '<button type="button" class="px-item' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + esc(e.name) + '</button>';
+    }).join('');
+    return '<div class="pixel-desk"><div class="px-city" aria-hidden="true"></div><section class="win"><header><span>SET ' + (set ? set.index + 1 : '') + '</span><span>' + esc(cur ? cur.name : 'Empty') + '</span></header><div class="body"><div class="px-pair">' + cell('weight', 'LB') + cell('reps', 'REPS') + '</div><p class="px-prev">Last ' + esc(set ? set.prev : '—') + '</p><div class="px-sets">' + setDots(cur) + '<button type="button" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button></div><button type="button" class="px-log" data-act="log-set">LOG SET</button><div class="px-tools"><button type="button" data-act="manage" data-ex="' + id + '">Sets</button><button type="button" data-act="remove-ask" data-ex="' + id + '">Cut</button><button type="button" data-act="mini-open">Mini</button><button type="button" data-act="overlay" data-overlay="settings">Cfg</button></div></div></section><section class="win"><header><span>FORECAST</span>' + dayRocker('px-day') + '</header><div class="body px-menu">' + menu + '<div class="px-add"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="New exercise" aria-label="Exercise to add"><button type="button" data-act="add-ask">Add</button></div>' + datalist() + '</div></section>' + pixelTaskbar() + '</div>';
   }
   function ironShell(inner) {
-    if (ui.tab !== 'log') return '<div class="dial-stage"><div class="skin-bar">' + tabs() + '</div><div class="iron-panel">' + inner + '</div></div>';
-    const f = curFocus();
-    const cur = f.cur, set = f.set;
+    if (ui.tab !== 'log') return '<div class="dial-stage"><div class="iron-plate">' + tabs() + '</div><div class="iron-panel">' + inner + '</div></div>';
+    const f = curFocus(), cur = f.cur, set = f.set;
+    const id = cur ? esc(cur.id) : '', sid = set ? esc(set.id) : '';
     const pct = viewCache.rest.batman > 0 ? Math.max(0, Math.min(1, viewCache.rest.batman / ((state.rest.batman.total || state.rest.batman.duration) || 1))) : 0;
     const dash = Math.round(pct * 276);
-    const orbits = set ? '<button type="button" class="orbit n" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="weight" data-dir="1" aria-label="Increase weight">+' + esc(String(state.settings.weightStep)) + '</button><button type="button" class="orbit s" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−' + esc(String(state.settings.weightStep)) + '</button><button type="button" class="orbit w" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="reps" data-dir="-1" aria-label="Fewer reps">−1</button><button type="button" class="orbit e" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="reps" data-dir="1" aria-label="More reps">+1</button>' : '';
-    return '<div class="dial-stage">' + skinBar() + '<h2 class="iron-name">' + esc(cur ? cur.name : 'No exercise') + '</h2><p class="prev iron-meta">Set ' + (set ? set.index + 1 : '—') + ' · previous ' + esc(set ? set.prev : '—') + ' · rest <span class="timer-readout" data-rest="batman">' + fmtClock(viewCache.rest.batman) + '</span></p><div class="dial-wrap"><div class="dial"><svg class="rim" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" fill="none" stroke="#3f3f46" stroke-width="4"/><circle cx="50" cy="50" r="44" fill="none" stroke="#ff7a18" stroke-width="4" stroke-dasharray="' + dash + ' 276" stroke-linecap="round" transform="rotate(-90 50 50)"/></svg>' + orbits + '<button type="button" class="hub" data-act="log-set">LOG SET' + ptag('logSet') + '<small>' + esc(set ? (set.weight || '—') + '×' + (set.reps || '—') : '') + '</small></button></div></div>' + nudgePad(cur, set) + '<div class="setdots">' + setDots(cur) + '</div>' + exOverview() + manageRow(cur) + '</div>';
+    const spin = function (field, dir, label, cls) {
+      return '<button type="button" class="orbit ' + cls + '" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="' + dir + '" aria-label="' + label + '">' + (dir > 0 ? '+' : '−') + '</button>';
+    };
+    return '<div class="dial-stage"><div class="iron-plate">' + dayRocker('iron-day') + '<button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings">' + ico('gear') + '</button><button type="button" data-act="mini-open" aria-label="Mini">' + ico('mini') + '</button></div><div class="iron-title"><button type="button" data-act="cycle-ex" data-dir="-1" aria-label="Previous exercise">‹</button><h2>' + esc(cur ? cur.name : 'No exercise') + '</h2><button type="button" data-act="cycle-ex" data-dir="1" aria-label="Next exercise">›</button></div><p class="iron-meta">Set ' + (set ? set.index + 1 : '—') + ' · last ' + esc(set ? set.prev : '—') + ' · <span class="timer-readout" data-rest="batman">' + fmtClock(viewCache.rest.batman) + '</span></p><div class="dial-wrap"><div class="dial"><svg class="rim" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" fill="none" stroke="#3f3f46" stroke-width="5"/><circle cx="50" cy="50" r="44" fill="none" stroke="#ff7a18" stroke-width="5" stroke-dasharray="' + dash + ' 276" stroke-linecap="round" transform="rotate(-90 50 50)"/></svg>' + spin('weight', 1, 'Increase weight', 'n') + spin('weight', -1, 'Decrease weight', 's') + spin('reps', -1, 'Fewer reps', 'w') + spin('reps', 1, 'More reps', 'e') + '<div class="hub-stack"><label>LB ' + typed(cur, set, 'weight') + '</label><button type="button" class="hub" data-act="log-set">LOG' + ptag('logSet') + '</button><label>REPS ' + typed(cur, set, 'reps') + '</label></div></div></div><div class="rivets">' + setDots(cur) + '<button type="button" class="rivet" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button><button type="button" class="rivet" data-act="manage" data-ex="' + id + '">Sets</button><button type="button" class="iron-end" data-act="finish">End</button></div></div>';
   }
   function chalkShell(inner) {
-    const notes = '<div class="stickies"><button type="button" class="sticky y" data-act="tab" data-tab="log">Log</button><button type="button" class="sticky p" data-act="tab" data-tab="history">History</button><button type="button" class="sticky g" data-act="tab" data-tab="routines">Routines</button><button type="button" class="sticky b" data-act="tab" data-tab="analytics">Stats</button><button type="button" class="sticky y" data-act="overlay" data-overlay="settings">Settings</button><button type="button" class="sticky g" data-act="mini-open">Mini</button></div>';
+    const notes = '<div class="stickies"><button type="button" class="sticky y" data-act="tab" data-tab="log">Log</button><button type="button" class="sticky p" data-act="tab" data-tab="history">Past</button><button type="button" class="sticky g" data-act="tab" data-tab="routines">Plans</button><button type="button" class="sticky b" data-act="tab" data-tab="analytics">Chart</button><button type="button" class="sticky y" data-act="overlay" data-overlay="settings">Gear</button><button type="button" class="sticky p" data-act="finish">Done</button></div>';
     if (ui.tab !== 'log') return '<div class="board"><h1>Chalk</h1>' + notes + inner + '</div>';
-    const f = curFocus();
-    return '<div class="board"><div class="chalk-top"><h1>Chalk board</h1>' + daySelect() + '</div><p class="chalk-day">' + esc(viewCache.routine ? viewCache.routine.name : '') + '</p><article class="chalk-now"><h2>' + esc(f.cur ? f.cur.name : 'No exercise') + '</h2>' + nudgePad(f.cur, f.set) + '<div class="setdots">' + setDots(f.cur) + '</div>' + logBtn() + manageRow(f.cur) + '</article><h3 class="chalk-h">On the board</h3>' + exOverview() + addRow() + notes + '<div class="chalk-finish">' + finishBtn() + '</div></div>';
+    const f = curFocus(), cur = f.cur, set = f.set;
+    const id = cur ? esc(cur.id) : '', sid = set ? esc(set.id) : '';
+    const chalkNum = function (field, label) {
+      return '<div class="chalk-num"><span>' + label + '</span><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="-1" aria-label="Decrease ' + label + '">−</button>' + typed(cur, set, field) + '<button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="1" aria-label="Increase ' + label + '">+</button></div>';
+    };
+    const lines = viewCache.exercises.map(function (e) {
+      return '<button type="button" class="chalk-line' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + esc(e.name) + '</button>';
+    }).join('');
+    return '<div class="board">' + dayRocker('chalk-day') + '<h1>' + esc(cur ? cur.name : 'Blank board') + '</h1><p class="chalk-meta">last ' + esc(set ? set.prev : '—') + '</p><div class="chalk-pair">' + chalkNum('weight', 'lb') + chalkNum('reps', 'reps') + '</div><div class="chalk-sets">' + setDots(cur) + '<button type="button" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button></div><button type="button" class="chalk-log" data-act="log-set">log set</button><div class="chalk-list">' + lines + '</div><div class="chalk-add"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="write an exercise" aria-label="Exercise to add"><button type="button" data-act="add-ask">ok</button></div>' + datalist() + notes + '</div>';
   }
   function scoreShell(inner) {
-    if (ui.tab !== 'log') return '<div class="board-frame"><div class="banner"><span>SIC</span><span>' + esc(ui.tab) + '</span></div><div class="skin-bar">' + tabs() + '</div>' + inner + '</div>';
-    const f = curFocus();
-    const set = f.set, cur = f.cur;
-    const led = set && String(set.weight) !== '' ? set.weight : '---';
-    const reps = set && String(set.reps) !== '' ? set.reps : '---';
-    const done = cur ? cur.sets.filter(function (s) { return s.done; }).length : 0;
-    return '<div class="board-frame"><div class="banner"><span>SIC</span>' + daySelect() + '<span>Set ' + (set ? set.index + 1 : 0) + '</span></div><div class="led-row"><div class="led" aria-label="Weight">' + esc(led) + '<small>lb</small></div><div class="led reps" aria-label="Reps">' + esc(reps) + '<small>reps</small></div></div><p class="score-name">' + esc(cur ? cur.name : '') + '</p><p class="prev">Previous ' + esc(set ? set.prev : '—') + '</p><button type="button" class="buzzer" data-act="log-set">LOG SET' + ptag('logSet') + '</button><div class="box"><span>' + done + '/' + (cur ? cur.sets.length : 0) + '</span><span class="timer-readout" data-rest="batman">' + fmtClock(viewCache.rest.batman) + '</span><span data-metro>' + esc(runtime.phase) + '</span></div>' + nudgePad(cur, set) + '<div class="setdots">' + setDots(cur) + '</div><div class="tickets" aria-label="Exercises">' + viewCache.exercises.map(function (e) { return '<button type="button" class="ticket' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + esc(e.name) + '</button>'; }).join('') + '</div>' + manageRow(cur) + skinBar() + '<div class="skin-bar">' + tabs() + '</div></div>';
+    if (ui.tab !== 'log') return '<div class="board-frame"><div class="banner"><span>SIC</span><span>' + esc(ui.tab) + '</span></div>' + inner + '</div>';
+    const f = curFocus(), cur = f.cur, set = f.set;
+    const id = cur ? esc(cur.id) : '', sid = set ? esc(set.id) : '';
+    const lamp = function (field, label) {
+      return '<div class="lamp"><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="-1" aria-label="Decrease ' + label + '">−</button><label>' + typed(cur, set, field) + '<small>' + label + '</small></label><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="1" aria-label="Increase ' + label + '">+</button></div>';
+    };
+    const lineup = viewCache.exercises.map(function (e) {
+      return '<button type="button" class="ticket' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + esc(e.name) + '</button>';
+    }).join('');
+    return '<div class="board-frame"><div class="banner"><span>SIC</span>' + dayRocker('score-day') + '<button type="button" class="final" data-act="finish">FINAL</button></div><p class="score-name">' + esc(cur ? cur.name : '') + ' · last ' + esc(set ? set.prev : '—') + '</p><div class="led-row">' + lamp('weight', 'LB') + lamp('reps', 'REPS') + '</div><button type="button" class="buzzer" data-act="log-set">LOG SET' + ptag('logSet') + '</button><div class="box"><span class="timer-readout" data-rest="batman">' + fmtClock(viewCache.rest.batman) + '</span><span>' + (set ? set.index + 1 : 0) + '/' + (cur ? cur.sets.length : 0) + '</span><button type="button" data-act="add-set" data-ex="' + id + '">+SET</button></div><div class="lineup">' + lineup + '</div><div class="score-links"><button type="button" data-act="tab" data-tab="log">Log</button><button type="button" data-act="tab" data-tab="history">Past</button><button type="button" data-act="tab" data-tab="routines">Plans</button><button type="button" data-act="mini-open">Mini</button><button type="button" data-act="overlay" data-overlay="settings">Gear</button></div></div>';
   }
   function transitShell(inner) {
-    if (ui.tab !== 'log') return '<div class="departure"><h2>' + esc(ui.tab) + '</h2><div class="skin-bar">' + tabs() + '</div>' + inner + '</div>';
-    const f = curFocus();
-    const stations = '<ol class="rail">' + viewCache.exercises.map(function (e, i) {
+    if (ui.tab !== 'log') return '<div class="transit"><div class="route-head"><h2>' + esc(ui.tab) + '</h2><button type="button" data-act="tab" data-tab="log">Back to line</button></div>' + inner + '</div>';
+    const f = curFocus(), cur = f.cur, set = f.set;
+    const id = cur ? esc(cur.id) : '', sid = set ? esc(set.id) : '';
+    const stations = viewCache.exercises.map(function (e, i) {
       return '<li><button type="button" class="station' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '"><b>' + (i + 1) + '</b><span>' + esc(e.name) + '</span></button></li>';
-    }).join('') + '</ol>';
-    const board = f.cur ? '<h2>Now boarding</h2><p class="dest">' + esc(f.cur.name) + '</p>' + nudgePad(f.cur, f.set) + '<div class="setdots">' + setDots(f.cur) + '</div><button type="button" class="pill" data-act="log-set">LOG SET</button>' + manageRow(f.cur) : '<p>No stations on this line.</p>';
-    return '<div class="transit">' + skinBar() + '<div class="skin-bar">' + tabs() + '</div><div class="transit-grid">' + stations + '<div class="departure">' + board + addRow() + '</div></div></div>';
+    }).join('');
+    const plat = function (field, label) {
+      return '<div class="platform"><span>' + label + '</span><div><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="-1" aria-label="Decrease ' + label + '">‹</button>' + typed(cur, set, field) + '<button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="1" aria-label="Increase ' + label + '">›</button></div></div>';
+    };
+    return '<div class="transit"><div class="route-head">' + dayRocker('line-badge') + '<button type="button" data-act="mini-open" aria-label="Mini">M</button><button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings">S</button></div><ol class="rail">' + stations + '</ol><section class="departure"><p class="eyebrow">Now boarding · last ' + esc(set ? set.prev : '—') + '</p><h2>' + esc(cur ? cur.name : 'No service') + '</h2><div class="platforms">' + plat('weight', 'LB') + plat('reps', 'REPS') + '</div><div class="cars">' + setDots(cur) + '</div><button type="button" class="depart" data-act="log-set">LOG SET</button><div class="transit-ops"><button type="button" data-act="add-set" data-ex="' + id + '">Extra car</button><button type="button" data-act="manage" data-ex="' + id + '">Cars</button><button type="button" class="endline" data-act="finish">End of line</button></div><div class="sleeve"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="Add a stop" aria-label="Exercise to add"><button type="button" data-act="add-ask">Add</button></div>' + datalist() + '</section><nav class="legend"><button type="button" data-act="tab" data-tab="log">Line</button><button type="button" data-act="tab" data-tab="routines">Map</button><button type="button" data-act="tab" data-tab="history">Log</button><button type="button" data-act="tab" data-tab="analytics">Stats</button></nav></div>';
   }
   function vinylShell(inner) {
-    if (ui.tab !== 'log') return '<div class="vinyl-page"><div class="skin-bar">' + tabs() + '</div><div class="iron-panel">' + inner + '</div></div>';
-    const f = curFocus();
-    const cur = f.cur, set = f.set;
-    return '<div class="vinyl-page">' + skinBar() + '<div class="skin-bar">' + tabs() + '</div><div class="deck"><button type="button" class="platter" data-act="cycle-ex" data-dir="1" aria-label="Next exercise"><div class="label"><strong>' + esc(cur ? cur.name : 'No track') + '</strong><span>side ' + (partner() === 'robin' ? 'B' : 'A') + '</span></div></button><div class="mixer">' + nudgePad(cur, set) + '<label class="cross-label">Partner fader<input class="cross" type="range" min="0" max="100" value="' + (partner() === 'robin' ? '80' : '20') + '" data-act="cross" data-lockrender="1" aria-label="Partner crossfader"></label><button type="button" class="rec" data-act="log-set">LOG SET</button>' + manageRow(cur) + '</div></div><h3 class="vinyl-h">Tracklist</h3>' + exOverview() + addRow() + '</div>';
+    if (ui.tab !== 'log') return '<div class="vinyl-page"><button type="button" class="stop" data-act="tab" data-tab="log">Back</button>' + inner + '</div>';
+    const f = curFocus(), cur = f.cur, set = f.set;
+    const id = cur ? esc(cur.id) : '', sid = set ? esc(set.id) : '';
+    const deck = function (field, side) {
+      return '<div class="deck-unit"><span class="side">' + side + '</span><button type="button" class="cue" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="1" aria-label="Increase ' + side + '">+</button><div class="platter" aria-hidden="true"><div class="label">' + typed(cur, set, field) + '</div></div><button type="button" class="cue" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="-1" aria-label="Decrease ' + side + '">−</button></div>';
+    };
+    const spines = viewCache.exercises.map(function (e) {
+      return '<button type="button" class="spine' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + esc(e.name) + '</button>';
+    }).join('');
+    return '<div class="vinyl-page"><div class="cartridge">' + dayRocker('cart-day') + '<button type="button" class="stop" data-act="finish" aria-label="Finish workout">Stop</button></div><p class="track">' + esc(cur ? cur.name : 'No track') + ' · last ' + esc(set ? set.prev : '—') + '</p><div class="two-decks">' + deck('weight', 'LB') + deck('reps', 'REPS') + '</div><div class="mixer-bar"><label>Fader<input class="cross" type="range" min="0" max="100" value="' + (partner() === 'robin' ? '80' : '20') + '" data-act="cross" data-lockrender="1" aria-label="Partner crossfader"></label><button type="button" class="rec-dot" data-act="log-set" aria-label="Log set">REC</button><button type="button" class="cue" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button><button type="button" class="cue" data-act="mini-open" aria-label="Mini">M</button><button type="button" class="cue" data-act="overlay" data-overlay="settings" aria-label="Settings">S</button></div><div class="crate">' + spines + '</div><div class="sleeve"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="New sleeve" aria-label="Exercise to add"><button type="button" data-act="add-ask">File</button></div>' + datalist() + '<nav class="crate-nav"><button type="button" data-act="tab" data-tab="routines">Crates</button><button type="button" data-act="tab" data-tab="history">Plays</button><button type="button" data-act="tab" data-tab="analytics">Cuts</button></nav></div>';
   }
   function hexShell(inner) {
-    if (ui.tab !== 'log') return '<div class="hive"><div class="skin-bar">' + tabs() + '</div><div class="iron-panel">' + inner + '</div></div>';
-    const f = curFocus();
-    const cur = f.cur, set = f.set;
-    if (!cur || !set) return '<div class="hive"><div class="iron-panel">Add an exercise to build the hive.</div>' + addRow() + '</div>';
+    if (ui.tab !== 'log') return '<div class="hive"><button type="button" class="hex" data-act="tab" data-tab="log">Log</button><div class="iron-panel">' + inner + '</div></div>';
+    const f = curFocus(), cur = f.cur, set = f.set;
+    if (!cur || !set) return '<div class="hive"><p>Add an exercise.</p><div class="sleeve"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="Exercise" aria-label="Exercise to add"><button type="button" data-act="add-ask">Add</button></div></div>';
     const id = esc(cur.id), sid = esc(set.id);
-    return '<div class="hive"><div class="flower"><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">− lb</button><button type="button" class="hex" data-act="cycle-ex" data-dir="-1">' + esc(cur.name.split(' ')[0]) + '</button><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+ lb</button><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="-1" aria-label="Fewer reps">− rep</button><button type="button" class="hex main" data-act="log-set">LOG SET<small>' + esc((set.weight || '·') + '×' + (set.reps || '·')) + '</small></button><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="1" aria-label="More reps">+ rep</button><button type="button" class="hex teal" data-act="manage" data-ex="' + id + '">Sets</button><button type="button" class="hex teal" data-act="add-set" data-ex="' + id + '">+ set</button><button type="button" class="hex teal" data-act="finish">Finish</button></div><p class="hex-cap">' + esc(cur.name) + ' · previous ' + esc(set.prev) + ' · set ' + (set.index + 1) + '/' + cur.sets.length + '</p>' + nudgePad(cur, set) + '<div class="setdots">' + setDots(cur) + '</div>' + exOverview() + addRow() + skinBar() + '<div class="skin-bar">' + tabs() + '</div></div>';
+    const hex = function (cls, act, extra, body) {
+      return '<button type="button" class="hex ' + cls + '" data-act="' + act + '" ' + extra + '>' + body + '</button>';
+    };
+    const cells = viewCache.exercises.map(function (e) {
+      return '<button type="button" class="hex tiny' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + esc(e.name.split(' ')[0]) + '</button>';
+    }).join('');
+    return '<div class="hive"><div class="flower"><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><label class="hex val">LB' + typed(cur, set, 'weight') + '</label><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="-1" aria-label="Fewer reps">−</button><button type="button" class="hex main" data-act="log-set">LOG<small>last ' + esc(set.prev) + '</small></button><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="1" aria-label="More reps">+</button><button type="button" class="hex teal" data-act="cycle-ex" data-dir="-1">' + esc(cur.name.split(' ')[0]) + '</button><label class="hex val">REPS' + typed(cur, set, 'reps') + '</label><button type="button" class="hex teal" data-act="finish">End</button></div><p class="hex-cap">Set ' + (set.index + 1) + ' / ' + cur.sets.length + ' · ' + esc(cur.name) + '</p><div class="flower small">' + cells + hex('teal', 'add-set', 'data-ex="' + id + '"', '+') + hex('teal', 'manage', 'data-ex="' + id + '"', 'Sets') + hex('', 'mini-open', '', 'Mini') + '</div>' + dayRocker('hex-day') + '<nav class="flower tiny-nav"><button type="button" class="hex" data-act="tab" data-tab="routines">Plans</button><button type="button" class="hex" data-act="tab" data-tab="history">Past</button><button type="button" class="hex" data-act="overlay" data-overlay="settings">Gear</button></nav></div>';
   }
   function routinesPanel() {
     const cards = Object.keys(state.routines).map(function (id) {
@@ -998,6 +1038,13 @@
     if (act === 'mini-close') { ui.miniOpen = false; render({ force: true }); return; }
     if (act === 'mini-min') { ui.miniOpen = false; render({ force: true }); return; }
     if (act === 'day') { /* select change */ return; }
+    if (act === 'day-step') {
+      const days = Object.keys((viewCache.routine && viewCache.routine.days) || {});
+      if (!days.length) return;
+      const i = Math.max(0, days.indexOf(state.activeDay));
+      const next = days[(i + (Number(t.dataset.dir) || 1) + days.length) % days.length];
+      state.activeDay = next; state.settings.activeDay = next; state.focus = null; markDirty(); render({ force: true }); return;
+    }
     if (act === 'skin') { state.skinId = t.dataset.skin; markDirty(); render({ force: true }); return; }
     if (act === 'theme') { state.activeThemeId = t.dataset.theme; if (state.skinId !== 'starclassic') state.skinId = 'starclassic'; markDirty(); render({ force: true }); return; }
     if (act === 'partner') { if (t.dataset.partner === 'robin' && !state.duoMode) { state.duoMode = true; } state.activePartner = t.dataset.partner; markDirty(); render({ force: true }); return; }
