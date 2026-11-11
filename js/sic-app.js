@@ -15,6 +15,9 @@
     whatsBar: false,
     flipped: false,
     miniWide: false,
+    padOn: false,
+    padFamily: 'generic',
+    padIndex: 0,
     dialog: null,
     historyReverse: false,
     historyMuscle: 'all',
@@ -125,7 +128,7 @@
     const ex = state.routines.bls5.days.Push[0];
     state.activeDay = 'Push';
     const data = SIC.ensureExerciseSession(state, ex, ids);
-    if (data.sets.length < 4) SIC.addSet(state, ex.id, ids);
+    if (params.get('blank') !== '1' && data.sets.length < 4) SIC.addSet(state, ex.id, ids);
     if (params.get('blank') !== '1') {
       data.sets[0].weight = '185'; data.sets[0].reps = '5'; data.sets[0].done = true;
       data.sets[1].weight = '205'; data.sets[1].reps = '5'; data.sets[1].done = true;
@@ -526,18 +529,50 @@
     if (ui.tab === 'analytics') return analyticsPanel();
     return '';
   }
-  function shell() {
+  function sharedShell() {
     viewCache = view();
-    const sk = state.skinId;
-    const inner = ui.tab === 'log' ? '' : panel();
-    if (sk === 'pixelforecast') return pixelShell(inner);
-    if (sk === 'irondial') return ironShell(inner);
-    if (sk === 'chalkboard') return chalkShell(inner);
-    if (sk === 'scoreboard') return scoreShell(inner);
-    if (sk === 'transitline') return transitShell(inner);
-    if (sk === 'vinyldeck') return vinylShell(inner);
-    if (sk === 'hexhive') return hexShell(inner);
-    return classicShell(ui.tab === 'log' ? classicLog(viewCache) : inner);
+    const f = curFocus();
+    const cur = f.cur, set = f.set;
+    const id = cur ? esc(cur.id) : '';
+    const sid = set ? esc(set.id) : '';
+    const resting = viewCache.rest[viewCache.partner] > 0 && state.settings.restEnabled !== false;
+    const pattern = state.settings.tempo[partner()] || { e: 1, p1: 0, c: 1, p2: 0 };
+    const glyphs = ui.padOn ? '<div class="pad-glyphs">' + ({
+      xbox: 'A Log · B Back · X Partner · Y Skip rest',
+      playstation: '✕ Log · ○ Back · □ Partner · △ Skip rest',
+      switch: 'A Log · B Back · X Partner · Y Skip rest',
+      generic: 'A Log · B Back · X Partner · Y Skip rest'
+    }[ui.padFamily] || 'A Log · B Back · X Partner · Y Skip rest') + '</div>' : '';
+    const partners = ['batman', 'robin'].filter(function (p) { return p === 'batman' || state.duoMode; }).map(function (p) {
+      const on = partner() === p;
+      return '<button type="button" class="who-btn ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" data-pad="1" aria-current="' + (on ? 'true' : 'false') + '">' + esc(state.partnerNames[p] || p) + (on ? ' lifting' : '') + '</button>';
+    }).join('');
+    const list = viewCache.exercises.map(function (e) {
+      return '<button type="button" class="ex-pick' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '" data-pad="1">' + esc(e.name) + '</button>';
+    }).join('');
+    const logBody = cur && set
+      ? '<h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">Set ' + (set.index + 1) + ' of ' + cur.sets.length + '</p><div class="entry"><label>Weight <span class="prev">PREV ' + esc(set.prev) + '</span>' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps <span class="prev">set ' + (set.index + 1) + '</span>' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label></div><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1">LOG SET</button>'
+      : '<p>No exercise on this day.</p>';
+    const main = ui.tab === 'log' ? logBody : '<div class="zone-panel">' + backLog() + panel() + '</div>';
+    return '<div class="zones">' + glyphs +
+      '<header class="zone zone-head"><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></header>' +
+      '<div class="zone zone-partners" role="group" aria-label="Active partner">' + partners + '</div>' +
+      '<section class="zone zone-now">' + main + '</section>' +
+      '<section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '"><p class="rest-label">' + (state.settings.restEnabled === false ? 'Rest off' : (resting ? 'Resting' : 'Rest ready')) + '</p><div class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</div><div class="rest-actions"><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15s</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15s</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1">' + (state.settings.restEnabled === false ? 'Turn rest on' : 'Turn rest off') + '</button></div></section>' +
+      '<section class="zone zone-tempo" data-tempo-live="' + (state.settings.tempo.running ? 'on' : 'off') + '"><p>Tempo ' + pattern.e + '-' + pattern.p1 + '-' + pattern.c + '-' + pattern.p2 + '</p><div class="tempo-lamp" data-metro>' + esc(runtime.phase) + '</div><button type="button" data-act="tempo-toggle" data-pad="1">' + (state.settings.tempo.running ? 'Tempo off' : 'Tempo on') + '</button></section>' +
+      (ui.tab === 'log' ? '<section class="zone zone-list" aria-label="Exercises">' + list + '<div class="add-row"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="Add exercise" aria-label="Exercise to add"><button type="button" data-act="add-ask" data-pad="1">Add</button></div>' + datalist() + '</section>' : '') +
+      '<nav class="zone zone-nav" aria-label="Main">' +
+      '<button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button>' +
+      '<button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button>' +
+      '<button type="button" data-act="tab" data-tab="history" data-pad="1">History</button>' +
+      '<button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button>' +
+      '<button type="button" data-act="mini-open" data-pad="1">Mini</button>' +
+      '<button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button>' +
+      '<button type="button" data-act="finish" data-pad="1">Finish</button>' +
+      '</nav></div>';
+  }
+  function shell() {
+    return sharedShell();
   }
 
   function miniHTML() {
@@ -632,7 +667,7 @@
     }
     if (cat === 'workout') {
       const profiles = Object.keys(state.profiles.users).map(function (id) { return '<button type="button" data-act="profile" data-id="' + esc(id) + '">' + esc(state.profiles.users[id].name) + '</button>'; }).join('');
-      return '<label class="stack">Weight step<input data-lockrender="1" data-act="step" type="number" min="0.5" step="0.5" value="' + esc(state.settings.weightStep) + '"></label><label class="stack">Units<select data-act="units"><option value="lb"' + (state.settings.units === 'lb' ? ' selected' : '') + '>Pounds</option><option value="kg"' + (state.settings.units === 'kg' ? ' selected' : '') + '>Kilograms</option></select></label><p class="muted">Numbers are stored in pounds. The screen and XML files convert.</p><button type="button" class="switch ' + (state.duoMode ? 'on' : '') + '" data-act="duo">' + (state.duoMode ? 'Duo on' : 'Duo off') + '</button><div class="grid-2"><label class="stack">Partner 1<input data-lockrender="1" data-act="pname" data-partner="batman" value="' + esc(state.partnerNames.batman) + '"></label><label class="stack">Partner 2<input data-lockrender="1" data-act="pname" data-partner="robin" value="' + esc(state.partnerNames.robin) + '"></label></div><p>Logging a set hands the logger to the other partner. Their sets are not filled in for them.</p><h3>Profiles</h3><div class="actions">' + profiles + '</div>';
+      return '<label class="stack">Weight step<input data-lockrender="1" data-act="step" type="number" min="0.5" step="0.5" value="' + esc(state.settings.weightStep) + '"></label><label class="stack">Units<select data-act="units"><option value="lb"' + (state.settings.units === 'lb' ? ' selected' : '') + '>Pounds</option><option value="kg"' + (state.settings.units === 'kg' ? ' selected' : '') + '>Kilograms</option></select></label><button type="button" class="switch ' + (state.settings.restEnabled !== false ? 'on' : '') + '" data-act="rest-toggle">' + (state.settings.restEnabled === false ? 'Rest timer off' : 'Rest timer on') + '</button><label class="stack">Rest seconds<input data-lockrender="1" data-act="rest-seconds" type="number" min="0" max="600" value="' + esc(state.settings.restSeconds != null ? state.settings.restSeconds : ((state.rest.batman && state.rest.batman.duration) || 90)) + '"></label><button type="button" data-act="tempo-toggle">' + (state.settings.tempo.running ? 'Tempo off' : 'Tempo on') + '</button><p class="muted">Numbers are stored in pounds. The screen and XML files convert.</p><button type="button" class="switch ' + (state.duoMode ? 'on' : '') + '" data-act="duo">' + (state.duoMode ? 'Duo on' : 'Duo off') + '</button><div class="grid-2"><label class="stack">Partner 1<input data-lockrender="1" data-act="pname" data-partner="batman" value="' + esc(state.partnerNames.batman) + '"></label><label class="stack">Partner 2<input data-lockrender="1" data-act="pname" data-partner="robin" value="' + esc(state.partnerNames.robin) + '"></label></div><p>Logging a set hands the logger to the other partner. Their sets are not filled in for them.</p><h3>Profiles</h3><div class="actions">' + profiles + '</div>';
     }
     if (cat === 'timers' && sub === 'sounds') {
       const more = ui.soundMore ? Object.keys(state.settings.sounds).map(function (ev) {
@@ -744,7 +779,7 @@
   function renderNow() {
     applyChrome();
     viewCache = view();
-    $('app').innerHTML = shell() + '<div class="escape-hatch"><button type="button" class="escape-log" data-act="back-log">Log</button><button type="button" class="escape-gear" data-act="overlay" data-overlay="settings" aria-label="Settings">Settings</button></div>';
+    $('app').innerHTML = shell();
     const mini = $('mini-root');
     mini.hidden = !ui.miniOpen;
     mini.className = 'shape-' + (skin().mini || 'card');
@@ -1162,6 +1197,7 @@
     if (act === 'cycle-ex') { cycleEx(Number(t.dataset.dir) || 1); return; }
     if (act === 'rest-start') { const p = t.dataset.partner || partner(); const dur = state.rest[p].duration || 240; state.rest[p].total = dur; state.rest[p].endAt = Date.now() + dur * 1000; runtime.restAlive[p] = true; markDirty(); render({ force: true }); return; }
     if (act === 'rest-stop') { const p = t.dataset.partner || partner(); state.rest[p].endAt = 0; runtime.restAlive[p] = false; syncMetro(); markDirty(); render({ force: true }); return; }
+    if (act === 'rest-toggle') { state.settings.restEnabled = state.settings.restEnabled === false; if (state.settings.restEnabled === false) { state.rest.batman.endAt = 0; state.rest.robin.endAt = 0; } markDirty(); render({ force: true }); return; }
     if (act === 'rest-dur') { state.rest[t.dataset.partner].duration = Number(t.dataset.sec); markDirty(); render({ force: true }); return; }
     if (act === 'rest-nudge') { const p = partner(); const rem = SIC.restRemaining(state, p, Date.now()); const next = Math.max(0, rem + Number(t.dataset.sec)); state.rest[p].endAt = next ? Date.now() + next * 1000 : 0; state.rest[p].total = Math.max(state.rest[p].total || 0, next); markDirty(); render({ force: true }); return; }
     if (act === 'tempo-toggle') { state.settings.tempo.running = !state.settings.tempo.running; if (!state.settings.tempo.running) stopAudio(); else { userSound = true; syncMetro(); } markDirty(); render({ force: true }); return; }
@@ -1228,6 +1264,7 @@
     if (t.dataset.act === 'metro-scale') { state.settings.metronome.scale = Number(t.value); markDirty(); applyChrome(); return; }
     if (t.dataset.act === 'scale') { state.settings.textScale = Number(t.value); document.documentElement.style.fontSize = (16 * Number(t.value)) + 'px'; markDirty(); return; }
     if (t.dataset.act === 'sound-volume') { state.settings.soundVolume = Math.max(0, Math.min(1, Number(t.value))); markDirty(); return; }
+    if (t.dataset.act === 'rest-seconds') { state.settings.restSeconds = Math.max(0, Math.min(600, Number(t.value) || 0)); markDirty(); return; }
     if (t.dataset.act === 'builder-name') { ui.builder.days[Number(t.dataset.i)].name = t.value; return; }
     if (t.dataset.act === 'builder-ex') { ui.builder.days[Number(t.dataset.i)].exercises[Number(t.dataset.j)] = t.value; return; }
   }
@@ -1394,6 +1431,8 @@
     return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable || el.dataset.console === '1';
   }
   function onKey(e) {
+    const buttonCodes = { 96: 0, 97: 1, 99: 2, 100: 3, 102: 4, 103: 5, 104: 6, 105: 7, 108: 9, 109: 8, 19: 12, 20: 13, 21: 14, 22: 15 };
+    if (buttonCodes[e.keyCode] != null) { ui.padOn = true; ui.padFamily = ui.padFamily || 'generic'; pressPad(buttonCodes[e.keyCode]); e.preventDefault(); return; }
     if (e.key === '`' && (e.ctrlKey || e.metaKey)) { openOverlay('console'); e.preventDefault(); return; }
     if (e.target && e.target.id === 'console-input' && e.key === 'Enter') { runCommand(e.target.value); e.target.value = ''; render({ force: true }); e.preventDefault(); return; }
     const meta = { typing: typingTarget(e.target), consoleFocused: !!(e.target && e.target.dataset && e.target.dataset.console === '1') };
@@ -1424,16 +1463,15 @@
     const buttons = pad.buttons.map(function (b) { return b.pressed; });
     const name = /xbox|045e/i.test(pad.id) ? 'xbox' : /054c|wireless controller|dual/i.test(pad.id) ? 'playstation' : (state.settings.lastInput === 'playstation' || state.settings.lastInput === 'xbox' ? state.settings.lastInput : 'xbox');
     const labels = ['GamepadA', 'GamepadB', 'GamepadX', 'GamepadY', 'GamepadLB', 'GamepadRB', 'GamepadLT', 'GamepadRT', 'GamepadView', 'GamepadMenu', 'GamepadL3', 'GamepadR3', 'DpadUp', 'DpadDown', 'DpadLeft', 'DpadRight'];
+    ui.padOn = true;
+    ui.padFamily = /xbox|045e/i.test(pad.id) ? 'xbox' : /054c|dual|playstation|wireless controller/i.test(pad.id) ? 'playstation' : /057e|nintendo|switch/i.test(pad.id) ? 'switch' : 'generic';
     buttons.forEach(function (down, i) {
       const was = padWas[i];
       if (down && !was) {
-        state.settings.lastInput = name;
-        ui.testInput = (name === 'playstation' ? 'PS ' : 'Xbox ') + (labels[i] || i);
-        const token = labels[i];
-        if (i === 9) hold = { at: Date.now(), kind: 'menu' };
-        handlePad(token);
+        state.settings.lastInput = ui.padFamily === 'playstation' ? 'playstation' : 'xbox';
+        ui.testInput = ui.padFamily + ' ' + (labels[i] || i);
+        pressPad(i);
       }
-      if (!down && was && i === 9) hold = null;
     });
     if (hold && hold.kind === 'menu' && Date.now() - hold.at > 2000) { hold = null; ui.overlay = 'finish'; render({ force: true }); }
     const dirs = { weightDown: buttons[4], weightUp: buttons[5], repsDown: buttons[6], repsUp: buttons[7] };
@@ -1443,23 +1481,33 @@
       else if (Date.now() > hold.next) { hold.next = Date.now() + 80; nudgeAction(action); }
     });
     padWas = buttons;
-    requestAnimationFrame(pollPad);
   }
-  function handlePad(token) {
-    if (!SIC.shortcutsAllowed({ typing: typingTarget(document.activeElement) })) return;
-    const ps = nameIsPs();
-    const select = ps && state.settings.psConfirmSwap ? 'GamepadCircle' : 'GamepadA';
-    const back = ps && state.settings.psConfirmSwap ? 'GamepadA' : 'GamepadB';
-    if (token === 'GamepadY') logSet();
-    else if (token === select || token === 'GamepadA' && !ps) { const el = document.querySelector('[data-focus="1"]:focus'); if (el) el.click(); }
-    else if (token === back || token === 'GamepadB') { if (ui.overlay) ui.overlay = null; else if (ui.pop) ui.pop = null; render({ force: true }); }
-    else if (token === 'GamepadX') { const cur = SIC.findCurrent(state); if (cur) ui.pop = cur.exercise.id; render({ force: true }); }
-    else if (token === 'GamepadLB' || token === 'DpadLeft') nudgeAction('weightDown');
-    else if (token === 'GamepadRB' || token === 'DpadRight') nudgeAction('weightUp');
-    else if (token === 'GamepadLT') nudgeAction('repsDown');
-    else if (token === 'GamepadRT') nudgeAction('repsUp');
-    else if (token === 'GamepadView') { ui.miniOpen = !ui.miniOpen; render({ force: true }); }
-    if (ui.overlay === 'inputs') render({ force: true });
+  function movePad(dir) {
+    const nodes = Array.prototype.slice.call(document.querySelectorAll('[data-pad="1"]')).filter(function (el) { return el.getBoundingClientRect().width > 0; });
+    if (!nodes.length) return;
+    ui.padIndex = ((ui.padIndex || 0) + dir + nodes.length) % nodes.length;
+    nodes.forEach(function (el, i) { el.classList.toggle('is-pad', i === ui.padIndex); });
+    try { nodes[ui.padIndex].focus(); } catch (e) {}
+  }
+  function pressPad(i) {
+    const fam = ui.padFamily || 'generic';
+    const confirm = fam === 'switch' ? 1 : 0;
+    const back = fam === 'switch' ? 0 : 1;
+    const partnerBtn = fam === 'switch' ? 3 : 2;
+    const skip = fam === 'switch' ? 2 : 3;
+    if (i === confirm) logSet();
+    else if (i === back) { if (window.SICApp) window.SICApp.onHardwareBack(); }
+    else if (i === partnerBtn) { const next = partner() === 'batman' ? 'robin' : 'batman'; if (!state.duoMode) state.duoMode = true; state.activePartner = next; ui.flipped = true; playEvent('duoFlip'); markDirty(); render({ force: true }); }
+    else if (i === skip) { const p = partner(); state.rest[p].endAt = 0; runtime.restAlive[p] = false; markDirty(); render({ force: true }); }
+    else if (i === 9) { ui.overlay = 'settings'; render({ force: true }); }
+    else if (i === 8) { ui.miniOpen = !ui.miniOpen; render({ force: true }); }
+    else if (i === 4) { cycleEx(-1); }
+    else if (i === 5) { cycleEx(1); }
+    else if (i === 6) nudgeAction('weightDown');
+    else if (i === 7) nudgeAction('weightUp');
+    else if (i === 12 || i === 14) movePad(-1);
+    else if (i === 13 || i === 15) movePad(1);
+    document.body.classList.add('show-pad');
   }
   function nameIsPs() { return state.settings.lastInput === 'playstation'; }
   function nudgeAction(action) {

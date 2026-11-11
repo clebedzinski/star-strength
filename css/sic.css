@@ -627,6 +627,26 @@ label.hex input { background: #120e08; color: #fff6e4; border: 2px solid #f0b429
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+.zones { display: flex; flex-direction: column; gap: 8px; padding: 10px 10px 12px; min-width: 0; }
+.zone { min-width: 0; }
+.zone-head h1 { margin: 0; font-size: clamp(16px, 4.6vw, 22px); line-height: 1.15; white-space: normal; overflow: visible; }
+.zone-head p { margin: 0; color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; }
+.zone-partners, .rest-actions, .zone-nav, .ex-list, .zone-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.zone-now, .zone-rest, .zone-tempo, .zone-list, .zone-panel { background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 12px; padding: 10px; }
+.ex-name { margin: 0; font-size: 18px; overflow-wrap: anywhere; }
+.entry { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.entry label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 800; min-width: 0; }
+.entry input { min-width: 0; }
+.zone-list .ex-pick { flex: 1 1 100%; text-align: left; white-space: normal; min-height: 44px; }
+.rest-count { font-size: 48px; font-weight: 900; text-align: center; }
+.zone-rest[data-resting="true"] { outline: 3px solid var(--accent); }
+.tempo-lamp { min-height: 44px; font-weight: 900; }
+.zone-tempo[data-tempo-live="on"] .tempo-lamp { outline: 3px solid var(--accent); }
+.zone-nav { position: sticky; bottom: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; background: var(--bg); padding-top: 8px; z-index: 5; }
+.zone-nav button { min-width: 0; min-height: 44px; font-size: 12px; }
+.pad-glyphs { font-size: 11px; font-weight: 800; }
+body.show-pad [data-pad="1"].is-pad { outline: 3px solid var(--accent); outline-offset: 2px; }
+#mini-root { pointer-events: auto; }
 .escape-hatch { position: fixed; right: 8px; bottom: 8px; z-index: 80; display: flex; gap: 6px; }
 .escape-hatch button { min-width: 44px; min-height: 44px; padding: 8px 10px; font-weight: 900; box-shadow: 0 4px 12px rgba(0,0,0,.35); }
 .taskbar .px-settings { background: #ffe14a; color: #1a120c; }

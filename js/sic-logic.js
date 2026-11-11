@@ -65,6 +65,8 @@
       partnerParticipating: { batman: true, robin: true },
       autosave: true,
       haptics: true,
+      restEnabled: true,
+      restSeconds: null,
       masterMute: false,
       soundVolume: 0.7,
       soundCats: { sets: true, rest: true, pr: true, finish: true, taps: true, duo: true, errors: true },
@@ -514,6 +516,34 @@
     return { ok: true, value: set[key] };
   }
 
+  function focusAfterLog(state, exerciseId, setId) {
+    const who = activePartner(state);
+    const vis = visibleExercises(state);
+    let exIndex = 0;
+    for (let i = 0; i < vis.length; i++) if (vis[i].exercise.id === exerciseId) exIndex = i;
+    function setsFor(i) {
+      const key = sessionKey(state.activeRoutineId, state.activeDay, vis[i].exercise.id);
+      const data = state.currentSession[key];
+      return (data && data.sets) || [];
+    }
+    const here = setsFor(exIndex);
+    const si = Math.max(0, here.findIndex(function (s) { return s.id === setId; }));
+    if (here[si] && !setDone(here[si], who)) {
+      state.focus = { exerciseId: vis[exIndex].exercise.id, setId: here[si].id };
+      return;
+    }
+    for (let i = exIndex; i < vis.length; i++) {
+      const sets = setsFor(i);
+      const begin = i === exIndex ? si + 1 : 0;
+      for (let s = begin; s < sets.length; s++) {
+        if (!setDone(sets[s], who)) {
+          state.focus = { exerciseId: vis[i].exercise.id, setId: sets[s].id };
+          return;
+        }
+      }
+    }
+    state.focus = null;
+  }
   function logCurrentSet(state, runtime, now) {
     runtime = runtime || {};
     now = now || Date.now();
@@ -527,15 +557,21 @@
       rest: clone(state.rest), activePartner: state.activePartner, focus: state.focus ? clone(state.focus) : null
     };
     setDoneFlag(cur.set, partner, true);
-    const dur = (state.rest[partner] && state.rest[partner].duration) || 240;
-    state.rest[partner].total = dur;
-    state.rest[partner].endAt = now + dur * 1000;
-    state.focus = { exerciseId: cur.exercise.id, setId: cur.set.id };
+    const enabled = state.settings.restEnabled !== false;
+    const dur = state.settings.restSeconds != null ? Number(state.settings.restSeconds) : ((state.rest[partner] && state.rest[partner].duration) || 240);
+    if (enabled && dur > 0) {
+      state.rest[partner].duration = dur;
+      state.rest[partner].total = dur;
+      state.rest[partner].endAt = now + dur * 1000;
+    } else if (state.rest[partner]) {
+      state.rest[partner].endAt = 0;
+    }
     let flipped = false;
     if (state.duoMode && state.settings.duoHandoff === 'set' && state.settings.partnerParticipating && state.settings.partnerParticipating[otherPartner(partner)] !== false) {
       state.activePartner = otherPartner(partner);
       flipped = true;
     }
+    focusAfterLog(state, cur.exercise.id, cur.set.id);
     runtime.logLockUntil = now + 450;
     runtime.undo = undo;
     return { ok: true, undo: undo, partner: partner, flipped: flipped, exercise: cur.exercise.name, setId: cur.set.id };

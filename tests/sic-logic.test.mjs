@@ -107,6 +107,7 @@ test('LOG SET marks only the current set, locks out a double tap, and undo resto
   assert.equal(data.sets[0].done, true);
   assert.equal(data.sets[1].done, false);
   assert.equal(state.rest.batman.endAt, now + 240000);
+  assert.equal(state.focus.setId, data.sets[1].id);
   const second = SIC.logCurrentSet(state, runtime, now + 100);
   assert.equal(second.reason, 'lockout');
   assert.equal(data.sets[1].done, false);
