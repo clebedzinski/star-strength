@@ -239,6 +239,22 @@
       const rgb = SIC.hexToRgb(pal.accent) || { r: 245, g: 158, b: 11 };
       window.SICFx.configure({ type: state.fx.type, intensity: state.fx.intensity, reduced: reducedMotion(), accent: rgb.r + ',' + rgb.g + ',' + rgb.b });
     }
+    applyArt();
+  }
+  function artUrl(file) {
+    const packed = window.SIC_ART && window.SIC_ART[file];
+    if (packed) return packed;
+    return new URL('assets/skins/' + file, location.href).href;
+  }
+  function applyArt() {
+    const packs = {
+      pixelforecast: { bg: 'pixelforecast/background.webp', frame: 'pixelforecast/window-frame.webp', sky: 'pixelforecast/sky-tile.webp', mini: 'pixelforecast/mini-window.webp' },
+      irondial: { bg: 'irondial/background.webp', ring: 'irondial/dial-ring.webp', bolt: 'irondial/bolt.webp', mini: 'irondial/mini-puck.webp' }
+    };
+    const pack = packs[state.skinId] || {};
+    ['bg', 'frame', 'sky', 'ring', 'bolt', 'mini'].forEach(function (key) {
+      document.documentElement.style.setProperty('--art-' + key, pack[key] ? 'url("' + artUrl(pack[key]) + '")' : 'none');
+    });
   }
 
   function view() {
@@ -569,14 +585,14 @@
       return '<button type="button" class="ex-pick' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '" data-pad="1">' + esc(e.name) + '</button>';
     }).join('');
     const logBody = cur && set
-      ? '<h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">Set ' + (set.index + 1) + ' of ' + cur.sets.length + '</p><div class="entry"><label>Weight <span class="prev">PREV ' + esc(set.prev) + '</span>' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps <span class="prev">set ' + (set.index + 1) + '</span>' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label></div><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1">LOG SET</button>'
+      ? '<svg class="iron-arc" viewBox="0 0 100 100" aria-hidden="true"><circle data-rest-arc cx="50" cy="50" r="40"></circle></svg><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">Set ' + (set.index + 1) + ' of ' + cur.sets.length + '</p><div class="entry"><label>Weight <span class="prev">PREV ' + esc(set.prev) + '</span>' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps <span class="prev">set ' + (set.index + 1) + '</span>' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label></div><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1">LOG SET</button>'
       : '<p>No exercise on this day.</p>';
     const main = ui.tab === 'log' ? logBody : '<div class="zone-panel">' + backLog() + panel() + '</div>';
     return '<div class="zones">' + welcomeHTML() + glyphs +
       '<header class="zone zone-head"><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></header>' +
       '<div class="zone zone-partners" role="group" aria-label="Active partner">' + partners + '</div>' +
       '<section class="zone zone-now">' + main + '</section>' +
-      '<section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '"><p class="rest-label">' + (state.settings.restEnabled === false ? 'Rest off' : (resting ? 'Resting' : 'Rest ready')) + '</p><div class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</div><div class="rest-actions"><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15s</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15s</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1">' + (state.settings.restEnabled === false ? 'Turn rest on' : 'Turn rest off') + '</button></div></section>' +
+      '<section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '"><p class="rest-label">' + (state.settings.restEnabled === false ? 'Rest off' : (resting ? 'Resting' : 'Rest ready')) + '</p><div class="px-meter" aria-hidden="true"><i data-rest-bar></i></div><div class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</div><div class="rest-actions"><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15s</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15s</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1">' + (state.settings.restEnabled === false ? 'Turn rest on' : 'Turn rest off') + '</button></div></section>' +
       '<section class="zone zone-tempo" data-tempo-live="' + (state.settings.tempo.running ? 'on' : 'off') + '"><p>Tempo ' + pattern.e + '-' + pattern.p1 + '-' + pattern.c + '-' + pattern.p2 + '</p><div class="tempo-lamp" data-metro>' + esc(runtime.phase) + '</div><button type="button" data-act="tempo-toggle" data-pad="1">' + (state.settings.tempo.running ? 'Tempo off' : 'Tempo on') + '</button></section>' +
       (ui.tab === 'log' ? '<section class="zone zone-list" aria-label="Exercises">' + list + '<div class="add-row"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="Add exercise" aria-label="Exercise to add"><button type="button" data-act="add-ask" data-pad="1">Add</button></div>' + datalist() + '</section>' : '') +
       '<nav class="zone zone-nav" aria-label="Main">' +
@@ -612,8 +628,8 @@
     const fields = ui.miniWide ? '<div class="mini-fields">' + (set ? '<label>Lb ' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps ' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label><button type="button" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button><button type="button" data-act="manage" data-ex="' + id + '">Sets</button>' : '') + '<button type="button" data-act="back-log">Log</button><button type="button" data-act="overlay" data-overlay="settings">Settings</button></div>' : '';
     const chrome = '<div class="mini-top" data-drag="1">' + who + rest + '<button type="button" data-act="overlay-hide" aria-label="Close mini">×</button></div>';
     const shut = '<button type="button" class="mini-x" data-act="overlay-hide" aria-label="Close mini">×</button>';
-    if (shape === 'puck') return '<div class="mini-body">' + shut + '<div class="mini-puck" data-drag="1"><span>' + (set ? esc(set.weight || '—') : '—') + '</span>' + log + '<small>' + prev + '</small></div>' + who + more + fields + '</div>';
-    if (shape === 'stepped-l') return '<div class="mini-body"><div class="mini-window">' + chrome + '<strong>' + name + '</strong><p>' + prev + '</p>' + log + more + fields + '</div></div>';
+    if (shape === 'puck') return '<div class="mini-body">' + shut + '<div class="mini-puck" data-drag="1"><svg class="mini-arc" viewBox="0 0 100 100" aria-hidden="true"><circle data-rest-arc cx="50" cy="50" r="40"></circle></svg>' + who + '<strong>' + name + '</strong><em>Set ' + (set ? (set.index + 1) : '—') + '</em>' + rest + log + '</div>' + more + fields + '</div>';
+    if (shape === 'stepped-l') return '<div class="mini-body"><div class="mini-window" data-drag="1">' + shut + who + '<strong>' + name + '</strong><p>Set ' + (set ? (set.index + 1) : '—') + ' · ' + prev + '</p>' + rest + '<i class="px-meter" aria-hidden="true"><b data-rest-bar></b></i>' + log + more + fields + '</div></div>';
     if (shape === 'rail') return '<div class="mini-body"><div class="mini-slate">' + chrome + '<strong>' + name + '</strong><p>prev ' + prev + '</p>' + log + more + fields + '</div></div>';
     if (shape === 'ticket') return '<div class="mini-body"><div class="mini-led">' + chrome + '<em>' + (set ? esc(set.weight || '---') : '---') + '</em><p>' + prev + '</p>' + log + more + fields + '</div></div>';
     if (shape === 'capsule') return '<div class="mini-body"><div class="mini-pill">' + chrome + '<strong>' + name + '</strong><p>' + prev + '</p>' + log + more + fields + '</div></div>';
@@ -668,7 +684,8 @@
   function settingsBody(cat, sub) {
     if (cat === 'appearance' && sub === 'skin') {
       const skins = SIC.builtinSkins().concat(state.communitySkins || []).map(function (s) {
-        const look = s.slug === 'starclassic' ? '' : '<span class="muted">Beta look</span>';
+        const finished = s.slug === 'starclassic' || s.slug === 'pixelforecast' || s.slug === 'irondial';
+        const look = finished ? '' : '<span class="muted">Beta look</span>';
         return '<button type="button" class="' + (state.skinId === s.slug ? 'on' : '') + '" data-act="skin" data-skin="' + esc(s.slug) + '"><strong>' + esc(s.name) + '</strong>' + look + '</button>';
       }).join('');
       return '<p>Pick the layout. Color variants for a skin are on Customize, and only for the skin that is selected.</p><div class="skin-pick">' + skins + '</div><label class="stack">Install a community skin file<input type="file" id="skin-file" accept="application/json" data-lockrender="1"></label>';
@@ -814,6 +831,7 @@
     mini.innerHTML = miniHTML();
     if (ui.miniPos) { mini.style.left = ui.miniPos.x + 'px'; mini.style.top = ui.miniPos.y + 'px'; }
     $('overlay-root').innerHTML = popHTML() + overlayHTML();
+    paintRestArt(Date.now());
     drawChart();
     updateCalc();
     const toast = $('toast-root');
@@ -992,6 +1010,19 @@
   }
   function paintMetro() { document.querySelectorAll('[data-metro]').forEach(function (el) { el.textContent = runtime.phase; }); }
   function haptic(ms) { if (!state.settings.haptics || !navigator.vibrate) return; try { navigator.vibrate(ms || 15); } catch (e) {} }
+  function paintRestArt(now) {
+    const p = partner();
+    const slot = state.rest[p] || {};
+    const total = slot.total || slot.duration || 240;
+    const rem = SIC.restRemaining(state, p, now);
+    const pct = state.settings.restEnabled === false ? 0 : Math.max(0, Math.min(1, rem / total));
+    document.querySelectorAll('[data-rest-arc]').forEach(function (el) {
+      const r = Number(el.getAttribute('r')) || 46;
+      const circ = 2 * Math.PI * r;
+      el.setAttribute('stroke-dasharray', (pct * circ).toFixed(1) + ' ' + circ.toFixed(1));
+    });
+    document.querySelectorAll('[data-rest-bar]').forEach(function (el) { el.style.width = Math.round(pct * 100) + '%'; });
+  }
   function tick() {
     const now = Date.now();
     ['batman', 'robin'].forEach(function (p) {
@@ -1022,6 +1053,7 @@
       });
     });
     syncMetro();
+    paintRestArt(now);
     const rim = document.querySelector('[data-rest-rim]');
     if (rim) {
       const total = state.rest.batman.total || state.rest.batman.duration || 1;

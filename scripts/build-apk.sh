@@ -7,16 +7,17 @@ export ANDROID_HOME="$ANDROID_SDK_ROOT"
 GRADLE="${GRADLE:-$HOME/gradle-8.7/bin/gradle}"
 ASSETS="$ROOT/android/app/src/main/assets/www"
 rm -rf "$ASSETS"
-mkdir -p "$ASSETS/css" "$ASSETS/js" "$ROOT/artifacts"
+mkdir -p "$ASSETS/css" "$ASSETS/js" "$ASSETS/assets" "$ROOT/artifacts"
 cp "$ROOT/index.html" "$ASSETS/index.html"
 cp "$ROOT/css/sic.css" "$ASSETS/css/sic.css"
 cp "$ROOT/js/"*.js "$ASSETS/js/"
+cp -R "$ROOT/assets/skins" "$ASSETS/assets/skins"
 cd "$ROOT/android"
-"$GRADLE" --no-daemon assembleRelease
-APK="$ROOT/android/app/build/outputs/apk/release/app-release.apk"
-cp "$APK" "$ROOT/artifacts/strength-in-character-1.1.0.apk"
-echo "APK $ROOT/artifacts/strength-in-character-1.1.0.apk"
+"$GRADLE" --no-daemon assembleDebug
+APK="$ROOT/android/app/build/outputs/apk/debug/app-debug.apk"
+cp "$APK" "$ROOT/artifacts/sic-pixel-iron-debug.apk"
+echo "APK $ROOT/artifacts/sic-pixel-iron-debug.apk"
 if [ -x "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" ]; then
-  "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" verify --print-certs "$ROOT/artifacts/strength-in-character-1.1.0.apk" || true
+  "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" verify --print-certs "$ROOT/artifacts/sic-pixel-iron-debug.apk" || true
 fi
-echo "Release build, same debug keystore as earlier installs. adb install -r artifacts/strength-in-character-1.1.0.apk"
+echo "Debug review build. Same keystore. adb install -r artifacts/sic-pixel-iron-debug.apk"
