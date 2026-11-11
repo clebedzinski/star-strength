@@ -639,7 +639,7 @@ body.sic.overlay-only #mini-root { position: relative; left: auto; bottom: auto;
 /* Owner deployment fills bugReportEndpoint only after gas/SETUP.md is done.
    Leave verified false until a real response {ok:true,id} has been read back. */
 window.SIC_CONFIG = {
-  appVersion: '1.0.5-sic',
+  appVersion: '1.0.6-sic',
   bugReportEndpoint: '',
   bugReportVerified: false
 };
@@ -870,10 +870,17 @@ const exerciseDatabase = [
       autosave: true,
       haptics: true,
       masterMute: false,
+      soundVolume: 0.7,
+      soundCats: { sets: true, rest: true, pr: true, finish: true, taps: true, duo: true, errors: true },
       sounds: {
         setLog: sound('classic-blip'),
+        restTick: sound('classic-click'),
+        countdown: sound('classic-rest'),
         restDone: sound('classic-rest'),
+        pr: sound('classic-fanfare'),
         workoutSaved: sound('classic-fanfare'),
+        tap: sound('classic-click'),
+        duoFlip: sound('classic-blip'),
         undo: sound('classic-undo'),
         error: sound('classic-error'),
         metronome: sound('classic-click')
@@ -3040,7 +3047,12 @@ const exerciseDatabase = [
         const s = state.settings.sounds[ev];
         return '<div class="card"><strong>' + esc(ev) + '</strong><label>On <input type="checkbox" data-act="sound-on" data-ev="' + ev + '"' + (s.on ? ' checked' : '') + '></label><label class="stack">Repeats<input data-lockrender="1" data-act="sound-repeats" data-ev="' + ev + '" type="number" min="1" max="6" value="' + esc(s.repeats) + '"></label><label class="stack">Instrument<select data-act="sound-inst" data-ev="' + ev + '">' + ['sine', 'square', 'triangle', 'sawtooth'].map(function (i) { return '<option' + (s.instrument === i ? ' selected' : '') + '>' + i + '</option>'; }).join('') + '</select></label><button type="button" data-act="sound-test" data-ev="' + ev + '">Preview</button></div>';
       }).join('') : '';
-      return '<button type="button" class="switch ' + (state.soundEnabled && !state.settings.masterMute ? 'on' : '') + '" data-act="master-sound">' + (state.settings.masterMute || !state.soundEnabled ? 'Muted' : 'Sound on') + '</button><p>Rest lines are original SIC lines, not quotations.</p><button type="button" class="ghost" data-act="quote-mode">Line order: ' + esc(state.settings.quoteMode) + '</button><button type="button" class="ghost" data-act="sound-more">' + (ui.soundMore ? 'Hide per-event options' : 'Per-event options') + '</button>' + more;
+      const cats = state.settings.soundCats || {};
+      const toggles = [['sets', 'Set logged'], ['rest', 'Rest tick, countdown, and done'], ['pr', 'Personal record'], ['finish', 'Workout finished'], ['taps', 'Button taps'], ['duo', 'Partner switch'], ['errors', 'Errors']].map(function (pair) {
+        const on = cats[pair[0]] !== false;
+        return '<button type="button" class="switch ' + (on ? 'on' : '') + '" data-act="sound-cat" data-cat="' + pair[0] + '">' + pair[1] + (on ? ' on' : ' off') + '</button>';
+      }).join('');
+      return '<button type="button" class="switch ' + (state.soundEnabled && !state.settings.masterMute ? 'on' : '') + '" data-act="master-sound">' + (state.settings.masterMute || !state.soundEnabled ? 'Muted' : 'Sound on') + '</button><label class="stack">Volume<input data-act="sound-volume" type="range" min="0" max="1" step="0.05" value="' + esc(state.settings.soundVolume == null ? 0.7 : state.settings.soundVolume) + '"></label><div class="actions">' + toggles + '</div><p class="muted">Each skin uses its own synthesized set. Finish workout stops every sound.</p><button type="button" class="ghost" data-act="sound-test" data-ev="setLog">Preview set</button><button type="button" class="ghost" data-act="quote-mode">Line order: ' + esc(state.settings.quoteMode) + '</button><button type="button" class="ghost" data-act="sound-more">' + (ui.soundMore ? 'Hide per-event options' : 'Per-event options') + '</button>' + more;
     }
     if (cat === 'timers' && sub === 'rest') {
       return '<p>Rest is kept as an end time, so it stays accurate if the screen locks.</p><label class="stack">Timer size<input data-lockrender="1" data-act="timer-scale" type="range" min="0.85" max="1.15" step="0.05" value="' + esc(state.settings.timer.scale || 1) + '"></label><label class="stack">Metronome size<input data-lockrender="1" data-act="metro-scale" type="range" min="0.85" max="1.15" step="0.05" value="' + esc(state.settings.metronome.scale || 1) + '"></label><button type="button" data-act="tempo-toggle">' + (state.settings.tempo.running ? 'Stop metronome' : 'Start metronome') + '</button>';
@@ -3214,7 +3226,7 @@ const exerciseDatabase = [
     ui.summarySub = res.record.routineName + ' · ' + res.record.dayName;
     const stats = SIC.statsForEntries(res.record.exercises);
     ui.summaryHTML = '<div class="grid-2"><div class="card">' + stats.sets + ' sets</div><div class="card">' + stats.volume + ' volume</div></div>' + res.newPRs.map(function (p) { return '<div>' + esc(p.exercise) + ' ' + fmtW(p.weight) + '</div>'; }).join('');
-    if (res.newPRs.length && !reducedMotion()) burst();
+    if (res.newPRs.length) { playEvent('pr'); if (!reducedMotion()) burst(); }
     playEvent('workoutSaved');
     markDirty();
     render({ force: true });
@@ -3236,21 +3248,62 @@ const exerciseDatabase = [
     if (audioCtx.state === 'suspended') audioCtx.resume();
     return audioCtx;
   }
+  function soundCat(name) {
+    const map = { setLog: 'sets', restTick: 'rest', countdown: 'rest', restDone: 'rest', metronome: 'rest', workoutSaved: 'finish', pr: 'pr', tap: 'taps', duoFlip: 'duo', error: 'errors', undo: 'errors' };
+    const cats = state.settings.soundCats || {};
+    return cats[map[name] || 'taps'] !== false;
+  }
   function playEvent(name) {
     if (!userSound || !state.soundEnabled || state.settings.masterMute) return;
-    const spec = state.settings.sounds[name]; if (!spec || spec.on === false) return;
-    const tunes = { 'classic-blip': [800], 'classic-rest': [900, 900, 1120], 'classic-fanfare': [466, 466, 466, 523, 466], 'classic-undo': [440], 'classic-error': [180], 'classic-click': [600] };
-    const freqs = tunes[spec.pattern] || tunes['classic-blip'];
-    const repeats = Math.max(1, Math.min(6, parseInt(spec.repeats, 10) || 1));
+    if (!soundCat(name)) return;
+    const spec = (state.settings.sounds && state.settings.sounds[name]) || { on: true };
+    if (spec.on === false) return;
+    const palettes = {
+      starclassic: { wave: 'triangle', setLog: [523, 659, 784], restTick: [440], countdown: [587, 784], restDone: [523, 784], pr: [659, 880, 1175], workoutSaved: [392, 523, 659, 784], tap: [784], duoFlip: [440, 554], error: [196, 165], undo: [330], metronome: [660] },
+      pixelforecast: { wave: 'square', setLog: [523, 659, 784, 1046], restTick: [880], countdown: [1046, 784, 523], restDone: [523, 659, 784, 1046, 784], pr: [784, 988, 1175, 1568], workoutSaved: [392, 523, 659, 784, 1046], tap: [1318], duoFlip: [659, 880], error: [220, 196], undo: [392], metronome: [988] },
+      irondial: { wave: 'square', noise: true, setLog: [180, 240], restTick: [140], countdown: [200, 260, 320], restDone: [160, 220, 300], pr: [240, 320, 420], workoutSaved: [140, 180, 240, 320], tap: [420], duoFlip: [180, 280], error: [90], undo: [120], metronome: [300] },
+      chalkboard: { wave: 'sawtooth', noise: true, setLog: [300, 420], restTick: [500], countdown: [360, 480], restDone: [280, 360, 520], pr: [400, 520, 680], workoutSaved: [260, 340, 420, 560], tap: [700], duoFlip: [340, 480], error: [140], undo: [220], metronome: [460] },
+      scoreboard: { wave: 'sawtooth', setLog: [220, 330], restTick: [196], countdown: [247, 311, 370], restDone: [196, 247, 330, 392], pr: [262, 330, 392, 523], workoutSaved: [165, 220, 277, 330], tap: [440], duoFlip: [196, 262], error: [110], undo: [147], metronome: [294] },
+      transitline: { wave: 'sine', setLog: [659, 880], restTick: [784], countdown: [698, 880, 1046], restDone: [523, 659, 784, 1046], pr: [784, 988, 1318], workoutSaved: [523, 659, 784, 1046], tap: [1175], duoFlip: [587, 784], error: [233], undo: [349], metronome: [880] },
+      vinyldeck: { wave: 'triangle', noise: true, setLog: [220, 330], restTick: [180], countdown: [247, 330], restDone: [196, 294, 392], pr: [262, 392, 523], workoutSaved: [174, 220, 262, 349], tap: [500], duoFlip: [196, 294], error: [98], undo: [147], metronome: [247] },
+      hexhive: { wave: 'sawtooth', setLog: [110, 165, 220], restTick: [146], countdown: [130, 164, 196], restDone: [98, 146, 196], pr: [164, 220, 277], workoutSaved: [82, 110, 146, 196], tap: [246], duoFlip: [130, 196], error: [73], undo: [98], metronome: [174] }
+    };
+    const skinId = state.skinId && palettes[state.skinId] ? state.skinId : 'starclassic';
+    const pal = palettes[skinId];
+    const notes = pal[name] || pal.tap;
+    const vol = Math.max(0, Math.min(1, state.settings.soundVolume == null ? 0.7 : Number(state.settings.soundVolume))) * (Number(spec.volume) || 0.35);
     try {
       const ctx = ctxAudio();
       let t = ctx.currentTime;
-      for (let r = 0; r < repeats; r++) freqs.forEach(function (f) {
-        const osc = ctx.createOscillator(); const g = ctx.createGain();
-        osc.type = spec.instrument || 'sine'; osc.frequency.value = f;
-        g.gain.value = Math.max(0.0001, Number(spec.volume) || 0.2);
-        osc.connect(g); g.connect(ctx.destination); osc.start(t); osc.stop(t + 0.12);
-        runtime.nodes.push(osc); t += 0.16;
+      if (pal.noise && (name === 'tap' || name === 'restTick' || name === 'setLog' || skinId === 'chalkboard' || skinId === 'vinyldeck')) {
+        const dur = 0.08;
+        const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const filter = ctx.createBiquadFilter();
+        filter.type = skinId === 'chalkboard' ? 'highpass' : 'bandpass';
+        filter.frequency.value = skinId === 'irondial' ? 400 : 1800;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(vol * 0.45, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        src.connect(filter); filter.connect(g); g.connect(ctx.destination);
+        src.start(t); src.stop(t + dur);
+        runtime.nodes.push(src);
+      }
+      notes.forEach(function (f, i) {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = pal.wave;
+        osc.frequency.value = f;
+        const start = t + i * (name === 'countdown' ? 0.12 : 0.09);
+        g.gain.setValueAtTime(0.0001, start);
+        g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), start + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, start + (name === 'workoutSaved' || name === 'pr' ? 0.28 : 0.12));
+        osc.connect(g); g.connect(ctx.destination);
+        osc.start(start); osc.stop(start + 0.32);
+        runtime.nodes.push(osc);
       });
     } catch (e) {}
   }
@@ -3298,6 +3351,15 @@ const exerciseDatabase = [
         playEvent('restDone'); haptic(40); markDirty(); render({ force: !document.activeElement || document.activeElement.dataset.lockrender !== '1' });
       }
       runtime.restAlive[p] = alive;
+      if (alive) {
+        const sec = Math.ceil(rem);
+        runtime.lastCue = runtime.lastCue || {};
+        if (runtime.lastCue[p] !== sec) {
+          runtime.lastCue[p] = sec;
+          if (sec > 0 && sec <= 5) playEvent('countdown');
+          else if (sec > 5) playEvent('restTick');
+        }
+      }
       document.querySelectorAll('[data-rest="' + p + '"]').forEach(function (el) {
         const label = el.classList.contains('timer-readout') && el.childNodes.length === 1 ? null : null;
         if (el.dataset.rest === p) el.textContent = (el.textContent.indexOf('Rest') === 0 && p === 'batman' && !state.duoMode ? 'Rest ' : '') + fmtClock(rem);
@@ -3407,6 +3469,7 @@ const exerciseDatabase = [
     if (!t) return;
     if (t.dataset.act !== 'field') userSound = true;
     const act = t.dataset.act;
+    if (act !== 'sound-test' && act !== 'log-set' && act !== 'finish' && act !== 'field') playEvent('tap');
     if (act === 'tab') { ui.tab = t.dataset.tab; render({ force: true }); return; }
     if (act === 'log-set') { logSet(); return; }
     if (act === 'finish') { ui.overlay = 'finish'; render({ force: true }); return; }
@@ -3456,10 +3519,11 @@ const exerciseDatabase = [
     }
     if (act === 'skin') { state.skinId = t.dataset.skin; markDirty(); render({ force: true }); return; }
     if (act === 'theme') { state.activeThemeId = t.dataset.theme; if (state.skinId !== 'starclassic') state.skinId = 'starclassic'; markDirty(); render({ force: true }); return; }
-    if (act === 'partner') { if (t.dataset.partner === 'robin' && !state.duoMode) { state.duoMode = true; } state.activePartner = t.dataset.partner; ui.flipped = true; markDirty(); render({ force: true }); setTimeout(function () { ui.flipped = false; }, 450); return; }
+    if (act === 'partner') { if (t.dataset.partner === 'robin' && !state.duoMode) { state.duoMode = true; } if (state.activePartner !== t.dataset.partner) playEvent('duoFlip'); state.activePartner = t.dataset.partner; ui.flipped = true; markDirty(); render({ force: true }); setTimeout(function () { ui.flipped = false; }, 450); return; }
     if (act === 'back-log') { ui.tab = 'log'; ui.overlay = null; ui.pop = null; render({ force: true }); return; }
     if (act === 'duo') { state.duoMode = !state.duoMode; if (!state.duoMode) { state.activePartner = 'batman'; state.rest.robin.endAt = 0; } markDirty(); render({ force: true }); return; }
     if (act === 'master-sound') { state.soundEnabled = !(state.soundEnabled && !state.settings.masterMute); state.settings.masterMute = !state.soundEnabled; markDirty(); render({ force: true }); return; }
+    if (act === 'sound-cat') { state.settings.soundCats = state.settings.soundCats || {}; state.settings.soundCats[t.dataset.cat] = state.settings.soundCats[t.dataset.cat] === false; markDirty(); render({ force: true }); return; }
     if (act === 'basic') { state.settings.basicMode = !state.settings.basicMode; render({ force: true }); return; }
     if (act === 'settings-open') { ui.settingsCat = t.dataset.cat; ui.settingsSub = t.dataset.sub || 'skin'; ui.query = ''; render({ force: true }); return; }
     if (act === 'settings-back') { ui.settingsCat = null; render({ force: true }); return; }
@@ -3559,6 +3623,7 @@ const exerciseDatabase = [
     if (t.dataset.act === 'timer-scale') { state.settings.timer.scale = Number(t.value); markDirty(); applyChrome(); return; }
     if (t.dataset.act === 'metro-scale') { state.settings.metronome.scale = Number(t.value); markDirty(); applyChrome(); return; }
     if (t.dataset.act === 'scale') { state.settings.textScale = Number(t.value); document.documentElement.style.fontSize = (16 * Number(t.value)) + 'px'; markDirty(); return; }
+    if (t.dataset.act === 'sound-volume') { state.settings.soundVolume = Math.max(0, Math.min(1, Number(t.value))); markDirty(); return; }
     if (t.dataset.act === 'builder-name') { ui.builder.days[Number(t.dataset.i)].name = t.value; return; }
     if (t.dataset.act === 'builder-ex') { ui.builder.days[Number(t.dataset.i)].exercises[Number(t.dataset.j)] = t.value; return; }
   }

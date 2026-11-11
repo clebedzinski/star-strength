@@ -66,10 +66,17 @@
       autosave: true,
       haptics: true,
       masterMute: false,
+      soundVolume: 0.7,
+      soundCats: { sets: true, rest: true, pr: true, finish: true, taps: true, duo: true, errors: true },
       sounds: {
         setLog: sound('classic-blip'),
+        restTick: sound('classic-click'),
+        countdown: sound('classic-rest'),
         restDone: sound('classic-rest'),
+        pr: sound('classic-fanfare'),
         workoutSaved: sound('classic-fanfare'),
+        tap: sound('classic-click'),
+        duoFlip: sound('classic-blip'),
         undo: sound('classic-undo'),
         error: sound('classic-error'),
         metronome: sound('classic-click')
