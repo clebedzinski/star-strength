@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0B0F17">
-  <title>SIC — Strength in Character</title>
+  <title>Strength in Character</title>
   <style>
 :root {
   --bg: #0B0F17;
@@ -184,10 +184,11 @@ body.skin-starclassic #app {
   background: var(--accent); color: var(--on-accent); font-weight: 900; font-size: 13px; flex: none;
   box-shadow: 0 4px 10px rgba(0,0,0,.25);
 }
-.ss-brand h1 { margin: 0; font-size: 15px; font-weight: 900; letter-spacing: 0.04em; line-height: 1; white-space: nowrap; }
+.ss-titles { min-width: 0; }
+.ss-brand h1 { margin: 0; font-size: 13px; font-weight: 900; letter-spacing: 0; line-height: 1.05; white-space: normal; }
 .ss-brand p {
-  margin: 0; font-size: 8px; letter-spacing: 0.04em; color: var(--accent); font-weight: 800;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  margin: 0; font-size: 8px; letter-spacing: 0.08em; color: var(--accent); font-weight: 800;
+  white-space: normal;
 }
 .ss-tools { display: flex; align-items: center; gap: 2px; flex: none; }
 .ss-tools button, .ss-card-side .icon-btn, .ss-table .icon-btn, .ss-done, .ss-add, .ss-end, .ss-log, .ss-tabs .tab, .whats-strip button, .ss-partners button {
@@ -542,47 +543,62 @@ label.hex input { width: 70px; min-height: 44px; text-align: center; background:
 #mini-root.shape-flower .mini-body { background: #2a2116; color: #fff6e4; border-radius: 18px; }
 #mini-root button, #mini-root input, #mini-root select { min-height: 44px; }
 
-/* Dialogs: neutral surface so a skin cannot blank the type */
+.who { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.who-btn { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; border-width: 2px; font-weight: 900; }
+.who-btn i { width: 12px; height: 12px; border-radius: 50%; background: currentColor; display: inline-block; }
+.who-btn.batman { color: #111; background: #fde68a; border-color: #b45309; }
+.who-btn.robin { color: #0f172a; background: #dbeafe; border-color: #2563eb; }
+.who-btn.batman.on { background: #f59e0b; color: #111; }
+.who-btn.robin.on { background: #3b82f6; color: #fff; }
+.who.flip .who-btn.on { animation: who-pop .4s ease; }
+@keyframes who-pop { from { transform: scale(.9); filter: brightness(1.3); } to { transform: none; filter: none; } }
+.back-log { min-height: 44px; font-weight: 900; background: var(--accent); color: var(--on-accent); border: 0; margin-bottom: 8px; }
+.board .chalk-num input, .chalk-add input { background: #07140e; color: #f7f3c8; border: 2px solid #f7f3c8; border-radius: 8px; }
+label.hex input { background: #120e08; color: #fff6e4; border: 2px solid #f0b429; border-radius: 8px; }
+/* Dialogs follow the active skin, including Classic subthemes via the palette variables. */
 .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.72); display: flex; justify-content: center; align-items: flex-start; overflow: auto; padding: 12px; }
 .sheet, .pop {
   width: min(520px, 100%);
   max-height: calc(100vh - 24px);
   overflow: auto;
-  background: #f8fafc;
-  color: #0f172a;
-  border: 1px solid #64748b;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 16px;
   margin: auto;
   box-shadow: 0 16px 40px rgba(0,0,0,.35);
+  font-family: var(--font);
 }
-.sheet h2, .sheet h3, .pop h2 { color: #0f172a; margin: 0 0 8px; }
-.sheet p, .sheet li, .pop p { color: #1e293b; }
-.sheet .muted, .pop .muted { color: #475569; }
-.sheet input[type="range"] { accent-color: #b45309; height: 44px; }
+.sheet h2, .sheet h3, .pop h2 { color: var(--text); margin: 0 0 8px; }
+.sheet p, .sheet li, .pop p { color: var(--text); }
+.sheet .muted, .pop .muted { color: var(--muted); }
+.sheet input[type="range"] { accent-color: var(--accent); height: 44px; }
 .sheet input, .sheet textarea, .sheet select,
 .pop input, .pop textarea, .pop select {
-  background: #ffffff;
-  color: #0f172a;
-  border: 1px solid #64748b;
+  background: var(--field-bg);
+  color: var(--field-text);
+  border: 1px solid var(--field-border);
 }
 .sheet button, .pop button {
-  background: #e2e8f0;
-  color: #0f172a;
-  border: 1px solid #475569;
+  background: var(--field-bg);
+  color: var(--field-text);
+  border: 1px solid var(--field-border);
 }
-.sheet .primary, .sheet .log-set, .pop .primary {
-  background: #b45309;
-  color: #ffffff;
-  border-color: #b45309;
+.sheet .primary, .sheet .log-set, .pop .primary, .sheet .back-log {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
 }
-.sheet .card, .pop .card { background: #ffffff; color: #0f172a; border-color: #cbd5e1; }
+.sheet .card, .pop .card { background: var(--bg); color: var(--text); border-color: var(--border); }
 .conflict-list { margin: 8px 0; padding-left: 18px; max-height: 180px; overflow: auto; }
 .toast { position: fixed; left: 12px; right: 12px; bottom: calc(12px + var(--safe-bottom)); z-index: 50; background: #0f172a; color: #f8fafc; border: 1px solid #f59e0b; border-radius: 12px; padding: 10px 12px; display: flex; gap: 8px; align-items: center; justify-content: space-between; }
 .toast button { background: #f59e0b; color: #111; border: 0; }
 .set-home { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .set-card { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; text-align: left; min-height: 84px; min-width: 0; white-space: normal; gap: 4px; }
-.set-card span { font-size: 13px; font-weight: 600; color: #475569; }
+.set-card span { font-size: 13px; font-weight: 600; color: var(--muted); }
+.sheet .skin-pick button, .sheet .set-card { background: var(--field-bg); color: var(--field-text); }
+.sheet .set-sub button[aria-selected="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .set-sub { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 8px 0 12px; }
 .set-sub button { min-width: 0; padding: 8px 4px; }
 .set-sub button[aria-selected="true"] { background: #b45309; color: #fff; border-color: #b45309; }
@@ -623,7 +639,7 @@ body.sic.overlay-only #mini-root { position: relative; left: auto; bottom: auto;
 /* Owner deployment fills bugReportEndpoint only after gas/SETUP.md is done.
    Leave verified false until a real response {ok:true,id} has been read back. */
 window.SIC_CONFIG = {
-  appVersion: '1.0.4-sic',
+  appVersion: '1.0.5-sic',
   bugReportEndpoint: '',
   bugReportVerified: false
 };
@@ -2395,6 +2411,7 @@ const exerciseDatabase = [
     pop: null,
     overlay: null,
     whatsBar: false,
+    flipped: false,
     dialog: null,
     historyReverse: false,
     historyMuscle: 'all',
@@ -2749,8 +2766,8 @@ const exerciseDatabase = [
     const routine = viewCache.routine;
     const rest = viewCache.rest[viewCache.partner] || 0;
     const restBit = rest > 0 ? '<span class="ss-rest timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(rest) + '</span>' : '';
-    const duo = state.duoMode ? '<span class="ss-duo">DUO</span>' : '';
-    return '<div class="classic"><div class="ss-dock"><header class="ss-head"><div class="ss-brand"><div class="ss-star" aria-hidden="true">★</div><h1>SIC</h1><p>STRENGTH IN CHARACTER</p></div><div class="ss-tools"><button type="button" data-act="overlay" data-overlay="bug" aria-label="Bug report" title="Bug report">' + ico('bug') + '</button><button type="button" data-act="overlay" data-overlay="rest" aria-label="Rest timers" title="Rest timers"><span class="ss-zzz">Zzz</span></button><button type="button" data-act="overlay" data-overlay="tempo" aria-label="Tempo" title="Tempo">' + ico('drum') + '</button><button type="button" data-act="overlay" data-overlay="calc" aria-label="Calculator" title="1RM and plates">' + ico('calc') + '</button><button type="button" data-act="mini-open" aria-label="Mini" title="Mini">' + ico('mini') + '</button><button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings" title="Settings">' + ico('gear') + '</button></div></header><nav class="ss-tabs" aria-label="Sections">' + classicTabs() + '</nav><div class="ss-routine"><div class="ss-routine-name">' + duo + '<h2>' + esc(routine ? routine.name : '') + '</h2></div><div class="ss-routine-actions">' + restBit + daySelect() + classicFinish() + '</div></div></div><div class="ss-scroll">' + whatsStrip() + inner + '</div></div>';
+    const duo = partnerBar();
+    return '<div class="classic"><div class="ss-dock"><header class="ss-head"><div class="ss-brand"><div class="ss-star" aria-hidden="true">★</div><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></div><div class="ss-tools"><button type="button" data-act="overlay" data-overlay="bug" aria-label="Bug report" title="Bug report">' + ico('bug') + '</button><button type="button" data-act="overlay" data-overlay="rest" aria-label="Rest timers" title="Rest timers"><span class="ss-zzz">Zzz</span></button><button type="button" data-act="overlay" data-overlay="tempo" aria-label="Tempo" title="Tempo">' + ico('drum') + '</button><button type="button" data-act="overlay" data-overlay="calc" aria-label="Calculator" title="1RM and plates">' + ico('calc') + '</button><button type="button" data-act="mini-open" aria-label="Mini" title="Mini">' + ico('mini') + '</button><button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings" title="Settings">' + ico('gear') + '</button></div></header><nav class="ss-tabs" aria-label="Sections">' + classicTabs() + '</nav><div class="ss-routine"><div class="ss-routine-name"><h2>' + esc(routine ? routine.name : '') + '</h2></div><div class="ss-routine-actions">' + restBit + daySelect() + classicFinish() + '</div></div></div><div class="ss-scroll">' + partnerBar() + whatsStrip() + (ui.tab === 'log' ? '' : backLog()) + inner + '</div></div>';
   }
   function vName() { return state.duoMode ? state.partnerNames[partner()] : 'Star Strength Classic'; }
   function curFocus() {
@@ -2788,6 +2805,16 @@ const exerciseDatabase = [
     return '<div class="skin-bar">' + daySelect() + '<button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings">' + ico('gear') + '</button><button type="button" data-act="mini-open" aria-label="Mini">' + ico('mini') + '</button>' + finishBtn() + '</div>';
   }
   function clock() { const d = new Date(); return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
+  function partnerBar() {
+    const keys = state.duoMode ? ['batman', 'robin'] : ['batman'];
+    return '<div class="who' + (ui.flipped ? ' flip' : '') + '" role="group" aria-label="Active partner">' + keys.map(function (p) {
+      const on = partner() === p;
+      return '<button type="button" class="who-btn ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" aria-current="' + (on ? 'true' : 'false') + '"><i></i><span>' + esc(state.partnerNames[p] || (p === 'batman' ? 'Partner 1' : 'Partner 2')) + '</span>' + (on ? '<b>lifting</b>' : '') + '</button>';
+    }).join('') + '</div>';
+  }
+  function backLog() {
+    return '<button type="button" class="back-log" data-act="back-log">← Log</button>';
+  }
   function dayRocker(cls) {
     return '<div class="' + cls + '"><button type="button" data-act="day-step" data-dir="-1" aria-label="Previous day">‹</button><strong>' + esc(state.activeDay || '') + '</strong><button type="button" data-act="day-step" data-dir="1" aria-label="Next day">›</button></div>';
   }
@@ -2796,10 +2823,10 @@ const exerciseDatabase = [
     return numInput(ex.id, set.id, field, field === 'weight' ? set.weight : set.reps, '');
   }
   function pixelTaskbar() {
-    return '<nav class="taskbar" aria-label="Pixel taskbar"><button type="button" data-act="tab" data-tab="log" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" aria-current="' + (ui.tab === 'routines' ? 'true' : 'false') + '">Plans</button><button type="button" data-act="tab" data-tab="history" aria-current="' + (ui.tab === 'history' ? 'true' : 'false') + '">Past</button><button type="button" data-act="tab" data-tab="analytics" aria-current="' + (ui.tab === 'analytics' ? 'true' : 'false') + '">Chart</button><button type="button" class="px-end" data-act="finish" aria-label="Finish workout">End</button><span class="px-clock">' + clock() + '</span></nav>';
+    return '<nav class="taskbar" aria-label="Pixel taskbar"><button type="button" data-act="tab" data-tab="log" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" aria-current="' + (ui.tab === 'routines' ? 'true' : 'false') + '">Routines</button><button type="button" data-act="tab" data-tab="history" aria-current="' + (ui.tab === 'history' ? 'true' : 'false') + '">History</button><button type="button" data-act="tab" data-tab="analytics" aria-current="' + (ui.tab === 'analytics' ? 'true' : 'false') + '">Analytics</button><button type="button" class="px-end" data-act="finish" aria-label="Finish workout">End</button><span class="px-clock">' + clock() + '</span></nav>';
   }
   function pixelShell(inner) {
-    if (ui.tab !== 'log') return '<div class="pixel-desk"><section class="win"><header><span>' + esc(ui.tab.toUpperCase()) + '</span><button type="button" data-act="tab" data-tab="log">Back</button></header><div class="body">' + inner + '</div></section>' + pixelTaskbar() + '</div>';
+    if (ui.tab !== 'log') return '<div class="pixel-desk">' + backLog() + partnerBar() + '<section class="win"><header><span>' + esc(ui.tab.toUpperCase()) + '</span></header><div class="body">' + inner + '</div></section>' + pixelTaskbar() + '</div>';
     const f = curFocus(), cur = f.cur, set = f.set;
     const id = cur ? esc(cur.id) : '', sid = set ? esc(set.id) : '';
     const cell = function (field, label) {
@@ -2808,10 +2835,10 @@ const exerciseDatabase = [
     const menu = viewCache.exercises.map(function (e) {
       return '<button type="button" class="px-item' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + esc(e.name) + '</button>';
     }).join('');
-    return '<div class="pixel-desk"><div class="px-city" aria-hidden="true"></div><section class="win"><header><span>SET ' + (set ? set.index + 1 : '') + '</span><span>' + esc(cur ? cur.name : 'Empty') + '</span></header><div class="body"><div class="px-pair">' + cell('weight', 'LB') + cell('reps', 'REPS') + '</div><p class="px-prev">Last ' + esc(set ? set.prev : '—') + '</p><div class="px-sets">' + setDots(cur) + '<button type="button" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button></div><button type="button" class="px-log" data-act="log-set">LOG SET</button><div class="px-tools"><button type="button" data-act="manage" data-ex="' + id + '">Sets</button><button type="button" data-act="remove-ask" data-ex="' + id + '">Cut</button><button type="button" data-act="mini-open">Mini</button><button type="button" data-act="overlay" data-overlay="settings">Cfg</button></div></div></section><section class="win"><header><span>FORECAST</span>' + dayRocker('px-day') + '</header><div class="body px-menu">' + menu + '<div class="px-add"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="New exercise" aria-label="Exercise to add"><button type="button" data-act="add-ask">Add</button></div>' + datalist() + '</div></section>' + pixelTaskbar() + '</div>';
+    return '<div class="pixel-desk">' + partnerBar() + '<div class="px-city" aria-hidden="true"></div><section class="win"><header><span>SET ' + (set ? set.index + 1 : '') + '</span><span>' + esc(cur ? cur.name : 'Empty') + '</span></header><div class="body"><div class="px-pair">' + cell('weight', 'LB') + cell('reps', 'REPS') + '</div><p class="px-prev">Last ' + esc(set ? set.prev : '—') + '</p><div class="px-sets">' + setDots(cur) + '<button type="button" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button></div><button type="button" class="px-log" data-act="log-set">LOG SET</button><div class="px-tools"><button type="button" data-act="manage" data-ex="' + id + '">Sets</button><button type="button" data-act="remove-ask" data-ex="' + id + '">Remove</button><button type="button" data-act="mini-open">Mini</button><button type="button" data-act="overlay" data-overlay="settings">Settings</button></div></div></section><section class="win"><header><span>FORECAST</span>' + dayRocker('px-day') + '</header><div class="body px-menu">' + menu + '<div class="px-add"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="New exercise" aria-label="Exercise to add"><button type="button" data-act="add-ask">Add</button></div>' + datalist() + '</div></section>' + pixelTaskbar() + '</div>';
   }
   function ironShell(inner) {
-    if (ui.tab !== 'log') return '<div class="dial-stage"><div class="iron-plate">' + tabs() + '</div><div class="iron-panel">' + inner + '</div></div>';
+    if (ui.tab !== 'log') return '<div class="dial-stage">' + backLog() + partnerBar() + '<div class="iron-panel">' + inner + '</div></div>';
     const f = curFocus(), cur = f.cur, set = f.set;
     const id = cur ? esc(cur.id) : '', sid = set ? esc(set.id) : '';
     const pct = viewCache.rest.batman > 0 ? Math.max(0, Math.min(1, viewCache.rest.batman / ((state.rest.batman.total || state.rest.batman.duration) || 1))) : 0;
@@ -2819,11 +2846,11 @@ const exerciseDatabase = [
     const spin = function (field, dir, label, cls) {
       return '<button type="button" class="orbit ' + cls + '" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="' + dir + '" aria-label="' + label + '">' + (dir > 0 ? '+' : '−') + '</button>';
     };
-    return '<div class="dial-stage"><div class="iron-plate">' + dayRocker('iron-day') + '<button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings">' + ico('gear') + '</button><button type="button" data-act="mini-open" aria-label="Mini">' + ico('mini') + '</button></div><div class="iron-title"><button type="button" data-act="cycle-ex" data-dir="-1" aria-label="Previous exercise">‹</button><h2>' + esc(cur ? cur.name : 'No exercise') + '</h2><button type="button" data-act="cycle-ex" data-dir="1" aria-label="Next exercise">›</button></div><p class="iron-meta">Set ' + (set ? set.index + 1 : '—') + ' · last ' + esc(set ? set.prev : '—') + ' · <span class="timer-readout" data-rest="batman">' + fmtClock(viewCache.rest.batman) + '</span></p><div class="dial-wrap"><div class="dial"><svg class="rim" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" fill="none" stroke="#3f3f46" stroke-width="5"/><circle cx="50" cy="50" r="44" fill="none" stroke="#ff7a18" stroke-width="5" stroke-dasharray="' + dash + ' 276" stroke-linecap="round" transform="rotate(-90 50 50)"/></svg>' + spin('weight', 1, 'Increase weight', 'n') + spin('weight', -1, 'Decrease weight', 's') + spin('reps', -1, 'Fewer reps', 'w') + spin('reps', 1, 'More reps', 'e') + '<div class="hub-stack"><label>LB ' + typed(cur, set, 'weight') + '</label><button type="button" class="hub" data-act="log-set">LOG' + ptag('logSet') + '</button><label>REPS ' + typed(cur, set, 'reps') + '</label></div></div></div><div class="rivets">' + setDots(cur) + '<button type="button" class="rivet" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button><button type="button" class="rivet" data-act="manage" data-ex="' + id + '">Sets</button><button type="button" class="iron-end" data-act="finish">End</button></div></div>';
+    return '<div class="dial-stage">' + partnerBar() + '<div class="iron-plate">' + dayRocker('iron-day') + '<button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings">' + ico('gear') + '</button><button type="button" data-act="mini-open" aria-label="Mini">' + ico('mini') + '</button></div><div class="iron-title"><button type="button" data-act="cycle-ex" data-dir="-1" aria-label="Previous exercise">‹</button><h2>' + esc(cur ? cur.name : 'No exercise') + '</h2><button type="button" data-act="cycle-ex" data-dir="1" aria-label="Next exercise">›</button></div><p class="iron-meta">Set ' + (set ? set.index + 1 : '—') + ' · last ' + esc(set ? set.prev : '—') + ' · <span class="timer-readout" data-rest="batman">' + fmtClock(viewCache.rest.batman) + '</span></p><div class="dial-wrap"><div class="dial"><svg class="rim" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" fill="none" stroke="#3f3f46" stroke-width="5"/><circle cx="50" cy="50" r="44" fill="none" stroke="#ff7a18" stroke-width="5" stroke-dasharray="' + dash + ' 276" stroke-linecap="round" transform="rotate(-90 50 50)"/></svg>' + spin('weight', 1, 'Increase weight', 'n') + spin('weight', -1, 'Decrease weight', 's') + spin('reps', -1, 'Fewer reps', 'w') + spin('reps', 1, 'More reps', 'e') + '<div class="hub-stack"><label>LB ' + typed(cur, set, 'weight') + '</label><button type="button" class="hub" data-act="log-set">LOG' + ptag('logSet') + '</button><label>REPS ' + typed(cur, set, 'reps') + '</label></div></div></div><div class="rivets">' + setDots(cur) + '<button type="button" class="rivet" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button><button type="button" class="rivet" data-act="manage" data-ex="' + id + '">Sets</button><button type="button" class="iron-end" data-act="finish">End</button></div></div>';
   }
   function chalkShell(inner) {
-    const notes = '<div class="stickies"><button type="button" class="sticky y" data-act="tab" data-tab="log">Log</button><button type="button" class="sticky p" data-act="tab" data-tab="history">Past</button><button type="button" class="sticky g" data-act="tab" data-tab="routines">Plans</button><button type="button" class="sticky b" data-act="tab" data-tab="analytics">Chart</button><button type="button" class="sticky y" data-act="overlay" data-overlay="settings">Gear</button><button type="button" class="sticky p" data-act="finish">Done</button></div>';
-    if (ui.tab !== 'log') return '<div class="board"><h1>Chalk</h1>' + notes + inner + '</div>';
+    const notes = '<div class="stickies"><button type="button" class="sticky y" data-act="tab" data-tab="log">Log</button><button type="button" class="sticky p" data-act="tab" data-tab="history">History</button><button type="button" class="sticky g" data-act="tab" data-tab="routines">Routines</button><button type="button" class="sticky b" data-act="tab" data-tab="analytics">Analytics</button><button type="button" class="sticky y" data-act="overlay" data-overlay="settings">Settings</button><button type="button" class="sticky p" data-act="finish">Done</button></div>';
+    if (ui.tab !== 'log') return '<div class="board">' + backLog() + partnerBar() + '<h1>Chalk</h1>' + notes + inner + '</div>';
     const f = curFocus(), cur = f.cur, set = f.set;
     const id = cur ? esc(cur.id) : '', sid = set ? esc(set.id) : '';
     const chalkNum = function (field, label) {
@@ -2832,10 +2859,10 @@ const exerciseDatabase = [
     const lines = viewCache.exercises.map(function (e) {
       return '<button type="button" class="chalk-line' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + esc(e.name) + '</button>';
     }).join('');
-    return '<div class="board">' + dayRocker('chalk-day') + '<h1>' + esc(cur ? cur.name : 'Blank board') + '</h1><p class="chalk-meta">last ' + esc(set ? set.prev : '—') + '</p><div class="chalk-pair">' + chalkNum('weight', 'lb') + chalkNum('reps', 'reps') + '</div><div class="chalk-sets">' + setDots(cur) + '<button type="button" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button></div><button type="button" class="chalk-log" data-act="log-set">log set</button><div class="chalk-list">' + lines + '</div><div class="chalk-add"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="write an exercise" aria-label="Exercise to add"><button type="button" data-act="add-ask">ok</button></div>' + datalist() + notes + '</div>';
+    return '<div class="board">' + partnerBar() + dayRocker('chalk-day') + '<h1>' + esc(cur ? cur.name : 'Blank board') + '</h1><p class="chalk-meta">last ' + esc(set ? set.prev : '—') + '</p><div class="chalk-pair">' + chalkNum('weight', 'lb') + chalkNum('reps', 'reps') + '</div><div class="chalk-sets">' + setDots(cur) + '<button type="button" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button></div><button type="button" class="chalk-log" data-act="log-set">log set</button><div class="chalk-list">' + lines + '</div><div class="chalk-add"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="write an exercise" aria-label="Exercise to add"><button type="button" data-act="add-ask">ok</button></div>' + datalist() + notes + '</div>';
   }
   function scoreShell(inner) {
-    if (ui.tab !== 'log') return '<div class="board-frame"><div class="banner"><span>SIC</span><span>' + esc(ui.tab) + '</span></div>' + inner + '</div>';
+    if (ui.tab !== 'log') return '<div class="board-frame"><div class="banner"><span>Strength in Character</span></div>' + backLog() + partnerBar() + inner + '</div>';
     const f = curFocus(), cur = f.cur, set = f.set;
     const id = cur ? esc(cur.id) : '', sid = set ? esc(set.id) : '';
     const lamp = function (field, label) {
@@ -2844,10 +2871,10 @@ const exerciseDatabase = [
     const lineup = viewCache.exercises.map(function (e) {
       return '<button type="button" class="ticket' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + esc(e.name) + '</button>';
     }).join('');
-    return '<div class="board-frame"><div class="banner"><span>SIC</span>' + dayRocker('score-day') + '<button type="button" class="final" data-act="finish">FINAL</button></div><p class="score-name">' + esc(cur ? cur.name : '') + ' · last ' + esc(set ? set.prev : '—') + '</p><div class="led-row">' + lamp('weight', 'LB') + lamp('reps', 'REPS') + '</div><button type="button" class="buzzer" data-act="log-set">LOG SET' + ptag('logSet') + '</button><div class="box"><span class="timer-readout" data-rest="batman">' + fmtClock(viewCache.rest.batman) + '</span><span>' + (set ? set.index + 1 : 0) + '/' + (cur ? cur.sets.length : 0) + '</span><button type="button" data-act="add-set" data-ex="' + id + '">+SET</button></div><div class="lineup">' + lineup + '</div><div class="score-links"><button type="button" data-act="tab" data-tab="log">Log</button><button type="button" data-act="tab" data-tab="history">Past</button><button type="button" data-act="tab" data-tab="routines">Plans</button><button type="button" data-act="mini-open">Mini</button><button type="button" data-act="overlay" data-overlay="settings">Gear</button></div></div>';
+    return '<div class="board-frame">' + partnerBar() + '<div class="banner"><span>Strength in Character</span>' + dayRocker('score-day') + '<button type="button" class="final" data-act="finish">FINAL</button></div><p class="score-name">' + esc(cur ? cur.name : '') + ' · last ' + esc(set ? set.prev : '—') + '</p><div class="led-row">' + lamp('weight', 'LB') + lamp('reps', 'REPS') + '</div><button type="button" class="buzzer" data-act="log-set">LOG SET' + ptag('logSet') + '</button><div class="box"><span class="timer-readout" data-rest="batman">' + fmtClock(viewCache.rest.batman) + '</span><span>' + (set ? set.index + 1 : 0) + '/' + (cur ? cur.sets.length : 0) + '</span><button type="button" data-act="add-set" data-ex="' + id + '">+SET</button></div><div class="lineup">' + lineup + '</div><div class="score-links"><button type="button" data-act="tab" data-tab="log">Log</button><button type="button" data-act="tab" data-tab="history">History</button><button type="button" data-act="tab" data-tab="routines">Routines</button><button type="button" data-act="mini-open">Mini</button><button type="button" data-act="overlay" data-overlay="settings">Settings</button></div></div>';
   }
   function transitShell(inner) {
-    if (ui.tab !== 'log') return '<div class="transit"><div class="route-head"><h2>' + esc(ui.tab) + '</h2><button type="button" data-act="tab" data-tab="log">Back to line</button></div>' + inner + '</div>';
+    if (ui.tab !== 'log') return '<div class="transit">' + backLog() + partnerBar() + '<div class="route-head"><h2>' + esc(ui.tab) + '</h2></div>' + inner + '</div>';
     const f = curFocus(), cur = f.cur, set = f.set;
     const id = cur ? esc(cur.id) : '', sid = set ? esc(set.id) : '';
     const stations = viewCache.exercises.map(function (e, i) {
@@ -2856,10 +2883,10 @@ const exerciseDatabase = [
     const plat = function (field, label) {
       return '<div class="platform"><span>' + label + '</span><div><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="-1" aria-label="Decrease ' + label + '">‹</button>' + typed(cur, set, field) + '<button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="1" aria-label="Increase ' + label + '">›</button></div></div>';
     };
-    return '<div class="transit"><div class="route-head">' + dayRocker('line-badge') + '<button type="button" data-act="mini-open" aria-label="Mini">M</button><button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings">S</button></div><ol class="rail">' + stations + '</ol><section class="departure"><p class="eyebrow">Now boarding · last ' + esc(set ? set.prev : '—') + '</p><h2>' + esc(cur ? cur.name : 'No service') + '</h2><div class="platforms">' + plat('weight', 'LB') + plat('reps', 'REPS') + '</div><div class="cars">' + setDots(cur) + '</div><button type="button" class="depart" data-act="log-set">LOG SET</button><div class="transit-ops"><button type="button" data-act="add-set" data-ex="' + id + '">Extra car</button><button type="button" data-act="manage" data-ex="' + id + '">Cars</button><button type="button" class="endline" data-act="finish">End of line</button></div><div class="sleeve"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="Add a stop" aria-label="Exercise to add"><button type="button" data-act="add-ask">Add</button></div>' + datalist() + '</section><nav class="legend"><button type="button" data-act="tab" data-tab="log">Line</button><button type="button" data-act="tab" data-tab="routines">Map</button><button type="button" data-act="tab" data-tab="history">Log</button><button type="button" data-act="tab" data-tab="analytics">Stats</button></nav></div>';
+    return '<div class="transit">' + partnerBar() + '<div class="route-head">' + dayRocker('line-badge') + '<button type="button" data-act="mini-open" aria-label="Mini">Mini</button><button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings">Settings</button></div><ol class="rail">' + stations + '</ol><section class="departure"><p class="eyebrow">Now boarding · last ' + esc(set ? set.prev : '—') + '</p><h2>' + esc(cur ? cur.name : 'No service') + '</h2><div class="platforms">' + plat('weight', 'LB') + plat('reps', 'REPS') + '</div><div class="cars">' + setDots(cur) + '</div><button type="button" class="depart" data-act="log-set">LOG SET</button><div class="transit-ops"><button type="button" data-act="add-set" data-ex="' + id + '">Add set</button><button type="button" data-act="manage" data-ex="' + id + '">Sets</button><button type="button" class="endline" data-act="finish">End of line</button></div><div class="sleeve"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="Add a stop" aria-label="Exercise to add"><button type="button" data-act="add-ask">Add</button></div>' + datalist() + '</section><nav class="legend"><button type="button" data-act="tab" data-tab="log">Line</button><button type="button" data-act="tab" data-tab="routines">Routines</button><button type="button" data-act="tab" data-tab="history">Log</button><button type="button" data-act="tab" data-tab="analytics">Stats</button></nav></div>';
   }
   function vinylShell(inner) {
-    if (ui.tab !== 'log') return '<div class="vinyl-page"><button type="button" class="stop" data-act="tab" data-tab="log">Back</button>' + inner + '</div>';
+    if (ui.tab !== 'log') return '<div class="vinyl-page">' + backLog() + partnerBar() + inner + '</div>';
     const f = curFocus(), cur = f.cur, set = f.set;
     const id = cur ? esc(cur.id) : '', sid = set ? esc(set.id) : '';
     const deck = function (field, side) {
@@ -2868,10 +2895,10 @@ const exerciseDatabase = [
     const spines = viewCache.exercises.map(function (e) {
       return '<button type="button" class="spine' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + esc(e.name) + '</button>';
     }).join('');
-    return '<div class="vinyl-page"><div class="cartridge">' + dayRocker('cart-day') + '<button type="button" class="stop" data-act="finish" aria-label="Finish workout">Stop</button></div><p class="track">' + esc(cur ? cur.name : 'No track') + ' · last ' + esc(set ? set.prev : '—') + '</p><div class="two-decks">' + deck('weight', 'LB') + deck('reps', 'REPS') + '</div><div class="mixer-bar"><label>Fader<input class="cross" type="range" min="0" max="100" value="' + (partner() === 'robin' ? '80' : '20') + '" data-act="cross" data-lockrender="1" aria-label="Partner crossfader"></label><button type="button" class="rec-dot" data-act="log-set" aria-label="Log set">REC</button><button type="button" class="cue" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button><button type="button" class="cue" data-act="mini-open" aria-label="Mini">M</button><button type="button" class="cue" data-act="overlay" data-overlay="settings" aria-label="Settings">S</button></div><div class="crate">' + spines + '</div><div class="sleeve"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="New sleeve" aria-label="Exercise to add"><button type="button" data-act="add-ask">File</button></div>' + datalist() + '<nav class="crate-nav"><button type="button" data-act="tab" data-tab="routines">Crates</button><button type="button" data-act="tab" data-tab="history">Plays</button><button type="button" data-act="tab" data-tab="analytics">Cuts</button></nav></div>';
+    return '<div class="vinyl-page">' + partnerBar() + '<div class="cartridge">' + dayRocker('cart-day') + '<button type="button" class="stop" data-act="finish" aria-label="Finish workout">Stop</button></div><p class="track">' + esc(cur ? cur.name : 'No track') + ' · last ' + esc(set ? set.prev : '—') + '</p><div class="two-decks">' + deck('weight', 'LB') + deck('reps', 'REPS') + '</div><div class="mixer-bar"><label>Fader<input class="cross" type="range" min="0" max="100" value="' + (partner() === 'robin' ? '80' : '20') + '" data-act="cross" data-lockrender="1" aria-label="Partner crossfader"></label><button type="button" class="rec-dot" data-act="log-set" aria-label="Log set">REC</button><button type="button" class="cue" data-act="add-set" data-ex="' + id + '" aria-label="Add set">+</button><button type="button" class="cue" data-act="mini-open" aria-label="Mini">Mini</button><button type="button" class="cue" data-act="overlay" data-overlay="settings" aria-label="Settings">Settings</button></div><div class="crate">' + spines + '</div><div class="sleeve"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="New sleeve" aria-label="Exercise to add"><button type="button" data-act="add-ask">Add</button></div>' + datalist() + '<nav class="crate-nav"><button type="button" data-act="tab" data-tab="routines">Routines</button><button type="button" data-act="tab" data-tab="history">History</button><button type="button" data-act="tab" data-tab="analytics">Analytics</button></nav></div>';
   }
   function hexShell(inner) {
-    if (ui.tab !== 'log') return '<div class="hive"><button type="button" class="hex" data-act="tab" data-tab="log">Log</button><div class="iron-panel">' + inner + '</div></div>';
+    if (ui.tab !== 'log') return '<div class="hive">' + backLog() + partnerBar() + '<div class="iron-panel">' + inner + '</div></div>';
     const f = curFocus(), cur = f.cur, set = f.set;
     if (!cur || !set) return '<div class="hive"><p>Add an exercise.</p><div class="sleeve"><input id="add-name" data-lockrender="1" list="ex-db" placeholder="Exercise" aria-label="Exercise to add"><button type="button" data-act="add-ask">Add</button></div></div>';
     const id = esc(cur.id), sid = esc(set.id);
@@ -2881,7 +2908,7 @@ const exerciseDatabase = [
     const cells = viewCache.exercises.map(function (e) {
       return '<button type="button" class="hex tiny' + (e.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(e.id) + '">' + esc(e.name.split(' ')[0]) + '</button>';
     }).join('');
-    return '<div class="hive"><div class="flower"><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><label class="hex val">LB' + typed(cur, set, 'weight') + '</label><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="-1" aria-label="Fewer reps">−</button><button type="button" class="hex main" data-act="log-set">LOG<small>last ' + esc(set.prev) + '</small></button><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="1" aria-label="More reps">+</button><button type="button" class="hex teal" data-act="cycle-ex" data-dir="-1">' + esc(cur.name.split(' ')[0]) + '</button><label class="hex val">REPS' + typed(cur, set, 'reps') + '</label><button type="button" class="hex teal" data-act="finish">End</button></div><p class="hex-cap">Set ' + (set.index + 1) + ' / ' + cur.sets.length + ' · ' + esc(cur.name) + '</p><div class="flower small">' + cells + hex('teal', 'add-set', 'data-ex="' + id + '"', '+') + hex('teal', 'manage', 'data-ex="' + id + '"', 'Sets') + hex('', 'mini-open', '', 'Mini') + '</div>' + dayRocker('hex-day') + '<nav class="flower tiny-nav"><button type="button" class="hex" data-act="tab" data-tab="routines">Plans</button><button type="button" class="hex" data-act="tab" data-tab="history">Past</button><button type="button" class="hex" data-act="overlay" data-overlay="settings">Gear</button></nav></div>';
+    return '<div class="hive">' + partnerBar() + '<div class="flower"><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><label class="hex val">LB' + typed(cur, set, 'weight') + '</label><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="-1" aria-label="Fewer reps">−</button><button type="button" class="hex main" data-act="log-set">LOG<small>last ' + esc(set.prev) + '</small></button><button type="button" class="hex" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="reps" data-dir="1" aria-label="More reps">+</button><button type="button" class="hex teal" data-act="cycle-ex" data-dir="-1">' + esc(cur.name.split(' ')[0]) + '</button><label class="hex val">REPS' + typed(cur, set, 'reps') + '</label><button type="button" class="hex teal" data-act="finish">End</button></div><p class="hex-cap">Set ' + (set.index + 1) + ' / ' + cur.sets.length + ' · ' + esc(cur.name) + '</p><div class="flower small">' + cells + hex('teal', 'add-set', 'data-ex="' + id + '"', '+') + hex('teal', 'manage', 'data-ex="' + id + '"', 'Sets') + hex('', 'mini-open', '', 'Mini') + '</div>' + dayRocker('hex-day') + '<nav class="flower tiny-nav"><button type="button" class="hex" data-act="tab" data-tab="routines">Routines</button><button type="button" class="hex" data-act="tab" data-tab="history">History</button><button type="button" class="hex" data-act="overlay" data-overlay="settings">Settings</button></nav></div>';
   }
   function routinesPanel() {
     const cards = Object.keys(state.routines).map(function (id) {
@@ -2936,7 +2963,7 @@ const exerciseDatabase = [
     const set = cur && (cur.sets.find(function (s) { return s.current; }) || cur.sets[0]);
     const shape = skin().mini || 'card';
     const resting = v.rest[v.partner] > 0;
-    const body = '<div class="mini-body" data-shape="' + esc(shape) + '"><div class="spread" data-drag="1"><strong>' + esc(cur ? cur.name : 'SIC') + '</strong><button type="button" data-act="mini-min" aria-label="Minimize">_</button></div><div>Set ' + (set ? set.index + 1 : '—') + ' · ' + esc(v.name) + '</div>' + (set ? '<div class="row">' + numInput(cur.id, set.id, 'weight', set.weight, set.hintW) + stepper(cur.id, set.id, 'weight', '−', '+') + '</div><div class="row">' + numInput(cur.id, set.id, 'reps', set.reps, set.hintR) + stepper(cur.id, set.id, 'reps', '−', '+') + '</div>' : '') + (resting ? '<div class="timer-readout" data-rest="' + v.partner + '">' + fmtClock(v.rest[v.partner]) + '</div><div class="row"><button type="button" data-act="rest-nudge" data-sec="-15">−15</button><button type="button" data-act="rest-nudge" data-sec="15">+15</button><button type="button" data-act="rest-stop">Skip</button></div>' : '') + '<div class="mini-actions"><button type="button" data-act="manage" data-ex="' + esc(cur ? cur.id : '') + '">± Sets</button>' + logBtn() + '</div><div class="row"><button type="button" data-act="mini-close">Full</button>' + finishBtn() + '</div></div>';
+    const body = '<div class="mini-body" data-shape="' + esc(shape) + '">' + partnerBar() + '<div class="spread" data-drag="1"><strong>' + esc(cur ? cur.name : 'Strength in Character') + '</strong><button type="button" data-act="mini-min" aria-label="Minimize">_</button></div><div>Set ' + (set ? set.index + 1 : '—') + ' · ' + esc(v.name) + '</div>' + (set ? '<div class="row">' + numInput(cur.id, set.id, 'weight', set.weight, set.hintW) + stepper(cur.id, set.id, 'weight', '−', '+') + '</div><div class="row">' + numInput(cur.id, set.id, 'reps', set.reps, set.hintR) + stepper(cur.id, set.id, 'reps', '−', '+') + '</div>' : '') + (resting ? '<div class="timer-readout" data-rest="' + v.partner + '">' + fmtClock(v.rest[v.partner]) + '</div><div class="row"><button type="button" data-act="rest-nudge" data-sec="-15">−15</button><button type="button" data-act="rest-nudge" data-sec="15">+15</button><button type="button" data-act="rest-stop">Skip</button></div>' : '') + '<div class="mini-actions"><button type="button" data-act="manage" data-ex="' + esc(cur ? cur.id : '') + '">± Sets</button>' + logBtn() + '</div><div class="row"><button type="button" data-act="mini-close">Full</button>' + finishBtn() + '</div></div>';
     return body;
   }
   function popHTML() {
@@ -2962,7 +2989,7 @@ const exerciseDatabase = [
   function settingsHTML() {
     const q = (ui.query || '').toLowerCase().trim();
     const cats = settingsCatalog();
-    const head = '<div class="spread"><h2>Settings</h2><button type="button" class="ghost" data-act="close-overlay">Close</button></div><input class="settings-search" data-lockrender="1" data-act="settings-search" placeholder="Search settings" value="' + esc(ui.query || '') + '" aria-label="Search settings">';
+    const head = '<div class="spread"><h2>Settings</h2>' + backLog() + '</div><input class="settings-search" data-lockrender="1" data-act="settings-search" placeholder="Search settings" value="' + esc(ui.query || '') + '" aria-label="Search settings">';
     if (!ui.settingsCat || q) {
       const matches = cats.filter(function (c) {
         if (!q) return true;
@@ -3051,7 +3078,7 @@ const exerciseDatabase = [
     if (!ui.overlay) return '';
     if (ui.overlay === 'settings') return '<div class="overlay"><div class="sheet">' + settingsHTML() + '</div></div>';
     if (ui.overlay === 'bug') return '<div class="overlay"><div class="sheet"><div class="spread"><h2>Bug report</h2><button type="button" data-act="close-overlay">Close</button></div>' + bugBlock() + '</div></div>';
-    if (ui.overlay === 'whats') return '<div class="overlay"><div class="sheet"><h2>What\'s new in SIC</h2><p>SIC is Strength in Character. Star Strength Classic is the original spreadsheet skin.</p><ul><li>LOG SET records the current set and starts rest. FINISH WORKOUT is the only control that ends the session.</li><li>Eight layouts share one log: Classic, Pixel Forecast, Iron Dial, Chalk Board, Scoreboard, Transit Line, Vinyl Deck, and Hex Hive.</li><li>Mini mode stays inside the page on the web. A desktop browser may offer Document Picture-in-Picture. Android can request a system overlay. There is no iOS overlay and no cross-app mini on mobile web.</li><li>The workout sneak-peek idea is credited to Ryan (ryno).</li></ul><p class="warn">Bug reports stay on this device until the owner deploys the receiver in gas/SETUP.md and a real acknowledgement comes back.</p><button type="button" class="primary" data-act="whats-close">Continue</button></div></div>';
+    if (ui.overlay === 'whats') return '<div class="overlay"><div class="sheet"><h2>What\'s new</h2><p>Strength in Character. Star Strength Classic is the original spreadsheet skin.</p><ul><li>LOG SET records the current set and starts rest. FINISH WORKOUT is the only control that ends the session.</li><li>Eight layouts share one log: Classic, Pixel Forecast, Iron Dial, Chalk Board, Scoreboard, Transit Line, Vinyl Deck, and Hex Hive.</li><li>Mini mode stays inside the page on the web. A desktop browser may offer Document Picture-in-Picture. Android can request a system overlay. There is no iOS overlay and no cross-app mini on mobile web.</li><li>The workout sneak-peek idea is credited to Ryan (ryno).</li></ul><p class="warn">Bug reports stay on this device until the owner deploys the receiver in gas/SETUP.md and a real acknowledgement comes back.</p><button type="button" class="primary" data-act="whats-close">Continue</button></div></div>';
     if (ui.overlay === 'rest') return '<div class="overlay"><div class="sheet"><div class="spread"><h2>Rest timers</h2><button type="button" data-act="close-overlay">Close</button></div>' + ['batman', 'robin'].filter(function (p) { return p === 'batman' || state.duoMode; }).map(function (p) {
       return '<div class="card"><strong>' + esc(state.partnerNames[p]) + '</strong><div class="timer-readout" data-rest="' + p + '">' + fmtClock(SIC.restRemaining(state, p, Date.now())) + '</div><div class="row">' + [30, 60, 90, 120, 180, 240].map(function (s) { return '<button type="button" data-act="rest-dur" data-partner="' + p + '" data-sec="' + s + '">' + s + 's</button>'; }).join('') + '</div><button type="button" data-act="rest-start" data-partner="' + p + '">Start</button> <button type="button" data-act="rest-stop" data-partner="' + p + '">Stop</button></div>';
     }).join('') + '</div></div>';
@@ -3429,7 +3456,8 @@ const exerciseDatabase = [
     }
     if (act === 'skin') { state.skinId = t.dataset.skin; markDirty(); render({ force: true }); return; }
     if (act === 'theme') { state.activeThemeId = t.dataset.theme; if (state.skinId !== 'starclassic') state.skinId = 'starclassic'; markDirty(); render({ force: true }); return; }
-    if (act === 'partner') { if (t.dataset.partner === 'robin' && !state.duoMode) { state.duoMode = true; } state.activePartner = t.dataset.partner; markDirty(); render({ force: true }); return; }
+    if (act === 'partner') { if (t.dataset.partner === 'robin' && !state.duoMode) { state.duoMode = true; } state.activePartner = t.dataset.partner; ui.flipped = true; markDirty(); render({ force: true }); setTimeout(function () { ui.flipped = false; }, 450); return; }
+    if (act === 'back-log') { ui.tab = 'log'; ui.overlay = null; ui.pop = null; render({ force: true }); return; }
     if (act === 'duo') { state.duoMode = !state.duoMode; if (!state.duoMode) { state.activePartner = 'batman'; state.rest.robin.endAt = 0; } markDirty(); render({ force: true }); return; }
     if (act === 'master-sound') { state.soundEnabled = !(state.soundEnabled && !state.settings.masterMute); state.settings.masterMute = !state.soundEnabled; markDirty(); render({ force: true }); return; }
     if (act === 'basic') { state.settings.basicMode = !state.settings.basicMode; render({ force: true }); return; }

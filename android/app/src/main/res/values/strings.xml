@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SIC (debug build)</string>
-    <string name="overlay_channel">SIC mini</string>
-    <string name="overlay_notice">SIC mini is on screen. This is a debug-signed build.</string>
-    <string name="pump_channel">SIC workout reminders</string>
+    <string name="app_name">Strength in Character</string>
+    <string name="overlay_channel">Strength in Character mini</string>
+    <string name="overlay_notice">Strength in Character mini is on screen. This is a debug-signed build.</string>
+    <string name="pump_channel">Strength in Character reminders</string>
 </resources>
