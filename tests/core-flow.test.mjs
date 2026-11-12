@@ -162,3 +162,50 @@ test('gamepad and Android key codes drive every skin', async () => {
   }
   assert.deepEqual(problems, []);
 });
+
+test('vinyl faders move from the keyboard, the gamepad, and a typed value', async () => {
+  const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] });
+  const problems = [];
+  try {
+    for (const vp of [{ width: 390, height: 844 }, { width: 360, height: 740 }]) {
+      const page = await browser.newPage({ viewport: vp });
+      await openSkin(page, 'vinyldeck');
+      const fader = page.locator('.vd-range[data-fader="weight"]');
+      const exact = page.locator('input[data-field="weight"]');
+      const before = await exact.inputValue();
+      await fader.focus();
+      await page.keyboard.press('ArrowUp');
+      await page.waitForTimeout(50);
+      const keyed = await exact.inputValue();
+      if (keyed === before || keyed === '') problems.push(vp.width + ' keyboard fader did not change weight ' + before + ' -> ' + keyed);
+      await exact.fill('135');
+      await exact.blur();
+      const typed = await page.evaluate(() => {
+        const state = SICApp.state();
+        const cur = SIC.findCurrent(state);
+        return { field: document.querySelector('input[data-field="weight"]').value, stored: cur && cur.set.weight };
+      });
+      if (typed.field !== '135' || String(typed.stored) !== '135') problems.push(vp.width + ' typed weight ' + JSON.stringify(typed));
+      await page.evaluate(() => {
+        let down = -1;
+        navigator.getGamepads = () => {
+          const buttons = Array.from({ length: 16 }, (_, i) => ({ pressed: i === down, value: i === down ? 1 : 0 }));
+          return [{ id: 'Xbox 360 Controller (XInput STANDARD GAMEPAD)', buttons, axes: [0, 0, 0, 0], mapping: 'standard', connected: true, index: 0, timestamp: Date.now() }];
+        };
+        window.__pad = (i) => { down = i; };
+        window.dispatchEvent(new Event('gamepadconnected'));
+      });
+      await page.waitForTimeout(80);
+      await page.evaluate(() => window.__pad(7));
+      await page.waitForTimeout(120);
+      await page.evaluate(() => window.__pad(-1));
+      await page.waitForTimeout(80);
+      const afterPad = await exact.inputValue();
+      if (afterPad === '135') problems.push(vp.width + ' gamepad did not move the pounds fader');
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+  assert.deepEqual(problems, []);
+});

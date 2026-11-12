@@ -740,30 +740,59 @@
     const off = state.settings.restEnabled === false;
     const resting = viewCache.rest[viewCache.partner] > 0 && !off;
     const status = off ? 'Rest off' : (resting ? 'Resting' : 'Rest ready');
-    const spin = !!(cur && set && !resting && !reducedMotion());
-    const idx = Math.max(0, viewCache.exercises.findIndex(function (e) { return e.current; }));
-    const span = Math.max(1, viewCache.exercises.length - 1);
-    const arm = Math.round(-12 + (idx / span) * 28);
-    const reach = Math.round(54 + (idx / span) * 24);
     const labels = transitLabels();
+    const idx = Math.max(0, viewCache.exercises.findIndex(function (e) { return e.current; }));
+    const next = viewCache.exercises.length ? viewCache.exercises[(idx + 1) % viewCache.exercises.length] : null;
     const tracks = viewCache.exercises.map(function (ex, i) {
       return '<li><button type="button" class="vd-track' + (ex.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(ex.id) + '" aria-label="' + esc(ex.name) + '">' + esc(labels[i]) + '</button></li>';
     }).join('');
-    const decks = ['batman', 'robin'].filter(function (p) { return p === 'batman' || state.duoMode; }).map(function (p) {
-      const on = partner() === p;
-      const deck = p === 'batman' ? 'Deck A' : 'Deck B';
-      return '<button type="button" class="who-btn vd-deck ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" data-pad="1" aria-current="' + (on ? 'true' : 'false') + '"><b>' + deck + '</b><span>' + esc(state.partnerNames[p] || p) + '</span></button>';
-    }).join('');
-    const hero = cur && set
-      ? '<div class="vd-hero"><div class="vd-stage"><svg class="vd-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47" fill="none" stroke="#F59E0B" stroke-width="2.5" opacity="0.85"/><circle data-rest-arc data-erase cx="50" cy="50" r="47" fill="none" stroke="#FF6B8C" stroke-width="4" transform="rotate(-90 50 50)"></circle></svg><div class="vd-platter' + (spin ? ' vd-spin' : '') + '"></div><div class="vd-arm" style="transform:rotate(' + arm + 'deg);width:' + reach + 'px" aria-hidden="true"></div></div><ol class="vd-tracks">' + tracks + '</ol></div><section class="vd-readout"><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">' + (set.index + 1) + '/' + cur.sets.length + '</p><div class="vd-fields"><div class="vd-prev"><span>PREV</span><b>' + esc(set.prev) + '</b></div><label>Lbs' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label></div><button type="button" class="log-set vd-cue" data-act="log-set" data-pad="1" data-focus="1">LOG SET</button></section><section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '" data-rest-enabled="' + (off ? 'false' : 'true') + '"><div class="vd-vu" aria-hidden="true"><i data-rest-bar></i></div><p class="vd-clock"><span class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</span></p><div class="rest-actions"><p class="rest-status">' + status + '</p><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1" aria-label="' + (off ? 'Turn rest on' : 'Turn rest off') + '">' + (off ? 'Rest on' : 'Rest off') + '</button></div></section>'
+    function platter(which) {
+      const duo = !!state.duoMode;
+      const active = partner() === which;
+      const spin = active && cur && set && !resting && !reducedMotion();
+      const name = esc(state.partnerNames[which] || (which === 'batman' ? 'Batman' : 'Robin'));
+      if (which === 'robin' && !duo) {
+        const label = next ? labels[viewCache.exercises.indexOf(next)] : 'Next';
+        return '<button type="button" class="vd-deck off" data-act="focus-ex" data-ex="' + (next ? esc(next.id) : '') + '" aria-label="' + (next ? esc(next.name) : 'Next exercise') + '"><span class="vd-disc"></span><b>Next</b><em>' + esc(label) + '</em></button>';
+      }
+      const deck = which === 'batman' ? 'Deck A' : 'Deck B';
+      return '<button type="button" class="vd-deck who-btn ' + which + (active ? ' on' : ' off') + '" data-act="partner" data-partner="' + which + '" data-pad="1" aria-current="' + (active ? 'true' : 'false') + '"><span class="vd-disc' + (spin ? ' vd-spin' : '') + '"></span><b>' + deck + '</b><em>' + name + '</em></button>';
+    }
+    function scale(field) {
+      const raw = set ? String(set[field] || '') : '';
+      const bits = String(set && set.prev || '').split('×');
+      const prevNum = parseFloat(field === 'weight' ? bits[0] : bits[1]);
+      const spread = field === 'weight' ? 20 : 2;
+      const mid = Number.isFinite(prevNum) ? prevNum : (field === 'weight' ? 45 : 8);
+      const ticks = [mid - spread, mid, mid + spread].map(function (n) { return Math.max(0, Math.round(n * 10) / 10); });
+      let min = Math.max(0, ticks[0] - spread);
+      let max = ticks[2] + spread;
+      const curN = parseFloat(raw);
+      if (Number.isFinite(curN)) {
+        if (curN < min) min = curN;
+        if (curN > max) max = curN;
+      }
+      const step = field === 'weight' ? (Number(state.settings.weightStep) || 2.5) : 1;
+      const shown = raw === '' ? mid : curN;
+      return { raw: raw, ticks: ticks, min: min, max: max, step: step, shown: shown };
+    }
+    function chan(field, title) {
+      const sc = scale(field);
+      const marks = sc.ticks.slice().reverse().map(function (n) { return '<b>' + n + '</b>'; }).join('');
+      const aria = field === 'weight' ? 'Pounds fader' : 'Reps fader';
+      return '<div class="vd-chan"><div class="vd-chan-top"><i class="vd-ch' + (sc.raw !== '' ? ' on' : '') + '" data-ch="' + field + '"></i><span>' + title + '</span></div><div class="vd-fader"><div class="vd-slot"><input type="range" class="vd-range" data-act="fader" data-lockrender="1" data-fader="' + field + '" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" min="' + sc.min + '" max="' + sc.max + '" step="' + sc.step + '" value="' + sc.shown + '" aria-label="' + aria + '"></div><ol class="vd-ticks">' + marks + '</ol></div>' + numInput(cur.id, set.id, field, sc.raw, '') + '</div>';
+    }
+    const restSec = state.settings.restSeconds != null ? state.settings.restSeconds : ((state.rest[partner()] && state.rest[partner()].duration) || 90);
+    const tempoOn = !!state.settings.tempo.running;
+    const mix = cur && set
+      ? '<div class="vd-top"><h2 class="ex-name vd-kicker">' + esc(cur.name) + '</h2><p class="set-progress">' + (set.index + 1) + '/' + cur.sets.length + '</p><p class="vd-prev">PREV <b>' + esc(set.prev) + '</b></p></div><div class="vd-platters">' + platter('batman') + platter('robin') + '</div><div class="vd-mix">' + chan('weight', 'LBS') + '<div class="vd-center"><div class="vd-knobs"><button type="button" class="vd-knob' + (tempoOn ? ' on' : '') + '" data-act="tempo-toggle" data-pad="1" aria-label="Tempo knob">' + (tempoOn ? 'On' : 'Tmp') + '</button><span class="vd-knob vd-cap" aria-hidden="true"></span></div><div class="vd-shorts"><label>Rest<span class="vd-slot vd-slot-short"><input type="range" class="vd-short" data-act="rest-seconds" data-lockrender="1" min="0" max="300" step="15" value="' + esc(restSec) + '" aria-label="Rest seconds"></span></label><label>Step<span class="vd-slot vd-slot-short"><input type="range" class="vd-short" data-act="step" data-lockrender="1" min="0.5" max="10" step="0.5" value="' + esc(state.settings.weightStep) + '" aria-label="Weight step"></span></label></div></div>' + chan('reps', 'REPS') + '</div><button type="button" class="log-set vd-cue" data-act="log-set" data-pad="1" data-focus="1">LOG SET</button><section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '" data-rest-enabled="' + (off ? 'false' : 'true') + '"><p class="vd-clock"><span class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</span></p><div class="rest-actions"><p class="rest-status">' + status + '</p><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1" aria-label="' + (off ? 'Turn rest on' : 'Turn rest off') + '">' + (off ? 'Rest on' : 'Rest off') + '</button></div></section><section class="zone zone-tempo" data-tempo-live="' + (tempoOn ? 'on' : 'off') + '"><div class="vd-bpm"><b>60</b><span>BPM</span><i class="vd-beat" aria-hidden="true"></i><em data-metro>' + esc(runtime.phase) + '</em></div><div class="vd-pads"><span data-phase="LOWER">ECC</span><span data-phase="BOTTOM">PAUSE</span><span data-phase="LIFT">CON</span><span data-phase="TOP">PAUSE</span></div><button type="button" data-act="tempo-toggle" data-pad="1">' + (tempoOn ? 'Tempo off' : 'Tempo on') + '</button></section>'
       : '<p>No track on this day.</p>';
-    const main = ui.tab === 'log' ? hero : '<div class="zone-panel">' + backLog() + panel() + '</div>';
-    const tempo = '<section class="zone zone-tempo" data-tempo-live="' + (state.settings.tempo.running ? 'on' : 'off') + '"><div class="vd-bpm"><b>60</b><span>BPM</span><i class="vd-beat" aria-hidden="true"></i><em data-metro>' + esc(runtime.phase) + '</em></div><div class="vd-pads"><span data-phase="LOWER">ECC</span><span data-phase="BOTTOM">PAUSE</span><span data-phase="LIFT">CON</span><span data-phase="TOP">PAUSE</span></div><button type="button" data-act="tempo-toggle" data-pad="1">' + (state.settings.tempo.running ? 'Tempo off' : 'Tempo on') + '</button></section>';
+    const main = ui.tab === 'log'
+      ? '<div class="vd-console">' + mix + '</div><ol class="vd-tracks">' + tracks + '</ol>'
+      : '<div class="zone-panel">' + backLog() + panel() + '</div>';
     return '<div class="zones vd-layout">' + padGlyphs() + welcomeHTML() +
       '<header class="zone zone-head"><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></header>' +
-      '<div class="zone zone-partners" role="group" aria-label="Active partner">' + decks + '</div>' +
       '<section class="zone zone-now">' + main + '</section>' +
-      tempo +
       '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button><button type="button" data-act="tab" data-tab="history" data-pad="1">History</button><button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button><button type="button" data-act="mini-open" data-pad="1">Mini</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button><button type="button" data-act="finish" data-pad="1">Finish</button></nav></div>';
   }
   function sharedShell() {
@@ -849,8 +878,10 @@
     }
     if (shape === 'cassette') {
       const shown = set && set.weight ? esc(set.weight) : '—';
-      const spin = !reducedMotion() && !(v.rest[v.partner] > 0);
-      return '<div class="mini-body"><div class="vd-mini-wrap" data-drag="1">' + shut + '<div class="vd-disc' + (spin ? ' vd-spin' : '') + '"></div><div class="vd-label"><strong>' + shown + '</strong>' + rest + log + '</div></div>' + more + fields + '</div>';
+      const reel = function (dir, field) {
+        return '<button type="button" class="vd-reel" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="' + dir + '" aria-label="' + (dir < 0 ? 'Decrease ' : 'Increase ') + (field === 'weight' ? 'weight' : 'reps') + '">' + (dir < 0 ? '−' : '+') + '</button>';
+      };
+      return '<div class="mini-body"><div class="vd-remote" data-drag="1">' + shut + '<div class="vd-reels">' + reel(-1, 'weight') + reel(1, 'weight') + '</div><div class="vd-tags"><span>LBS</span><span>REPS</span></div><strong>' + shown + '</strong>' + rest + log + '</div>' + more + fields + '</div>';
     }
     if (shape === 'flower') return '<div class="mini-body">' + shut + '<div class="mini-hexes"><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><div class="mini-core"><b>' + name + '</b><small>' + prev + '</small></div><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button>' + log + '</div>' + who + rest + more + fields + '</div>';
     return '<div class="mini-body"><div class="mini-card">' + chrome + '<strong>' + name + '</strong><p>prev ' + prev + '</p>' + log + more + fields + '</div></div>';
@@ -1556,6 +1587,18 @@
     if (!t.dataset) return;
     if (t.dataset.act === 'field') {
       SIC.updateSetField(state, t.dataset.ex, t.dataset.set, t.dataset.field, t.value, partner());
+      const range = document.querySelector('.vd-range[data-fader="' + t.dataset.field + '"]');
+      if (range && t.value !== '') range.value = t.value;
+      const led = document.querySelector('.vd-ch[data-ch="' + t.dataset.field + '"]');
+      if (led) led.classList.toggle('on', String(t.value) !== '');
+      markDirty(); return;
+    }
+    if (t.dataset.act === 'fader') {
+      SIC.updateSetField(state, t.dataset.ex, t.dataset.set, t.dataset.fader, t.value, partner());
+      const num = document.querySelector('input[data-field="' + t.dataset.fader + '"]');
+      if (num) num.value = t.value;
+      const led = document.querySelector('.vd-ch[data-ch="' + t.dataset.fader + '"]');
+      if (led) led.classList.add('on');
       markDirty(); return;
     }
     if (t.dataset.act === 'day' || (t.dataset.act == null && t.id === undefined && t.tagName === 'SELECT' && t.parentElement && t.parentElement.classList.contains('routine-bar'))) return;
