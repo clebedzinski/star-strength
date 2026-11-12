@@ -79,7 +79,7 @@ test('welcome, about, bug share, xml, autosave, and finish', async () => {
     await page.locator('[data-act="settings-back"]').click();
     await page.locator('.set-card[data-cat="about"]').click();
     const about = await page.locator('.sheet').innerText();
-    if (!/1\.1\.0/.test(about)) problems.push('about version');
+    if (!/1\.2\.0/.test(about)) problems.push('about version');
     if (!/Ryan "ryno"/.test(about)) problems.push('about credit');
     if (!/stays on this device/i.test(about)) problems.push('about privacy');
     await page.getByRole('tab', { name: 'Bugs' }).click();

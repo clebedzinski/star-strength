@@ -58,7 +58,7 @@ test('bug reports stay on the device and never use the network', async () => {
     await page.waitForTimeout(40);
     const shared = await page.evaluate(() => window.__shared && window.__shared.text);
     if (!shared || shared.indexOf('The rest row wrapped.') < 0 || shared.indexOf('Open Vinyl at 360.') < 0) problems.push('share ' + shared);
-    if (shared && shared.indexOf('1.1.0') < 0) problems.push('share missing version');
+    if (shared && shared.indexOf('1.2.0') < 0) problems.push('share missing version');
     await page.getByRole('button', { name: 'Copy', exact: true }).click();
     await page.waitForTimeout(40);
     const copied = await page.evaluate(() => window.__copied);

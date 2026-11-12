@@ -293,7 +293,7 @@ test('bug report stamps use the phone local wall clock', () => {
 test('bug reports are local records with context and no server ack', () => {
   const built = SIC.buildBugPayload({
     happened: 'Rest timer keeps going', steps: 'Log a set', severity: 'High',
-    version: '1.1.0', platform: 'web', skin: 'starclassic', screen: '390x844',
+    version: '1.2.0', platform: 'web', skin: 'starclassic', screen: '390x844',
     console: ['Saved'], actions: ['log-set'], rand: () => 0.1
   });
   assert.equal(built.ok, true);

@@ -1,5 +1,7 @@
 # Strength in Character
 
+Version 1.2.0 (Android versionCode 15).
+
 A workout logger. Star Strength Classic keeps the original spreadsheet. Seven other looks log the same sets: Pixel Forecast, Iron Dial, Chalk Board, Scoreboard, Transit Line, Vinyl Deck, and Hex Hive. None of them is marked as a beta look. Workout data stays on the device. The app does not call Google Fonts or any other network service. The typefaces are woff2 files in `assets/fonts`.
 
 ## What you can do
