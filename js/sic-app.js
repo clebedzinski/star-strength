@@ -252,10 +252,11 @@
       irondial: { bg: 'irondial/background.webp', ring: 'irondial/dial-ring.webp', bolt: 'irondial/bolt.webp', mini: 'irondial/mini-puck.webp' },
       chalkboard: { bg: 'chalkboard/background.webp', note: 'chalkboard/sticky-note.webp', dust: 'chalkboard/chalk-smudge.webp', mini: 'chalkboard/mini-slate.webp' },
       scoreboard: { bg: 'scoreboard/background.webp', bezel: 'scoreboard/cabinet-bezel.webp', mini: 'scoreboard/mini-led-strip.webp' },
-      transitline: { bg: 'transitline/background.webp', mini: 'transitline/mini-pill.webp' }
+      transitline: { bg: 'transitline/background.webp', mini: 'transitline/mini-pill.webp' },
+      vinyldeck: { bg: 'vinyldeck/background.webp', platter: 'vinyldeck/platter.webp', knob: 'vinyldeck/fader-knob.webp', mini: 'vinyldeck/mini-record.webp' }
     };
     const pack = packs[state.skinId] || {};
-    ['bg', 'frame', 'sky', 'ring', 'bolt', 'mini', 'note', 'dust', 'bezel'].forEach(function (key) {
+    ['bg', 'frame', 'sky', 'ring', 'bolt', 'mini', 'note', 'dust', 'bezel', 'platter', 'knob'].forEach(function (key) {
       document.documentElement.style.setProperty('--art-' + key, pack[key] ? 'url("' + artUrl(pack[key]) + '")' : 'none');
     });
   }
@@ -733,11 +734,44 @@
       signals +
       '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button><button type="button" data-act="tab" data-tab="history" data-pad="1">History</button><button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button><button type="button" data-act="mini-open" data-pad="1">Mini</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button><button type="button" data-act="finish" data-pad="1">Finish</button></nav></div>';
   }
+  function vinylCompose() {
+    const f = curFocus();
+    const cur = f.cur, set = f.set;
+    const off = state.settings.restEnabled === false;
+    const resting = viewCache.rest[viewCache.partner] > 0 && !off;
+    const status = off ? 'Rest off' : (resting ? 'Resting' : 'Rest ready');
+    const spin = !!(cur && set && !resting && !reducedMotion());
+    const idx = Math.max(0, viewCache.exercises.findIndex(function (e) { return e.current; }));
+    const span = Math.max(1, viewCache.exercises.length - 1);
+    const arm = Math.round(-12 + (idx / span) * 28);
+    const reach = Math.round(54 + (idx / span) * 24);
+    const labels = transitLabels();
+    const tracks = viewCache.exercises.map(function (ex, i) {
+      return '<li><button type="button" class="vd-track' + (ex.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(ex.id) + '" aria-label="' + esc(ex.name) + '">' + esc(labels[i]) + '</button></li>';
+    }).join('');
+    const decks = ['batman', 'robin'].filter(function (p) { return p === 'batman' || state.duoMode; }).map(function (p) {
+      const on = partner() === p;
+      const deck = p === 'batman' ? 'Deck A' : 'Deck B';
+      return '<button type="button" class="who-btn vd-deck ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" data-pad="1" aria-current="' + (on ? 'true' : 'false') + '"><b>' + deck + '</b><span>' + esc(state.partnerNames[p] || p) + '</span></button>';
+    }).join('');
+    const hero = cur && set
+      ? '<div class="vd-hero"><div class="vd-stage"><svg class="vd-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47" fill="none" stroke="#F59E0B" stroke-width="2.5" opacity="0.85"/><circle data-rest-arc data-erase cx="50" cy="50" r="47" fill="none" stroke="#FF6B8C" stroke-width="4" transform="rotate(-90 50 50)"></circle></svg><div class="vd-platter' + (spin ? ' vd-spin' : '') + '"></div><div class="vd-arm" style="transform:rotate(' + arm + 'deg);width:' + reach + 'px" aria-hidden="true"></div></div><ol class="vd-tracks">' + tracks + '</ol></div><section class="vd-readout"><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">' + (set.index + 1) + '/' + cur.sets.length + '</p><div class="vd-fields"><div class="vd-prev"><span>PREV</span><b>' + esc(set.prev) + '</b></div><label>Lbs' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label></div><button type="button" class="log-set vd-cue" data-act="log-set" data-pad="1" data-focus="1">LOG SET</button></section><section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '" data-rest-enabled="' + (off ? 'false' : 'true') + '"><div class="vd-vu" aria-hidden="true"><i data-rest-bar></i></div><p class="vd-clock"><span class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</span></p><div class="rest-actions"><p class="rest-status">' + status + '</p><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1" aria-label="' + (off ? 'Turn rest on' : 'Turn rest off') + '">' + (off ? 'Rest on' : 'Rest off') + '</button></div></section>'
+      : '<p>No track on this day.</p>';
+    const main = ui.tab === 'log' ? hero : '<div class="zone-panel">' + backLog() + panel() + '</div>';
+    const tempo = '<section class="zone zone-tempo" data-tempo-live="' + (state.settings.tempo.running ? 'on' : 'off') + '"><div class="vd-bpm"><b>60</b><span>BPM</span><i class="vd-beat" aria-hidden="true"></i><em data-metro>' + esc(runtime.phase) + '</em></div><div class="vd-pads"><span data-phase="LOWER">ECC</span><span data-phase="BOTTOM">PAUSE</span><span data-phase="LIFT">CON</span><span data-phase="TOP">PAUSE</span></div><button type="button" data-act="tempo-toggle" data-pad="1">' + (state.settings.tempo.running ? 'Tempo off' : 'Tempo on') + '</button></section>';
+    return '<div class="zones vd-layout">' + padGlyphs() + welcomeHTML() +
+      '<header class="zone zone-head"><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></header>' +
+      '<div class="zone zone-partners" role="group" aria-label="Active partner">' + decks + '</div>' +
+      '<section class="zone zone-now">' + main + '</section>' +
+      tempo +
+      '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button><button type="button" data-act="tab" data-tab="history" data-pad="1">History</button><button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button><button type="button" data-act="mini-open" data-pad="1">Mini</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button><button type="button" data-act="finish" data-pad="1">Finish</button></nav></div>';
+  }
   function sharedShell() {
     viewCache = view();
     if (state.skinId === 'chalkboard') return chalkCompose();
     if (state.skinId === 'scoreboard') return scoreCompose();
     if (state.skinId === 'transitline') return transitCompose();
+    if (state.skinId === 'vinyldeck') return vinylCompose();
     const f = curFocus();
     const cur = f.cur, set = f.set;
     const id = cur ? esc(cur.id) : '';
@@ -813,7 +847,11 @@
       const shown = set && set.weight ? esc(set.weight) : '—';
       return '<div class="mini-body"><div class="mini-pill" data-drag="1">' + shut + '<b class="mini-line ' + partner() + '"></b><strong>' + name + '</strong><em>' + shown + '</em>' + rest + log + '</div>' + more + fields + '</div>';
     }
-    if (shape === 'cassette') return '<div class="mini-body">' + shut + '<div class="mini-disc" data-drag="1"><span>' + name + '</span>' + log + '</div><p>' + prev + ' ' + rest + '</p>' + who + more + fields + '</div>';
+    if (shape === 'cassette') {
+      const shown = set && set.weight ? esc(set.weight) : '—';
+      const spin = !reducedMotion() && !(v.rest[v.partner] > 0);
+      return '<div class="mini-body"><div class="vd-mini-wrap" data-drag="1">' + shut + '<div class="vd-disc' + (spin ? ' vd-spin' : '') + '"></div><div class="vd-label"><strong>' + shown + '</strong>' + rest + log + '</div></div>' + more + fields + '</div>';
+    }
     if (shape === 'flower') return '<div class="mini-body">' + shut + '<div class="mini-hexes"><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><div class="mini-core"><b>' + name + '</b><small>' + prev + '</small></div><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button>' + log + '</div>' + who + rest + more + fields + '</div>';
     return '<div class="mini-body"><div class="mini-card">' + chrome + '<strong>' + name + '</strong><p>prev ' + prev + '</p>' + log + more + fields + '</div></div>';
   }
@@ -864,7 +902,7 @@
   function settingsBody(cat, sub) {
     if (cat === 'appearance' && sub === 'skin') {
       const skins = SIC.builtinSkins().concat(state.communitySkins || []).map(function (s) {
-        const finished = s.slug === 'starclassic' || s.slug === 'pixelforecast' || s.slug === 'irondial' || s.slug === 'chalkboard' || s.slug === 'scoreboard' || s.slug === 'transitline';
+        const finished = s.slug === 'starclassic' || s.slug === 'pixelforecast' || s.slug === 'irondial' || s.slug === 'chalkboard' || s.slug === 'scoreboard' || s.slug === 'transitline' || s.slug === 'vinyldeck';
         const look = finished ? '' : '<span class="muted">Beta look</span>';
         return '<button type="button" class="' + (state.skinId === s.slug ? 'on' : '') + '" data-act="skin" data-skin="' + esc(s.slug) + '"><strong>' + esc(s.name) + '</strong>' + look + '</button>';
       }).join('');
