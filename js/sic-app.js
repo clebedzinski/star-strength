@@ -647,7 +647,8 @@
     }).join('');
     const off = state.settings.restEnabled === false;
     const resting = viewCache.rest[viewCache.partner] > 0 && !off;
-    const strip = '<section class="zone zone-rest score-rest" data-resting="' + (resting ? 'true' : 'false') + '"><div class="rest-actions"><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15s</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15s</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1">' + (off ? 'Turn rest on' : 'Turn rest off') + '</button></div></section>';
+    const status = off ? 'Rest off' : (resting ? 'Resting' : 'Rest ready');
+    const strip = '<section class="zone zone-rest score-rest" data-resting="' + (resting ? 'true' : 'false') + '" data-rest-enabled="' + (off ? 'false' : 'true') + '"><p class="rest-status">' + status + '</p><div class="rest-actions"><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1" aria-label="' + (off ? 'Turn rest on' : 'Turn rest off') + '">' + (off ? 'Rest on' : 'Rest off') + '</button></div></section>';
     const prevs = cur ? cur.sets.map(function (s) {
       const shown = s.weight ? s.weight : '—';
       return '<button type="button" class="prev-led' + (s.current ? ' on' : '') + '" data-act="focus-set" data-ex="' + esc(cur.id) + '" data-set="' + esc(s.id) + '">' + esc(shown) + '</button>';
@@ -657,9 +658,9 @@
       : '<p>No exercise on this day.</p>';
     const main = ui.tab === 'log' ? board : '<div class="zone-panel">' + backLog() + panel() + '</div>';
     return '<div class="zones score-layout">' + padGlyphs() + welcomeHTML() +
-      '<header class="zone zone-head"><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></header>' +
+      '<div class="score-top"><header class="zone zone-head"><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></header>' +
+      '<div class="zone zone-partners" role="group" aria-label="Active partner">' + who + '</div></div>' +
       '<div class="sidelight left" aria-hidden="true"></div><div class="sidelight right" aria-hidden="true"></div>' +
-      '<div class="zone zone-partners" role="group" aria-label="Active partner">' + who + '</div>' +
       '<section class="zone zone-now">' + main + '</section>' +
       tempoBlock() +
       '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button><button type="button" data-act="tab" data-tab="history" data-pad="1">History</button><button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button><button type="button" data-act="mini-open" data-pad="1">Mini</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button><button type="button" data-act="finish" data-pad="1">Finish</button></nav></div>';

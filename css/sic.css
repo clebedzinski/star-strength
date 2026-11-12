@@ -1523,6 +1523,8 @@ body.skin-scoreboard .zones:has(.zone-rest[data-resting="true"]) .sidelight {
   animation: score-pulse 0.7s ease-in-out infinite;
 }
 @keyframes score-pulse { 50% { opacity: 0.28; } }
+body.skin-scoreboard .score-top { display: flex; flex-direction: column; gap: 6px; padding-bottom: 6px; }
+body.skin-scoreboard .zone-rest[data-resting="true"] { outline: none; }
 body.skin-scoreboard .zone-partners { display: grid; grid-template-columns: 1fr; gap: 6px; width: 100%; }
 body.skin-scoreboard .zone-partners:has(.who-btn + .who-btn) { grid-template-columns: 1fr 1fr; }
 body.skin-scoreboard .who-btn,
@@ -1656,8 +1658,36 @@ body.skin-scoreboard .session-strip {
 body.skin-scoreboard .segbar { display: block; height: 16px; background: #052e16; border: 1px solid #166534; }
 body.skin-scoreboard .segbar i { display: block; height: 100%; background: repeating-linear-gradient(90deg, #4ade80 0 10px, #052e16 10px 12px); }
 body.skin-scoreboard .zone-tempo { background: rgba(7, 2, 3, 0.82); border: 1px solid #7f1d1d; border-radius: 8px; padding: 8px; }
-body.skin-scoreboard .score-rest { background: transparent; border: 0; box-shadow: none; padding: 4px 0 0; }
-body.skin-scoreboard .score-rest .rest-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+body.skin-scoreboard .score-rest {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 4px 0 0;
+  margin: 0;
+}
+body.skin-scoreboard .score-rest .rest-status {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.1;
+  color: #ffb020;
+  letter-spacing: 0.04em;
+}
+body.skin-scoreboard .score-rest[data-rest-enabled="false"] .rest-status { color: #fca5a5; }
+body.skin-scoreboard .score-rest .rest-actions { display: flex; flex-wrap: nowrap; gap: 4px; flex: 1 1 auto; min-width: 0; }
+body.skin-scoreboard .score-rest .rest-actions button {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 40px;
+  height: 40px;
+  padding: 0 4px;
+  font-size: 13px;
+  white-space: nowrap;
+}
 body.skin-scoreboard .rest-takeover.rest-count { font-size: clamp(42px, 12vw, 68px); }
 body.skin-scoreboard .rest-actions button, body.skin-scoreboard .zone-tempo button, body.skin-scoreboard .zone-nav button {
   background: #1a0508;
