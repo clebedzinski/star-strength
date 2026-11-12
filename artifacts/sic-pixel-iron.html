@@ -1321,7 +1321,7 @@ body.skin-chalkboard .heart { color: #e11d48; }
 body.skin-chalkboard .zone-head p { margin: 0; color: #e11d48; font-size: 14px; letter-spacing: 0.02em; }
 body.skin-chalkboard .chalk-when { color: #e11d48; text-align: right; font-size: 16px; line-height: 1.15; min-width: 72px; }
 body.skin-chalkboard .chalk-when b, body.skin-chalkboard .chalk-when span { display: block; }
-body.skin-chalkboard .chalk-when span { font-size: 14px; }
+body.skin-chalkboard .chalk-when span { font-size: 16px; }
 body.skin-chalkboard .who-btn,
 body.skin-chalkboard .who-btn.batman,
 body.skin-chalkboard .who-btn.batman.on,
@@ -1350,7 +1350,7 @@ body.skin-chalkboard .chalk-grid th, body.skin-chalkboard .chalk-grid td {
   vertical-align: middle;
   background: rgba(255,255,255,.72);
 }
-body.skin-chalkboard .chalk-grid thead th { color: #1d4ed8; font-size: 16px; text-align: center; }
+body.skin-chalkboard .chalk-grid thead th { color: #1d4ed8; font-size: 18px; text-align: center; }
 body.skin-chalkboard .chalk-now { border: 3px dashed #1d4ed8 !important; background: #fff; }
 body.skin-chalkboard .cell-k { display: block; color: #1d4ed8; font-size: 14px; }
 body.skin-chalkboard .entry { grid-template-columns: 1fr 1fr; }
@@ -1434,6 +1434,10 @@ body.skin-chalkboard .px-phases span {
   justify-content: center;
   font-size: 13px;
 }
+body.skin-chalkboard .px-phases b, body.skin-chalkboard .px-phases i { font-size: 14px; font-style: normal; }
+body.skin-chalkboard .note, body.skin-chalkboard .note span { font-size: 14px; }
+body.skin-chalkboard .chalk-ink { font-size: 16px; }
+body.skin-chalkboard .entry input::placeholder { color: #475569; font-size: 16px; opacity: 1; }
 body.skin-chalkboard .px-phases span.on { background: #dbeafe; }
 body.skin-chalkboard .tempo-read { margin: 0 0 4px; color: #1d4ed8; font-size: 16px; }
 body.skin-chalkboard .tempo-lamp { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
@@ -1527,22 +1531,28 @@ body.skin-scoreboard .zones:has(.zone-rest[data-resting="true"]) .sidelight {
   animation: score-pulse 0.7s ease-in-out infinite;
 }
 @keyframes score-pulse { 50% { opacity: 0.28; } }
+body.skin-scoreboard .zone-partners { display: grid; grid-template-columns: 1fr; gap: 6px; width: 100%; }
+body.skin-scoreboard .zone-partners:has(.who-btn + .who-btn) { grid-template-columns: 1fr 1fr; }
 body.skin-scoreboard .who-btn,
-body.skin-scoreboard .who-btn.batman,
-body.skin-scoreboard .who-btn.batman.on,
-body.skin-scoreboard .who-btn.robin,
-body.skin-scoreboard .who-btn.robin.on {
-  background: #14080c;
-  color: #7f1d1d;
-  border: 2px solid #3f1216;
+body.skin-scoreboard .who-btn.batman {
+  background: #431407;
+  color: #ffedd5;
+  border: 2px solid #fb923c;
   font-family: Orbitron, "Share Tech Mono", sans-serif;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
   box-shadow: none;
-  min-height: 44px;
+  min-height: 52px;
+  min-width: 0;
+  opacity: 1;
+  white-space: normal;
+  line-height: 1.15;
+  padding: 6px 8px;
 }
-body.skin-scoreboard .who-btn b { display: block; font-size: 12px; }
-body.skin-scoreboard .who-btn.batman.on { color: #ffb020; border-color: #ff7a18; box-shadow: 0 0 12px rgba(255, 122, 24, 0.75); background: #2a0c08; }
-body.skin-scoreboard .who-btn.robin.on { color: #93c5fd; border-color: #60a5fa; box-shadow: 0 0 12px rgba(96, 165, 250, 0.7); background: #0b1a33; }
+body.skin-scoreboard .who-btn.robin { background: #172554; color: #dbeafe; border-color: #93c5fd; }
+body.skin-scoreboard .who-btn b, body.skin-scoreboard .who-btn span { display: block; font-size: 14px; line-height: 1.2; }
+body.skin-scoreboard .who-btn.on { opacity: 1; }
+body.skin-scoreboard .who-btn.batman.on { color: #ffb020; border-color: #ff7a18; box-shadow: 0 0 14px rgba(255, 122, 24, 0.85); background: #2a0c08; }
+body.skin-scoreboard .who-btn.robin.on { color: #dbeafe; border-color: #60a5fa; box-shadow: 0 0 14px rgba(96, 165, 250, 0.85); background: #0b1a33; }
 body.skin-scoreboard .jumbo {
   position: relative;
   display: grid;
@@ -1653,9 +1663,10 @@ body.skin-scoreboard .session-strip {
 }
 body.skin-scoreboard .segbar { display: block; height: 16px; background: #052e16; border: 1px solid #166534; }
 body.skin-scoreboard .segbar i { display: block; height: 100%; background: repeating-linear-gradient(90deg, #4ade80 0 10px, #052e16 10px 12px); }
-body.skin-scoreboard .zone-rest, body.skin-scoreboard .zone-tempo { background: rgba(7, 2, 3, 0.82); border: 1px solid #7f1d1d; border-radius: 8px; padding: 8px; }
-body.skin-scoreboard .rest-count { font-family: Orbitron, "Share Tech Mono", monospace; font-size: 36px; color: #ffb020; text-shadow: 0 0 10px #ff6a00; }
-body.skin-scoreboard .zones:has(.zone-rest[data-resting="true"]) .rest-count { color: #5cff6a; text-shadow: 0 0 10px #22c55e; }
+body.skin-scoreboard .zone-tempo { background: rgba(7, 2, 3, 0.82); border: 1px solid #7f1d1d; border-radius: 8px; padding: 8px; }
+body.skin-scoreboard .score-rest { background: transparent; border: 0; box-shadow: none; padding: 4px 0 0; }
+body.skin-scoreboard .score-rest .rest-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+body.skin-scoreboard .rest-takeover.rest-count { font-size: clamp(42px, 12vw, 68px); }
 body.skin-scoreboard .rest-actions button, body.skin-scoreboard .zone-tempo button, body.skin-scoreboard .zone-nav button {
   background: #1a0508;
   color: #ffb020;
@@ -1716,6 +1727,7 @@ body.skin-scoreboard .sheet input, body.skin-scoreboard .sheet textarea, body.sk
   body.skin-chalkboard .rest-count { width: 72px; top: 22px; font-size: 16px; }
   body.skin-chalkboard .rest-label { left: 84px; }
 }
+
 
 </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -4187,12 +4199,15 @@ const exerciseDatabase = [
       const team = p === 'batman' ? 'HOME' : 'AWAY';
       return '<button type="button" class="who-btn ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" data-pad="1" aria-current="' + (on ? 'true' : 'false') + '"><b>' + team + '</b><span>' + esc(state.partnerNames[p] || p) + '</span></button>';
     }).join('');
+    const off = state.settings.restEnabled === false;
+    const resting = viewCache.rest[viewCache.partner] > 0 && !off;
+    const strip = '<section class="zone zone-rest score-rest" data-resting="' + (resting ? 'true' : 'false') + '"><div class="rest-actions"><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15s</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15s</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1">' + (off ? 'Turn rest on' : 'Turn rest off') + '</button></div></section>';
     const prevs = cur ? cur.sets.map(function (s) {
       const shown = s.weight ? s.weight : '—';
       return '<button type="button" class="prev-led' + (s.current ? ' on' : '') + '" data-act="focus-set" data-ex="' + esc(cur.id) + '" data-set="' + esc(s.id) + '">' + esc(shown) + '</button>';
     }).join('') : '<span class="prev-led">—</span>';
     const board = cur && set
-      ? '<div class="jumbo"><span class="rest-takeover" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</span><label class="led-giant">Weight' + numInput(cur.id, set.id, 'weight', set.weight, '', ghostW) + '<span class="led-unit">LBS</span></label><label class="rep-led">Reps' + numInput(cur.id, set.id, 'reps', set.reps, '', ghostR) + '</label></div><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">SET ' + (set.index + 1) + ' OF ' + cur.sets.length + '</p><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span>LOG IT</span></button><div class="prev-row"><span>PREV SETS</span>' + prevs + '</div><div class="session-strip"><span>SESSION · ' + esc(state.activeDay || 'DAY') + '</span><span class="segbar" aria-hidden="true"><i style="width:' + pct + '%"></i></span><b>' + done + '/' + total + '</b><b>' + pct + '%</b></div>'
+      ? '<div class="jumbo"><span class="rest-takeover rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</span><label class="led-giant">Weight' + numInput(cur.id, set.id, 'weight', set.weight, '', ghostW) + '<span class="led-unit">LBS</span></label><label class="rep-led">Reps' + numInput(cur.id, set.id, 'reps', set.reps, '', ghostR) + '</label></div>' + strip + '<h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">SET ' + (set.index + 1) + ' OF ' + cur.sets.length + '</p><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span>LOG IT</span></button><div class="prev-row"><span>PREV SETS</span>' + prevs + '</div><div class="session-strip"><span>SESSION · ' + esc(state.activeDay || 'DAY') + '</span><span class="segbar" aria-hidden="true"><i style="width:' + pct + '%"></i></span><b>' + done + '/' + total + '</b><b>' + pct + '%</b></div>'
       : '<p>No exercise on this day.</p>';
     const main = ui.tab === 'log' ? board : '<div class="zone-panel">' + backLog() + panel() + '</div>';
     return '<div class="zones score-layout">' + padGlyphs() + welcomeHTML() +
@@ -4200,7 +4215,7 @@ const exerciseDatabase = [
       '<div class="sidelight left" aria-hidden="true"></div><div class="sidelight right" aria-hidden="true"></div>' +
       '<div class="zone zone-partners" role="group" aria-label="Active partner">' + who + '</div>' +
       '<section class="zone zone-now">' + main + '</section>' +
-      restBlock() + tempoBlock() +
+      tempoBlock() +
       '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button><button type="button" data-act="tab" data-tab="history" data-pad="1">History</button><button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button><button type="button" data-act="mini-open" data-pad="1">Mini</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button><button type="button" data-act="finish" data-pad="1">Finish</button></nav></div>';
   }
   function sharedShell() {

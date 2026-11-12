@@ -645,12 +645,15 @@
       const team = p === 'batman' ? 'HOME' : 'AWAY';
       return '<button type="button" class="who-btn ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" data-pad="1" aria-current="' + (on ? 'true' : 'false') + '"><b>' + team + '</b><span>' + esc(state.partnerNames[p] || p) + '</span></button>';
     }).join('');
+    const off = state.settings.restEnabled === false;
+    const resting = viewCache.rest[viewCache.partner] > 0 && !off;
+    const strip = '<section class="zone zone-rest score-rest" data-resting="' + (resting ? 'true' : 'false') + '"><div class="rest-actions"><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15s</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15s</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1">' + (off ? 'Turn rest on' : 'Turn rest off') + '</button></div></section>';
     const prevs = cur ? cur.sets.map(function (s) {
       const shown = s.weight ? s.weight : '—';
       return '<button type="button" class="prev-led' + (s.current ? ' on' : '') + '" data-act="focus-set" data-ex="' + esc(cur.id) + '" data-set="' + esc(s.id) + '">' + esc(shown) + '</button>';
     }).join('') : '<span class="prev-led">—</span>';
     const board = cur && set
-      ? '<div class="jumbo"><span class="rest-takeover" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</span><label class="led-giant">Weight' + numInput(cur.id, set.id, 'weight', set.weight, '', ghostW) + '<span class="led-unit">LBS</span></label><label class="rep-led">Reps' + numInput(cur.id, set.id, 'reps', set.reps, '', ghostR) + '</label></div><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">SET ' + (set.index + 1) + ' OF ' + cur.sets.length + '</p><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span>LOG IT</span></button><div class="prev-row"><span>PREV SETS</span>' + prevs + '</div><div class="session-strip"><span>SESSION · ' + esc(state.activeDay || 'DAY') + '</span><span class="segbar" aria-hidden="true"><i style="width:' + pct + '%"></i></span><b>' + done + '/' + total + '</b><b>' + pct + '%</b></div>'
+      ? '<div class="jumbo"><span class="rest-takeover rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</span><label class="led-giant">Weight' + numInput(cur.id, set.id, 'weight', set.weight, '', ghostW) + '<span class="led-unit">LBS</span></label><label class="rep-led">Reps' + numInput(cur.id, set.id, 'reps', set.reps, '', ghostR) + '</label></div>' + strip + '<h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">SET ' + (set.index + 1) + ' OF ' + cur.sets.length + '</p><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span>LOG IT</span></button><div class="prev-row"><span>PREV SETS</span>' + prevs + '</div><div class="session-strip"><span>SESSION · ' + esc(state.activeDay || 'DAY') + '</span><span class="segbar" aria-hidden="true"><i style="width:' + pct + '%"></i></span><b>' + done + '/' + total + '</b><b>' + pct + '%</b></div>'
       : '<p>No exercise on this day.</p>';
     const main = ui.tab === 'log' ? board : '<div class="zone-panel">' + backLog() + panel() + '</div>';
     return '<div class="zones score-layout">' + padGlyphs() + welcomeHTML() +
@@ -658,7 +661,7 @@
       '<div class="sidelight left" aria-hidden="true"></div><div class="sidelight right" aria-hidden="true"></div>' +
       '<div class="zone zone-partners" role="group" aria-label="Active partner">' + who + '</div>' +
       '<section class="zone zone-now">' + main + '</section>' +
-      restBlock() + tempoBlock() +
+      tempoBlock() +
       '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button><button type="button" data-act="tab" data-tab="history" data-pad="1">History</button><button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button><button type="button" data-act="mini-open" data-pad="1">Mini</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button><button type="button" data-act="finish" data-pad="1">Finish</button></nav></div>';
   }
   function sharedShell() {
