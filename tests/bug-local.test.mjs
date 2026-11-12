@@ -11,10 +11,11 @@ test('bug reports stay on the device and never use the network', async () => {
   const problems = [];
   const net = [];
   try {
-    const context = await browser.newContext();
+    const context = await browser.newContext({ timezoneId: 'America/New_York' });
     const page = await context.newPage({ viewport: { width: 390, height: 844 } });
     page.on('request', function (req) {
-      if (/^https?:/i.test(req.url()) && !/fonts\.(googleapis|gstatic)\.com/.test(req.url())) net.push(req.method() + ' ' + req.url());
+      const url = req.url();
+      if (/^https?:/i.test(url)) net.push(req.method() + ' ' + url);
     });
     await page.goto(pageUrl);
     await page.evaluate(() => localStorage.clear());
@@ -46,6 +47,13 @@ test('bug reports stay on the device and never use the network', async () => {
     await page.getByRole('tab', { name: 'Bugs' }).click();
     const again = await page.locator('.bug-list').innerText();
     if (again.indexOf('The rest row wrapped.') < 0) problems.push('lost after reload');
+    await page.evaluate(() => {
+      SICApp.state().settings.bugQueue[0].created = Date.UTC(2026, 10, 12, 18, 43, 0);
+    });
+    await page.getByRole('tab', { name: 'About' }).click();
+    await page.getByRole('tab', { name: 'Bugs' }).click();
+    const shown = await page.locator('.bug-item strong').innerText();
+    if (shown !== 'Nov 12, 1:43 PM') problems.push('local stamp ' + shown);
     await page.getByRole('button', { name: 'Share', exact: true }).click();
     await page.waitForTimeout(40);
     const shared = await page.evaluate(() => window.__shared && window.__shared.text);

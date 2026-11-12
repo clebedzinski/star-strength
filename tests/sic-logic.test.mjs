@@ -278,6 +278,18 @@ test('console commands match the brief, including reserved and future', () => {
   assert.ok(removed.backup.vault);
 });
 
+test('bug report stamps use the phone local wall clock', () => {
+  const ts = Date.UTC(2026, 10, 12, 18, 43, 0);
+  const d = new Date(ts);
+  const label = SIC.formatLocalStamp(ts);
+  assert.match(label, /^[A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2} (AM|PM)$/);
+  const hour12 = d.getHours() % 12 || 12;
+  const ap = d.getHours() >= 12 ? 'PM' : 'AM';
+  assert.equal(label, ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()] + ' ' + d.getDate() + ', ' + hour12 + ':' + String(d.getMinutes()).padStart(2, '0') + ' ' + ap);
+  assert.equal(SIC.formatLocalStamp('nope'), '');
+  assert.equal(label.includes('T'), false);
+});
+
 test('bug reports are local records with context and no server ack', () => {
   const built = SIC.buildBugPayload({
     happened: 'Rest timer keeps going', steps: 'Log a set', severity: 'High',

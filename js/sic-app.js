@@ -1053,9 +1053,7 @@
     return '<h2>About</h2><p><strong>Strength in Character</strong> ' + esc(CFG.appVersion) + '</p><p class="welcome-tag">BE YOUR OWN BIGGEST FAN</p><h3>Credits</h3><p>The workout sneak-peek notification idea is from Ryan "ryno".</p><h3>Privacy</h3><p>All workout data stays on this device. Use Data &amp; files to export XML when you want a backup. Nothing here is uploaded.</p><div class="actions"><button type="button" data-act="overlay" data-overlay="console">Open console</button><button type="button" data-act="clear-data">Clear data</button></div>';
   }
   function fmtReportWhen(ts) {
-    const d = new Date(ts || Date.now());
-    const p = function (n) { return String(n).padStart(2, '0'); };
-    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    return SIC.formatLocalStamp(ts || Date.now());
   }
   function bugBlock() {
     const queue = (state.settings.bugQueue || []).slice().reverse();

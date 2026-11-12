@@ -1286,6 +1286,16 @@
     return { ok: true, message: 'Deleted profile ' + name + '.', backup: backup };
   }
 
+  function formatLocalStamp(ts) {
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    let h = d.getHours();
+    const ap = h >= 12 ? 'PM' : 'AM';
+    h = h % 12;
+    if (h === 0) h = 12;
+    return months[d.getMonth()] + ' ' + d.getDate() + ', ' + h + ':' + String(d.getMinutes()).padStart(2, '0') + ' ' + ap;
+  }
   function newReportId(rand) {
     const n = rand ? Math.floor(rand() * 1e9).toString(36) : Math.random().toString(36).slice(2, 10);
     return 'rpt_' + n + Date.now().toString(36);
@@ -1527,7 +1537,7 @@
     validateRoutineObject: validateRoutineObject, exportXml: exportXml, importXml: importXml, previewImport: previewImport,
     applyImport: applyImport, validateCommunityPack: validateCommunityPack, miniHitTest: miniHitTest,
     parseCommand: parseCommand, applyCommand: applyCommand, createProfile: createProfile, deleteProfile: deleteProfile,
-    buildBugPayload: buildBugPayload,
+    buildBugPayload: buildBugPayload, formatLocalStamp: formatLocalStamp,
     newReportId: newReportId, inferSchedule: inferSchedule, inQuietHours: inQuietHours, recoverStored: recoverStored,
     planAtomicWrite: planAtomicWrite, pushSnapshot: pushSnapshot, storageCapability: storageCapability,
     shortcutsAllowed: shortcutsAllowed, isHoldRepeatAction: isHoldRepeatAction, inputMap: inputMap, promptFor: promptFor,
