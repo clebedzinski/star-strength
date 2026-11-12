@@ -253,10 +253,11 @@
       chalkboard: { bg: 'chalkboard/background.webp', note: 'chalkboard/sticky-note.webp', dust: 'chalkboard/chalk-smudge.webp', mini: 'chalkboard/mini-slate.webp' },
       scoreboard: { bg: 'scoreboard/background.webp', bezel: 'scoreboard/cabinet-bezel.webp', mini: 'scoreboard/mini-led-strip.webp' },
       transitline: { bg: 'transitline/background.webp', mini: 'transitline/mini-pill.webp' },
-      vinyldeck: { bg: 'vinyldeck/background.webp', platter: 'vinyldeck/platter.webp', knob: 'vinyldeck/fader-knob.webp', mini: 'vinyldeck/mini-record.webp' }
+      vinyldeck: { bg: 'vinyldeck/background.webp', platter: 'vinyldeck/platter.webp', knob: 'vinyldeck/fader-knob.webp', mini: 'vinyldeck/mini-record.webp' },
+      hexhive: { bg: 'hexhive/background.webp', honey: 'hexhive/hex-honey.webp', teal: 'hexhive/hex-teal.webp', mini: 'hexhive/mini-cluster.webp' }
     };
     const pack = packs[state.skinId] || {};
-    ['bg', 'frame', 'sky', 'ring', 'bolt', 'mini', 'note', 'dust', 'bezel', 'platter', 'knob'].forEach(function (key) {
+    ['bg', 'frame', 'sky', 'ring', 'bolt', 'mini', 'note', 'dust', 'bezel', 'platter', 'knob', 'honey', 'teal'].forEach(function (key) {
       document.documentElement.style.setProperty('--art-' + key, pack[key] ? 'url("' + artUrl(pack[key]) + '")' : 'none');
     });
   }
@@ -795,12 +796,60 @@
       '<section class="zone zone-now">' + main + '</section>' +
       '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button><button type="button" data-act="tab" data-tab="history" data-pad="1">History</button><button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button><button type="button" data-act="mini-open" data-pad="1">Mini</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button><button type="button" data-act="finish" data-pad="1">Finish</button></nav></div>';
   }
+  function hexCompose() {
+    const f = curFocus();
+    const cur = f.cur, set = f.set;
+    const off = state.settings.restEnabled === false;
+    const resting = viewCache.rest[viewCache.partner] > 0 && !off;
+    const status = off ? 'Rest off' : (resting ? 'Resting' : 'Rest ready');
+    const labels = transitLabels();
+    const bits = String(set && set.prev || '').split('×');
+    const prevW = bits[0] && bits[0] !== '—' ? bits[0] : '—';
+    const prevR = bits[1] || '—';
+    function cell(cls, inner) {
+      return '<div class="hh-cell ' + cls + '"><span class="hh-face" aria-hidden="true"></span>' + inner + '</div>';
+    }
+    function nudge(dir, field) {
+      if (!cur || !set) return '';
+      const word = field === 'weight' ? 'LBS' : 'REPS';
+      const aria = (dir < 0 ? 'Decrease ' : 'Increase ') + (field === 'weight' ? 'weight' : 'reps');
+      return cell('hh-step', '<button type="button" class="hh-hit" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="' + field + '" data-dir="' + dir + '" data-pad="1" aria-label="' + aria + '"><b>' + (dir < 0 ? '−' : '+') + '</b><small>' + word + '</small></button>');
+    }
+    function valueHex(field, title, prev) {
+      if (!cur || !set) return '';
+      const raw = set[field] || '';
+      return cell('hh-val', '<label class="hh-hit"><input class="hh-num" data-lockrender="1" data-act="field" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="' + field + '" type="number" inputmode="decimal" value="' + esc(raw) + '" aria-label="' + (field === 'weight' ? 'Pounds' : 'Reps') + '"><small>' + title + '</small><small class="hh-prev">PREV ' + esc(prev) + '</small></label>');
+    }
+    const people = state.duoMode ? ['batman', 'robin'] : [partner()];
+    const badges = people.map(function (p) {
+      const on = partner() === p;
+      return '<span class="hh-badge-slot' + (on ? ' on' : '') + '"><i class="hh-badge-rim" aria-hidden="true"></i><button type="button" class="hh-badge who-btn ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" data-pad="1" aria-current="' + (on ? 'true' : 'false') + '">' + esc(state.partnerNames[p] || p) + '</button></span>';
+    }).join('');
+    const chips = viewCache.exercises.map(function (ex, i) {
+      return '<li><button type="button" class="hh-chip' + (ex.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(ex.id) + '" aria-label="' + esc(ex.name) + '">' + esc(labels[i]) + '</button></li>';
+    }).join('');
+    const comb = cur && set
+      ? '<div class="hh-comb"><div class="hh-row hh-row-2">' + nudge(-1, 'weight') + nudge(1, 'weight') + '</div><div class="hh-row hh-row-3">' + nudge(-1, 'reps') + cell('hh-core', '<div class="hh-hit hh-core-copy"><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">SET ' + (set.index + 1) + '</p></div>') + nudge(1, 'reps') + '</div><div class="hh-row hh-row-2">' + valueHex('weight', 'LBS', prevW) + valueHex('reps', 'REPS', prevR) + '</div><div class="hh-row hh-row-3">' + cell('hh-deco', '') + cell('hh-log', '<button type="button" class="log-set hh-hit" data-act="log-set" data-pad="1" data-focus="1">LOG SET</button>') + cell('hh-deco', '') + '</div></div>'
+      : '<p>No cell on this day.</p>';
+    const rest = '<section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '" data-rest-enabled="' + (off ? 'false' : 'true') + '"><div class="hh-ring-wrap"><svg class="hh-ring" viewBox="0 0 100 104" aria-hidden="true"><polygon points="50,4 96,28 96,76 50,100 4,76 4,28" fill="none" stroke="#0B0F17" stroke-width="3"/><polygon data-rest-arc data-fill data-peri="100" pathLength="100" points="50,4 96,28 96,76 50,100 4,76 4,28" fill="none" stroke="#00C2A8" stroke-width="4" stroke-linejoin="round"></polygon></svg><p class="hh-clock"><span class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</span><span class="rest-status">' + status + '</span></p></div><div class="rest-actions"><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1" aria-label="' + (off ? 'Turn rest on' : 'Turn rest off') + '">' + (off ? 'Rest on' : 'Rest off') + '</button></div></section>';
+    const tempoOn = !!state.settings.tempo.running;
+    const tempo = '<section class="zone zone-tempo" data-tempo-live="' + (tempoOn ? 'on' : 'off') + '"><div class="hh-bpm"><b>60</b><span>BPM</span><em data-metro>' + esc(runtime.phase) + '</em><button type="button" data-act="tempo-toggle" data-pad="1">' + (tempoOn ? 'Tempo off' : 'Tempo on') + '</button></div><div class="hh-phases"><span data-phase="LOWER">ECC</span><span data-phase="BOTTOM">PAUSE</span><span data-phase="LIFT">CON</span><span data-phase="TOP">PAUSE</span></div></section>';
+    const main = ui.tab === 'log'
+      ? comb + rest + tempo + '<ol class="hh-chips">' + chips + '</ol>'
+      : '<div class="zone-panel">' + backLog() + panel() + '</div>';
+    return '<div class="zones hh-layout">' + padGlyphs() + welcomeHTML() +
+      '<header class="zone zone-head"><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></header>' +
+      '<div class="hh-badges" role="group" aria-label="Active partner">' + badges + '</div>' +
+      '<section class="zone zone-now">' + main + '</section>' +
+      '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button><button type="button" data-act="tab" data-tab="history" data-pad="1">History</button><button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button><button type="button" data-act="mini-open" data-pad="1">Mini</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button><button type="button" data-act="finish" data-pad="1">Finish</button></nav></div>';
+  }
   function sharedShell() {
     viewCache = view();
     if (state.skinId === 'chalkboard') return chalkCompose();
     if (state.skinId === 'scoreboard') return scoreCompose();
     if (state.skinId === 'transitline') return transitCompose();
     if (state.skinId === 'vinyldeck') return vinylCompose();
+    if (state.skinId === 'hexhive') return hexCompose();
     const f = curFocus();
     const cur = f.cur, set = f.set;
     const id = cur ? esc(cur.id) : '';
@@ -883,7 +932,19 @@
       };
       return '<div class="mini-body"><div class="vd-remote" data-drag="1">' + shut + '<div class="vd-reels">' + reel(-1, 'weight') + reel(1, 'weight') + '</div><div class="vd-tags"><span>LBS</span><span>REPS</span></div><strong>' + shown + '</strong>' + rest + log + '</div>' + more + fields + '</div>';
     }
-    if (shape === 'flower') return '<div class="mini-body">' + shut + '<div class="mini-hexes"><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><div class="mini-core"><b>' + name + '</b><small>' + prev + '</small></div><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button>' + log + '</div>' + who + rest + more + fields + '</div>';
+    if (shape === 'flower') {
+      const petal = function (dir, field, cls) {
+        const word = field === 'weight' ? 'LBS' : 'REPS';
+        return '<button type="button" class="hh-mini ' + cls + '" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="' + dir + '" aria-label="' + (dir < 0 ? 'Decrease ' : 'Increase ') + (field === 'weight' ? 'weight' : 'reps') + '"><b>' + (dir < 0 ? '−' : '+') + '</b><small>' + word + '</small></button>';
+      };
+      return '<div class="mini-body"><div class="hh-flower" data-drag="1">' + shut +
+        petal(-1, 'weight', 'hh-m-nw') + petal(1, 'weight', 'hh-m-ne') +
+        petal(-1, 'reps', 'hh-m-w') +
+        '<div class="hh-mini hh-m-c"><b>' + name + '</b><small>SET ' + (set ? (set.index + 1) : '—') + '</small></div>' +
+        petal(1, 'reps', 'hh-m-e') +
+        '<div class="hh-mini hh-m-sw">' + rest + '</div>' +
+        '<button type="button" class="hh-mini hh-m-se mini-log" data-act="log-set">LOG</button></div>' + more + fields + '</div>';
+    }
     return '<div class="mini-body"><div class="mini-card">' + chrome + '<strong>' + name + '</strong><p>prev ' + prev + '</p>' + log + more + fields + '</div></div>';
   }
   function popHTML() {
@@ -933,7 +994,7 @@
   function settingsBody(cat, sub) {
     if (cat === 'appearance' && sub === 'skin') {
       const skins = SIC.builtinSkins().concat(state.communitySkins || []).map(function (s) {
-        const finished = s.slug === 'starclassic' || s.slug === 'pixelforecast' || s.slug === 'irondial' || s.slug === 'chalkboard' || s.slug === 'scoreboard' || s.slug === 'transitline' || s.slug === 'vinyldeck';
+        const finished = s.slug === 'starclassic' || s.slug === 'pixelforecast' || s.slug === 'irondial' || s.slug === 'chalkboard' || s.slug === 'scoreboard' || s.slug === 'transitline' || s.slug === 'vinyldeck' || s.slug === 'hexhive';
         const look = finished ? '' : '<span class="muted">Beta look</span>';
         return '<button type="button" class="' + (state.skinId === s.slug ? 'on' : '') + '" data-act="skin" data-skin="' + esc(s.slug) + '"><strong>' + esc(s.name) + '</strong>' + look + '</button>';
       }).join('');
@@ -1273,8 +1334,9 @@
     const pct = state.settings.restEnabled === false ? 0 : Math.max(0, Math.min(1, rem / total));
     document.querySelectorAll('[data-rest-arc]').forEach(function (el) {
       const r = Number(el.getAttribute('r')) || 46;
-      const circ = 2 * Math.PI * r;
-      const wedge = el.hasAttribute('data-erase') ? pct * circ : pct * 0.30 * circ;
+      const peri = Number(el.getAttribute('data-peri'));
+      const circ = peri > 0 ? peri : 2 * Math.PI * r;
+      const wedge = el.hasAttribute('data-fill') ? (1 - pct) * circ : (el.hasAttribute('data-erase') ? pct * circ : pct * 0.30 * circ);
       el.setAttribute('stroke-dasharray', wedge.toFixed(1) + ' ' + circ.toFixed(1));
     });
     document.querySelectorAll('[data-rest-bar]').forEach(function (el) { el.style.width = Math.round(pct * 100) + '%'; });

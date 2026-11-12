@@ -2173,6 +2173,191 @@ body.skin-vinyldeck .sheet input, body.skin-vinyldeck .sheet select, body.skin-v
   body.skin-vinyldeck .vd-beat { animation: none; }
 }
 
+body.skin-hexhive {
+  background: #F7F3E6;
+  color: #0B0F17;
+  font-family: "Space Grotesk", "Inter", sans-serif;
+}
+body.skin-hexhive #app { background: #F7F3E6; }
+body.skin-hexhive .zones { background: transparent; color: #0B0F17; gap: 6px; padding: 8px 8px 6px; }
+body.skin-hexhive .zone-head,
+body.skin-hexhive .zone-now,
+body.skin-hexhive .zone-rest,
+body.skin-hexhive .zone-tempo,
+body.skin-hexhive .zone-panel { background: transparent; border: 0; box-shadow: none; color: #0B0F17; padding: 0; }
+body.skin-hexhive .zone-head h1 { margin: 0; color: #0B0F17; font-size: 16px; }
+body.skin-hexhive .zone-head p { margin: 0; color: #00C2A8; font-size: 11px; letter-spacing: 0.04em; }
+body.skin-hexhive .hh-badges { display: flex; justify-content: center; gap: 8px; }
+body.skin-hexhive .hh-badge-slot { position: relative; width: 132px; height: 48px; }
+body.skin-hexhive .hh-badge-rim,
+body.skin-hexhive .hh-badge {
+  position: absolute; inset: 0; clip-path: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%);
+}
+body.skin-hexhive .hh-badge-rim { background: transparent; }
+body.skin-hexhive .hh-badge-slot.on .hh-badge-rim { inset: -3px; background: #00C2A8; }
+body.skin-hexhive .hh-badge,
+body.skin-hexhive .hh-badge.who-btn,
+body.skin-hexhive .hh-badge.who-btn.batman,
+body.skin-hexhive .hh-badge.who-btn.batman.on,
+body.skin-hexhive .hh-badge.who-btn.robin,
+body.skin-hexhive .hh-badge.who-btn.robin.on {
+  background: #FFC857; color: #0B0F17; border: 0; box-shadow: none; opacity: 0.4;
+  min-width: 0; min-height: 0; padding: 0 16px; font-size: 12px;
+}
+body.skin-hexhive .hh-badge-slot.on .hh-badge,
+body.skin-hexhive .hh-badge-slot.on .hh-badge.who-btn.batman.on,
+body.skin-hexhive .hh-badge-slot.on .hh-badge.who-btn.robin.on {
+  background: #FFC857; color: #0B0F17; opacity: 1;
+}
+body.skin-hexhive .hh-num::-webkit-outer-spin-button,
+body.skin-hexhive .hh-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+body.skin-hexhive .hh-num { -moz-appearance: textfield; appearance: textfield; }
+body.skin-hexhive .hh-comb { display: flex; flex-direction: column; align-items: center; margin-top: 4px; }
+body.skin-hexhive .hh-row { display: flex; justify-content: center; }
+body.skin-hexhive .hh-row + .hh-row { margin-top: -28px; }
+body.skin-hexhive .hh-cell { position: relative; width: 92px; height: 106px; flex: 0 0 92px; }
+body.skin-hexhive .hh-face {
+  position: absolute; inset: 0; pointer-events: none;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: #FFC857 var(--art-honey) center / cover no-repeat;
+}
+body.skin-hexhive .hh-core .hh-face { background: #0B0F17; }
+body.skin-hexhive .hh-log .hh-face { background: #00C2A8 var(--art-teal) center / cover no-repeat; }
+body.skin-hexhive .hh-deco .hh-face { opacity: 0.45; }
+body.skin-hexhive .hh-hit {
+  position: absolute; left: 22px; right: 22px; top: 16px; bottom: 16px;
+  width: auto; min-width: 0; min-height: 0; margin: 0; padding: 0; border: 0; border-radius: 0;
+  background: transparent; color: #0B0F17; box-shadow: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+  font-size: 13px; line-height: 1.05;
+}
+body.skin-hexhive .hh-hit b { font-size: 20px; line-height: 1; }
+body.skin-hexhive .hh-hit small { font-size: 11px; letter-spacing: 0.04em; }
+body.skin-hexhive .hh-cell:has(.hh-hit:active) .hh-face { filter: brightness(0.82); }
+body.skin-hexhive .hh-core-copy {
+  position: absolute; left: 14px; right: 14px; top: 24px; bottom: 24px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: #F7F3E6; text-align: center; pointer-events: none;
+}
+body.skin-hexhive .ex-name { margin: 0; font-size: 12px; color: #F7F3E6; line-height: 1.15; }
+body.skin-hexhive .set-progress { margin: 2px 0 0; font-size: 12px; color: #FFC857; }
+body.skin-hexhive .hh-num {
+  width: 64px; min-height: 28px; height: 28px; padding: 0; margin: 0; border: 0; border-radius: 0;
+  background: transparent; color: #0B0F17; font-size: 20px; font-weight: 900; text-align: center;
+}
+body.skin-hexhive .hh-prev { font-size: 11px; color: #0B0F17; }
+body.skin-hexhive .log-set { color: #0B0F17; font-size: 12px; font-weight: 900; letter-spacing: 0.02em; }
+body.skin-hexhive .zone-rest { outline: none; margin-top: 4px; }
+body.skin-hexhive .zone-rest[data-resting="true"] { outline: none; }
+body.skin-hexhive .hh-ring-wrap { position: relative; width: 120px; height: 112px; margin: 0 auto 4px; }
+body.skin-hexhive .hh-ring { width: 120px; height: 112px; display: block; }
+body.skin-hexhive .hh-ring [data-rest-arc] { stroke: transparent; }
+body.skin-hexhive .zone-rest[data-resting="true"] .hh-ring [data-rest-arc] { stroke: #00C2A8; }
+body.skin-hexhive .hh-clock {
+  position: absolute; inset: 0; margin: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; pointer-events: none;
+}
+body.skin-hexhive .rest-count { font-size: 18px; color: #0B0F17; font-variant-numeric: tabular-nums; }
+body.skin-hexhive .rest-status { font-size: 11px; color: #0B0F17; }
+body.skin-hexhive .zone-rest[data-rest-enabled="false"] .rest-count { text-decoration: line-through; color: #00C2A8; }
+body.skin-hexhive .zone-rest[data-rest-enabled="false"] .rest-status {
+  background: #FFC857; color: #0B0F17; font-weight: 900; padding: 1px 6px; border-radius: 6px;
+}
+body.skin-hexhive .rest-actions { display: flex; flex-wrap: nowrap; gap: 4px; justify-content: center; }
+body.skin-hexhive .rest-actions button {
+  flex: 1 1 0; min-width: 0; min-height: 40px; height: 40px; padding: 0 2px; font-size: 12px;
+  white-space: nowrap; border: 0; color: #0B0F17;
+  background: #FFC857; clip-path: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%);
+}
+body.skin-hexhive .rest-actions button:active { filter: brightness(0.82); }
+body.skin-hexhive .rest-actions [data-act="rest-toggle"] { background: #00C2A8; font-weight: 900; }
+body.skin-hexhive .hh-bpm { display: flex; align-items: center; gap: 6px; margin: 4px 0; min-width: 0; }
+body.skin-hexhive .hh-bpm b { font-size: 22px; color: #0B0F17; line-height: 1; }
+body.skin-hexhive .hh-bpm span, body.skin-hexhive .hh-bpm em { font-size: 12px; font-style: normal; color: #0B0F17; }
+body.skin-hexhive .hh-bpm button {
+  margin-left: auto; flex: 0 0 auto; min-height: 36px; height: 36px; padding: 0 10px; width: auto;
+  border: 0; background: #FFC857; color: #0B0F17; font-size: 12px;
+  clip-path: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%);
+}
+body.skin-hexhive .hh-phases { display: flex; justify-content: center; gap: 6px; }
+body.skin-hexhive .hh-phases span {
+  width: 64px; height: 52px; display: flex; align-items: center; justify-content: center;
+  background: #FFC857; color: #0B0F17; font-size: 11px; opacity: 0.45;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+body.skin-hexhive .hh-phases span.on { opacity: 1; background: #00C2A8; }
+body.skin-hexhive .hh-chips { list-style: none; margin: 6px 0 0; padding: 0; display: flex; gap: 4px; overflow-x: auto; }
+body.skin-hexhive .hh-chip {
+  flex: 0 0 auto; min-height: 36px; min-width: 48px; padding: 4px 12px; border: 0; font-size: 12px;
+  background: #FFC857; color: #0B0F17;
+  clip-path: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%);
+}
+body.skin-hexhive .hh-chip.on { background: #0B0F17; color: #F7F3E6; }
+body.skin-hexhive .zone-nav {
+  position: static; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px;
+  background: transparent; padding-top: 0;
+}
+body.skin-hexhive .zone-nav button {
+  min-height: 44px; min-width: 0; font-size: 12px; border: 0; background: #0B0F17; color: #F7F3E6;
+  clip-path: polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%);
+}
+body.skin-hexhive .zone-nav button[aria-current="true"] { background: #FFC857; color: #0B0F17; }
+body.skin-hexhive .zone-nav button:active { filter: brightness(0.85); }
+body.skin-hexhive .sheet, body.skin-hexhive .pop {
+  background: #F7F3E6; color: #0B0F17; border: 4px solid #0B0F17; font-family: "Space Grotesk", sans-serif;
+}
+body.skin-hexhive .sheet h2, body.skin-hexhive .sheet h3, body.skin-hexhive .sheet p, body.skin-hexhive .sheet li { color: #0B0F17; }
+body.skin-hexhive .set-home { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+body.skin-hexhive .set-card {
+  min-height: 72px; text-align: left; padding: 10px 16px; border: 0; background: #FFC857; color: #0B0F17;
+  clip-path: polygon(8% 0, 92% 0, 100% 50%, 92% 100%, 8% 100%, 0 50%);
+}
+body.skin-hexhive .set-card strong { display: block; font-size: 13px; }
+body.skin-hexhive .set-card span { font-size: 12px; }
+body.skin-hexhive .set-sub { display: flex; flex-wrap: wrap; gap: 4px; }
+body.skin-hexhive .set-sub button { min-height: 44px; background: #0B0F17; color: #F7F3E6; border: 0; }
+body.skin-hexhive .set-sub button[aria-selected="true"] { background: #00C2A8; color: #0B0F17; }
+body.skin-hexhive .sheet button { background: #0B0F17; color: #F7F3E6; border-color: #0B0F17; }
+body.skin-hexhive .sheet .set-card { background: #FFC857; color: #0B0F17; }
+body.skin-hexhive .sheet .set-card span { color: #0B0F17; }
+body.skin-hexhive .sheet .primary, body.skin-hexhive .sheet .back-log { background: #00C2A8; color: #0B0F17; border-color: #00C2A8; }
+body.skin-hexhive .sheet input, body.skin-hexhive .sheet select, body.skin-hexhive .sheet textarea {
+  background: #fff; color: #0B0F17; border-color: #0B0F17; font-size: 16px;
+}
+body.skin-hexhive .skin-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+body.skin-hexhive .skin-pick button { min-height: 52px; text-align: left; background: #FFC857; color: #0B0F17; }
+body.skin-hexhive .skin-pick .muted { display: block; font-size: 12px; }
+body.skin-hexhive #mini-root { width: 168px; max-width: 168px; left: auto; right: 6px; bottom: 8px; }
+body.skin-hexhive .hh-flower { position: relative; width: 156px; height: 170px; margin: 0 auto; }
+body.skin-hexhive .hh-mini {
+  position: absolute; width: 52px; height: 60px; min-width: 0; min-height: 0; padding: 8px 4px 4px; border: 0;
+  background: #FFC857; color: #0B0F17; font-size: 11px; line-height: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+body.skin-hexhive .hh-mini b { font-size: 16px; }
+body.skin-hexhive .hh-mini small, body.skin-hexhive .hh-m-c small, body.skin-hexhive .hh-m-sw { font-size: 11px; }
+body.skin-hexhive .hh-m-nw { left: 26px; top: 0; }
+body.skin-hexhive .hh-m-ne { left: 78px; top: 0; }
+body.skin-hexhive .hh-m-w { left: 0; top: 46px; }
+body.skin-hexhive .hh-m-e { left: 104px; top: 46px; }
+body.skin-hexhive .hh-m-c {
+  width: 64px; height: 74px; left: 46px; top: 40px; background: #0B0F17; color: #F7F3E6; z-index: 1;
+}
+body.skin-hexhive .hh-m-sw { left: 26px; top: 96px; background: #FFC857; color: #0B0F17; }
+body.skin-hexhive .hh-m-se { left: 78px; top: 96px; background: #00C2A8; color: #0B0F17; font-weight: 900; }
+body.skin-hexhive .hh-flower .mini-x { position: absolute; top: 0; right: 0; z-index: 2; min-width: 28px; min-height: 28px; }
+body.skin-hexhive .hh-mini:active { filter: brightness(0.82); }
+@media (max-height: 500px) {
+  body.skin-hexhive .hh-cell { width: 72px; height: 84px; flex-basis: 72px; }
+  body.skin-hexhive .hh-row + .hh-row { margin-top: -22px; }
+  body.skin-hexhive .hh-hit { left: 14px; right: 14px; top: 12px; bottom: 12px; }
+  body.skin-hexhive .log-set { margin-right: 0; }
+  body.skin-hexhive #mini-root { top: 6px; bottom: auto; right: 6px; width: 140px; }
+  body.skin-hexhive .hh-flower { width: 132px; height: 146px; }
+  body.skin-hexhive .zone-nav, body.skin-hexhive .rest-actions { margin-right: 150px; }
+}
+
 </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -4251,10 +4436,11 @@ const exerciseDatabase = [
       chalkboard: { bg: 'chalkboard/background.webp', note: 'chalkboard/sticky-note.webp', dust: 'chalkboard/chalk-smudge.webp', mini: 'chalkboard/mini-slate.webp' },
       scoreboard: { bg: 'scoreboard/background.webp', bezel: 'scoreboard/cabinet-bezel.webp', mini: 'scoreboard/mini-led-strip.webp' },
       transitline: { bg: 'transitline/background.webp', mini: 'transitline/mini-pill.webp' },
-      vinyldeck: { bg: 'vinyldeck/background.webp', platter: 'vinyldeck/platter.webp', knob: 'vinyldeck/fader-knob.webp', mini: 'vinyldeck/mini-record.webp' }
+      vinyldeck: { bg: 'vinyldeck/background.webp', platter: 'vinyldeck/platter.webp', knob: 'vinyldeck/fader-knob.webp', mini: 'vinyldeck/mini-record.webp' },
+      hexhive: { bg: 'hexhive/background.webp', honey: 'hexhive/hex-honey.webp', teal: 'hexhive/hex-teal.webp', mini: 'hexhive/mini-cluster.webp' }
     };
     const pack = packs[state.skinId] || {};
-    ['bg', 'frame', 'sky', 'ring', 'bolt', 'mini', 'note', 'dust', 'bezel', 'platter', 'knob'].forEach(function (key) {
+    ['bg', 'frame', 'sky', 'ring', 'bolt', 'mini', 'note', 'dust', 'bezel', 'platter', 'knob', 'honey', 'teal'].forEach(function (key) {
       document.documentElement.style.setProperty('--art-' + key, pack[key] ? 'url("' + artUrl(pack[key]) + '")' : 'none');
     });
   }
@@ -4793,12 +4979,60 @@ const exerciseDatabase = [
       '<section class="zone zone-now">' + main + '</section>' +
       '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button><button type="button" data-act="tab" data-tab="history" data-pad="1">History</button><button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button><button type="button" data-act="mini-open" data-pad="1">Mini</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button><button type="button" data-act="finish" data-pad="1">Finish</button></nav></div>';
   }
+  function hexCompose() {
+    const f = curFocus();
+    const cur = f.cur, set = f.set;
+    const off = state.settings.restEnabled === false;
+    const resting = viewCache.rest[viewCache.partner] > 0 && !off;
+    const status = off ? 'Rest off' : (resting ? 'Resting' : 'Rest ready');
+    const labels = transitLabels();
+    const bits = String(set && set.prev || '').split('×');
+    const prevW = bits[0] && bits[0] !== '—' ? bits[0] : '—';
+    const prevR = bits[1] || '—';
+    function cell(cls, inner) {
+      return '<div class="hh-cell ' + cls + '"><span class="hh-face" aria-hidden="true"></span>' + inner + '</div>';
+    }
+    function nudge(dir, field) {
+      if (!cur || !set) return '';
+      const word = field === 'weight' ? 'LBS' : 'REPS';
+      const aria = (dir < 0 ? 'Decrease ' : 'Increase ') + (field === 'weight' ? 'weight' : 'reps');
+      return cell('hh-step', '<button type="button" class="hh-hit" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="' + field + '" data-dir="' + dir + '" data-pad="1" aria-label="' + aria + '"><b>' + (dir < 0 ? '−' : '+') + '</b><small>' + word + '</small></button>');
+    }
+    function valueHex(field, title, prev) {
+      if (!cur || !set) return '';
+      const raw = set[field] || '';
+      return cell('hh-val', '<label class="hh-hit"><input class="hh-num" data-lockrender="1" data-act="field" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="' + field + '" type="number" inputmode="decimal" value="' + esc(raw) + '" aria-label="' + (field === 'weight' ? 'Pounds' : 'Reps') + '"><small>' + title + '</small><small class="hh-prev">PREV ' + esc(prev) + '</small></label>');
+    }
+    const people = state.duoMode ? ['batman', 'robin'] : [partner()];
+    const badges = people.map(function (p) {
+      const on = partner() === p;
+      return '<span class="hh-badge-slot' + (on ? ' on' : '') + '"><i class="hh-badge-rim" aria-hidden="true"></i><button type="button" class="hh-badge who-btn ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" data-pad="1" aria-current="' + (on ? 'true' : 'false') + '">' + esc(state.partnerNames[p] || p) + '</button></span>';
+    }).join('');
+    const chips = viewCache.exercises.map(function (ex, i) {
+      return '<li><button type="button" class="hh-chip' + (ex.current ? ' on' : '') + '" data-act="focus-ex" data-ex="' + esc(ex.id) + '" aria-label="' + esc(ex.name) + '">' + esc(labels[i]) + '</button></li>';
+    }).join('');
+    const comb = cur && set
+      ? '<div class="hh-comb"><div class="hh-row hh-row-2">' + nudge(-1, 'weight') + nudge(1, 'weight') + '</div><div class="hh-row hh-row-3">' + nudge(-1, 'reps') + cell('hh-core', '<div class="hh-hit hh-core-copy"><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">SET ' + (set.index + 1) + '</p></div>') + nudge(1, 'reps') + '</div><div class="hh-row hh-row-2">' + valueHex('weight', 'LBS', prevW) + valueHex('reps', 'REPS', prevR) + '</div><div class="hh-row hh-row-3">' + cell('hh-deco', '') + cell('hh-log', '<button type="button" class="log-set hh-hit" data-act="log-set" data-pad="1" data-focus="1">LOG SET</button>') + cell('hh-deco', '') + '</div></div>'
+      : '<p>No cell on this day.</p>';
+    const rest = '<section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '" data-rest-enabled="' + (off ? 'false' : 'true') + '"><div class="hh-ring-wrap"><svg class="hh-ring" viewBox="0 0 100 104" aria-hidden="true"><polygon points="50,4 96,28 96,76 50,100 4,76 4,28" fill="none" stroke="#0B0F17" stroke-width="3"/><polygon data-rest-arc data-fill data-peri="100" pathLength="100" points="50,4 96,28 96,76 50,100 4,76 4,28" fill="none" stroke="#00C2A8" stroke-width="4" stroke-linejoin="round"></polygon></svg><p class="hh-clock"><span class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</span><span class="rest-status">' + status + '</span></p></div><div class="rest-actions"><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1" aria-label="' + (off ? 'Turn rest on' : 'Turn rest off') + '">' + (off ? 'Rest on' : 'Rest off') + '</button></div></section>';
+    const tempoOn = !!state.settings.tempo.running;
+    const tempo = '<section class="zone zone-tempo" data-tempo-live="' + (tempoOn ? 'on' : 'off') + '"><div class="hh-bpm"><b>60</b><span>BPM</span><em data-metro>' + esc(runtime.phase) + '</em><button type="button" data-act="tempo-toggle" data-pad="1">' + (tempoOn ? 'Tempo off' : 'Tempo on') + '</button></div><div class="hh-phases"><span data-phase="LOWER">ECC</span><span data-phase="BOTTOM">PAUSE</span><span data-phase="LIFT">CON</span><span data-phase="TOP">PAUSE</span></div></section>';
+    const main = ui.tab === 'log'
+      ? comb + rest + tempo + '<ol class="hh-chips">' + chips + '</ol>'
+      : '<div class="zone-panel">' + backLog() + panel() + '</div>';
+    return '<div class="zones hh-layout">' + padGlyphs() + welcomeHTML() +
+      '<header class="zone zone-head"><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></header>' +
+      '<div class="hh-badges" role="group" aria-label="Active partner">' + badges + '</div>' +
+      '<section class="zone zone-now">' + main + '</section>' +
+      '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button><button type="button" data-act="tab" data-tab="history" data-pad="1">History</button><button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button><button type="button" data-act="mini-open" data-pad="1">Mini</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button><button type="button" data-act="finish" data-pad="1">Finish</button></nav></div>';
+  }
   function sharedShell() {
     viewCache = view();
     if (state.skinId === 'chalkboard') return chalkCompose();
     if (state.skinId === 'scoreboard') return scoreCompose();
     if (state.skinId === 'transitline') return transitCompose();
     if (state.skinId === 'vinyldeck') return vinylCompose();
+    if (state.skinId === 'hexhive') return hexCompose();
     const f = curFocus();
     const cur = f.cur, set = f.set;
     const id = cur ? esc(cur.id) : '';
@@ -4881,7 +5115,19 @@ const exerciseDatabase = [
       };
       return '<div class="mini-body"><div class="vd-remote" data-drag="1">' + shut + '<div class="vd-reels">' + reel(-1, 'weight') + reel(1, 'weight') + '</div><div class="vd-tags"><span>LBS</span><span>REPS</span></div><strong>' + shown + '</strong>' + rest + log + '</div>' + more + fields + '</div>';
     }
-    if (shape === 'flower') return '<div class="mini-body">' + shut + '<div class="mini-hexes"><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><div class="mini-core"><b>' + name + '</b><small>' + prev + '</small></div><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button>' + log + '</div>' + who + rest + more + fields + '</div>';
+    if (shape === 'flower') {
+      const petal = function (dir, field, cls) {
+        const word = field === 'weight' ? 'LBS' : 'REPS';
+        return '<button type="button" class="hh-mini ' + cls + '" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="' + field + '" data-dir="' + dir + '" aria-label="' + (dir < 0 ? 'Decrease ' : 'Increase ') + (field === 'weight' ? 'weight' : 'reps') + '"><b>' + (dir < 0 ? '−' : '+') + '</b><small>' + word + '</small></button>';
+      };
+      return '<div class="mini-body"><div class="hh-flower" data-drag="1">' + shut +
+        petal(-1, 'weight', 'hh-m-nw') + petal(1, 'weight', 'hh-m-ne') +
+        petal(-1, 'reps', 'hh-m-w') +
+        '<div class="hh-mini hh-m-c"><b>' + name + '</b><small>SET ' + (set ? (set.index + 1) : '—') + '</small></div>' +
+        petal(1, 'reps', 'hh-m-e') +
+        '<div class="hh-mini hh-m-sw">' + rest + '</div>' +
+        '<button type="button" class="hh-mini hh-m-se mini-log" data-act="log-set">LOG</button></div>' + more + fields + '</div>';
+    }
     return '<div class="mini-body"><div class="mini-card">' + chrome + '<strong>' + name + '</strong><p>prev ' + prev + '</p>' + log + more + fields + '</div></div>';
   }
   function popHTML() {
@@ -4931,7 +5177,7 @@ const exerciseDatabase = [
   function settingsBody(cat, sub) {
     if (cat === 'appearance' && sub === 'skin') {
       const skins = SIC.builtinSkins().concat(state.communitySkins || []).map(function (s) {
-        const finished = s.slug === 'starclassic' || s.slug === 'pixelforecast' || s.slug === 'irondial' || s.slug === 'chalkboard' || s.slug === 'scoreboard' || s.slug === 'transitline' || s.slug === 'vinyldeck';
+        const finished = s.slug === 'starclassic' || s.slug === 'pixelforecast' || s.slug === 'irondial' || s.slug === 'chalkboard' || s.slug === 'scoreboard' || s.slug === 'transitline' || s.slug === 'vinyldeck' || s.slug === 'hexhive';
         const look = finished ? '' : '<span class="muted">Beta look</span>';
         return '<button type="button" class="' + (state.skinId === s.slug ? 'on' : '') + '" data-act="skin" data-skin="' + esc(s.slug) + '"><strong>' + esc(s.name) + '</strong>' + look + '</button>';
       }).join('');
@@ -5271,8 +5517,9 @@ const exerciseDatabase = [
     const pct = state.settings.restEnabled === false ? 0 : Math.max(0, Math.min(1, rem / total));
     document.querySelectorAll('[data-rest-arc]').forEach(function (el) {
       const r = Number(el.getAttribute('r')) || 46;
-      const circ = 2 * Math.PI * r;
-      const wedge = el.hasAttribute('data-erase') ? pct * circ : pct * 0.30 * circ;
+      const peri = Number(el.getAttribute('data-peri'));
+      const circ = peri > 0 ? peri : 2 * Math.PI * r;
+      const wedge = el.hasAttribute('data-fill') ? (1 - pct) * circ : (el.hasAttribute('data-erase') ? pct * circ : pct * 0.30 * circ);
       el.setAttribute('stroke-dasharray', wedge.toFixed(1) + ' ' + circ.toFixed(1));
     });
     document.querySelectorAll('[data-rest-bar]').forEach(function (el) { el.style.width = Math.round(pct * 100) + '%'; });
