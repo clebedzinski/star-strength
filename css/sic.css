@@ -1784,7 +1784,8 @@ body.skin-transitline .map { display: grid; grid-template-columns: auto minmax(0
 body.skin-transitline .map .line { display: flex; }
 body.skin-transitline .line { position: relative; width: 118px; }
 body.skin-transitline .map:has(.line + .line) { grid-template-columns: auto auto minmax(0, 1fr) 48px; }
-body.skin-transitline .map:has(.line + .line) .line { width: 92px; }
+body.skin-transitline .map:has(.line + .line) .line { width: 100px; }
+body.skin-transitline .map:has(.line + .line) .station span { font-size: 12px; line-height: 1.1; white-space: nowrap; }
 body.skin-transitline .line:not(.on) { opacity: 0.72; }
 body.skin-transitline .curve { position: absolute; left: 0; top: 0; width: 36px; height: 100%; }
 body.skin-transitline .t-route { list-style: none; margin: 0; padding: 0; min-height: 0; position: relative; }
@@ -1807,14 +1808,13 @@ body.skin-transitline .station.on button { font-size: 16px; font-weight: 800; }
 body.skin-transitline .station.on i { width: 18px; height: 18px; background: #E4573D; box-shadow: 0 0 0 4px #F7C7B8; margin-left: 5px; }
 body.skin-transitline .line.robin .station.on i { background: #2563EB; box-shadow: 0 0 0 4px #BFDBFE; }
 body.skin-transitline .depart {
-  background: #1E293B; color: #F6C445; border-radius: 14px; padding: 8px 10px; min-height: 0;
+  background: #1E293B; color: #F6C445; border-radius: 14px; padding: 6px 8px; min-height: 0; min-width: 0;
   font-family: "Share Tech Mono", ui-monospace, monospace;
 }
-body.skin-transitline .next-kicker { margin: 0; letter-spacing: 0.14em; font-size: 12px; color: #F6C445; }
-body.skin-transitline .depart .ex-name { margin: 2px 0 6px; color: #F6C445; font-size: 16px; font-family: "Share Tech Mono", ui-monospace, monospace; }
-body.skin-transitline .amber { margin: 0; font-size: 14px; color: #F6C445; letter-spacing: 0.06em; }
-body.skin-transitline .amber b { font-weight: 700; }
-body.skin-transitline .set-progress { margin: 4px 0 0; color: #F6C445; font-size: 13px; }
+body.skin-transitline .next-kicker { margin: 0; letter-spacing: 0; font-size: 12px; color: #F6C445; white-space: nowrap; }
+body.skin-transitline .depart .ex-name { margin: 2px 0 4px; color: #F6C445; font-size: 14px; line-height: 1.15; font-family: "Share Tech Mono", ui-monospace, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.skin-transitline .amber { margin: 0; font-size: 13px; color: #F6C445; letter-spacing: 0; white-space: nowrap; }
+body.skin-transitline .depart .set-progress { margin: 2px 0 0; color: #F6C445; font-size: 13px; letter-spacing: 0; white-space: nowrap; }
 body.skin-transitline .add-cap {
   width: 48px; min-height: 120px; border: 3px solid #1E293B; border-radius: 24px;
   background: #F7F3E6; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
@@ -1853,18 +1853,23 @@ body.skin-transitline .rest-actions button {
   font-size: 13px; white-space: nowrap; background: #fff; color: #1E293B; border: 1px solid #E4573D;
 }
 body.skin-transitline .signals { display: flex; gap: 10px; align-items: center; margin-bottom: 4px; }
-body.skin-transitline .sig { width: 16px; height: 16px; border-radius: 50%; background: #d6d3d1; display: inline-block; border: 2px solid #1E293B; }
-body.skin-transitline .sig.red.on { background: #E4573D; box-shadow: 0 0 8px #E4573D; }
+body.skin-transitline .signal-head { display: inline-flex; flex-direction: column; gap: 3px; background: #1E293B; border-radius: 12px; padding: 4px; }
+body.skin-transitline .sig { width: 18px; height: 18px; border-radius: 50%; display: block; border: 0; }
+body.skin-transitline .sig.red { background: #6b2420; }
+body.skin-transitline .sig.amber { background: #6b5420; }
+body.skin-transitline .sig.green { background: #1a4a32; }
+body.skin-transitline .sig.red.on { background: #ff4d3a; box-shadow: 0 0 8px #ff4d3a; }
 body.skin-transitline .sig.amber.on { background: #F6C445; box-shadow: 0 0 8px #F6C445; }
-body.skin-transitline .sig.green.on { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+body.skin-transitline .sig.green.on { background: #3dff7a; box-shadow: 0 0 8px #3dff7a; }
 body.skin-transitline .zone-tempo[data-tempo-live="on"] .sig.on { animation: transit-blink 0.8s steps(2) infinite; }
 @keyframes transit-blink { 50% { opacity: 0.35; } }
 body.skin-transitline .tempo-read { margin: 0 0 4px; font-size: 14px; color: #1E293B; }
 body.skin-transitline .tempo-lamp { font-weight: 800; }
-body.skin-transitline .zone-tempo button, body.skin-transitline .zone-nav button {
-  background: #fff; color: #1E293B; border: 1px solid #E4573D; min-height: 40px; font-size: 13px;
+body.skin-transitline .zone-tempo button {
+  background: #F7F3E6; color: #1E293B; border: 1px solid #1E293B; min-height: 40px; font-size: 13px;
 }
-body.skin-transitline .zone-nav { position: static; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #F7F3E6; }
+body.skin-transitline .zone-nav { position: static; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; background: #F7F3E6; border-top: 1px solid #1E293B; padding-top: 6px; }
+body.skin-transitline .zone-nav button { background: #F7F3E6; color: #1E293B; border: 1px solid #1E293B; min-height: 40px; font-size: 13px; }
 body.skin-transitline .sheet, body.skin-transitline .pop {
   background-color: #F7F3E6; color: #1E293B; border: 3px solid #1E293B;
   font-family: "Space Grotesk", sans-serif;

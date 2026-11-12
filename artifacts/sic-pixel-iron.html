@@ -1792,7 +1792,8 @@ body.skin-transitline .map { display: grid; grid-template-columns: auto minmax(0
 body.skin-transitline .map .line { display: flex; }
 body.skin-transitline .line { position: relative; width: 118px; }
 body.skin-transitline .map:has(.line + .line) { grid-template-columns: auto auto minmax(0, 1fr) 48px; }
-body.skin-transitline .map:has(.line + .line) .line { width: 92px; }
+body.skin-transitline .map:has(.line + .line) .line { width: 100px; }
+body.skin-transitline .map:has(.line + .line) .station span { font-size: 12px; line-height: 1.1; white-space: nowrap; }
 body.skin-transitline .line:not(.on) { opacity: 0.72; }
 body.skin-transitline .curve { position: absolute; left: 0; top: 0; width: 36px; height: 100%; }
 body.skin-transitline .t-route { list-style: none; margin: 0; padding: 0; min-height: 0; position: relative; }
@@ -1815,14 +1816,13 @@ body.skin-transitline .station.on button { font-size: 16px; font-weight: 800; }
 body.skin-transitline .station.on i { width: 18px; height: 18px; background: #E4573D; box-shadow: 0 0 0 4px #F7C7B8; margin-left: 5px; }
 body.skin-transitline .line.robin .station.on i { background: #2563EB; box-shadow: 0 0 0 4px #BFDBFE; }
 body.skin-transitline .depart {
-  background: #1E293B; color: #F6C445; border-radius: 14px; padding: 8px 10px; min-height: 0;
+  background: #1E293B; color: #F6C445; border-radius: 14px; padding: 6px 8px; min-height: 0; min-width: 0;
   font-family: "Share Tech Mono", ui-monospace, monospace;
 }
-body.skin-transitline .next-kicker { margin: 0; letter-spacing: 0.14em; font-size: 12px; color: #F6C445; }
-body.skin-transitline .depart .ex-name { margin: 2px 0 6px; color: #F6C445; font-size: 16px; font-family: "Share Tech Mono", ui-monospace, monospace; }
-body.skin-transitline .amber { margin: 0; font-size: 14px; color: #F6C445; letter-spacing: 0.06em; }
-body.skin-transitline .amber b { font-weight: 700; }
-body.skin-transitline .set-progress { margin: 4px 0 0; color: #F6C445; font-size: 13px; }
+body.skin-transitline .next-kicker { margin: 0; letter-spacing: 0; font-size: 12px; color: #F6C445; white-space: nowrap; }
+body.skin-transitline .depart .ex-name { margin: 2px 0 4px; color: #F6C445; font-size: 14px; line-height: 1.15; font-family: "Share Tech Mono", ui-monospace, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.skin-transitline .amber { margin: 0; font-size: 13px; color: #F6C445; letter-spacing: 0; white-space: nowrap; }
+body.skin-transitline .depart .set-progress { margin: 2px 0 0; color: #F6C445; font-size: 13px; letter-spacing: 0; white-space: nowrap; }
 body.skin-transitline .add-cap {
   width: 48px; min-height: 120px; border: 3px solid #1E293B; border-radius: 24px;
   background: #F7F3E6; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
@@ -1861,18 +1861,23 @@ body.skin-transitline .rest-actions button {
   font-size: 13px; white-space: nowrap; background: #fff; color: #1E293B; border: 1px solid #E4573D;
 }
 body.skin-transitline .signals { display: flex; gap: 10px; align-items: center; margin-bottom: 4px; }
-body.skin-transitline .sig { width: 16px; height: 16px; border-radius: 50%; background: #d6d3d1; display: inline-block; border: 2px solid #1E293B; }
-body.skin-transitline .sig.red.on { background: #E4573D; box-shadow: 0 0 8px #E4573D; }
+body.skin-transitline .signal-head { display: inline-flex; flex-direction: column; gap: 3px; background: #1E293B; border-radius: 12px; padding: 4px; }
+body.skin-transitline .sig { width: 18px; height: 18px; border-radius: 50%; display: block; border: 0; }
+body.skin-transitline .sig.red { background: #6b2420; }
+body.skin-transitline .sig.amber { background: #6b5420; }
+body.skin-transitline .sig.green { background: #1a4a32; }
+body.skin-transitline .sig.red.on { background: #ff4d3a; box-shadow: 0 0 8px #ff4d3a; }
 body.skin-transitline .sig.amber.on { background: #F6C445; box-shadow: 0 0 8px #F6C445; }
-body.skin-transitline .sig.green.on { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+body.skin-transitline .sig.green.on { background: #3dff7a; box-shadow: 0 0 8px #3dff7a; }
 body.skin-transitline .zone-tempo[data-tempo-live="on"] .sig.on { animation: transit-blink 0.8s steps(2) infinite; }
 @keyframes transit-blink { 50% { opacity: 0.35; } }
 body.skin-transitline .tempo-read { margin: 0 0 4px; font-size: 14px; color: #1E293B; }
 body.skin-transitline .tempo-lamp { font-weight: 800; }
-body.skin-transitline .zone-tempo button, body.skin-transitline .zone-nav button {
-  background: #fff; color: #1E293B; border: 1px solid #E4573D; min-height: 40px; font-size: 13px;
+body.skin-transitline .zone-tempo button {
+  background: #F7F3E6; color: #1E293B; border: 1px solid #1E293B; min-height: 40px; font-size: 13px;
 }
-body.skin-transitline .zone-nav { position: static; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #F7F3E6; }
+body.skin-transitline .zone-nav { position: static; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; background: #F7F3E6; border-top: 1px solid #1E293B; padding-top: 6px; }
+body.skin-transitline .zone-nav button { background: #F7F3E6; color: #1E293B; border: 1px solid #1E293B; min-height: 40px; font-size: 13px; }
 body.skin-transitline .sheet, body.skin-transitline .pop {
   background-color: #F7F3E6; color: #1E293B; border: 3px solid #1E293B;
   font-family: "Space Grotesk", sans-serif;
@@ -4440,15 +4445,16 @@ const exerciseDatabase = [
     }).join('');
     const lines = (state.duoMode ? ['batman', 'robin'] : [partner()]).map(transitLine).join('');
     const estSec = state.settings.restSeconds || (state.rest[partner()] && state.rest[partner()].duration) || 240;
+    const estText = Math.floor(estSec / 60) + ':' + String(estSec % 60).padStart(2, '0');
     const capsule = '<aside class="add-cap"><span class="cap-line" aria-hidden="true"></span><input id="add-name" data-lockrender="1" list="ex-db" placeholder="" aria-label="Exercise to add"><button type="button" class="cap-plus" data-act="add-ask" aria-label="Add exercise">+</button></aside>' + datalist();
     const board = cur && set
-      ? '<section class="depart"><p class="next-kicker">NEXT SET</p><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="amber">LBS <b>' + esc(set.weight || '—') + '</b></p><p class="amber">REPS <b>' + esc(set.reps || '—') + '</b></p><p class="amber">EST <b>' + fmtClock(estSec) + '</b></p><p class="set-progress">Set ' + (set.index + 1) + ' of ' + cur.sets.length + '</p></section>'
+      ? '<section class="depart"><p class="next-kicker">NEXT SET</p><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="amber">LBS ' + esc(set.weight || '—') + '</p><p class="amber">REPS ' + esc(set.reps || '—') + '</p><p class="amber">EST ' + estText + '</p><p class="set-progress">' + (set.index + 1) + '/' + cur.sets.length + '</p></section>'
       : '';
     const below = cur && set
       ? '<div class="log-block"><div class="sign-grid"><div class="prev-col"><span>PREV</span><b>' + esc(set.prev) + '</b></div><label>Lbs' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label></div><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1">LOG SET</button><section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '" data-rest-enabled="' + (off ? 'false' : 'true') + '"><p class="depart-line">Next set departs in <span class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</span></p><div class="rest-actions"><p class="rest-status">' + status + '</p><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1" aria-label="' + (off ? 'Turn rest on' : 'Turn rest off') + '">' + (off ? 'Rest on' : 'Rest off') + '</button></div></section></div>'
       : '<p>No service on this day.</p>';
     const main = ui.tab === 'log' ? '<div class="map">' + lines + board + capsule + '</div>' + below : '<div class="zone-panel">' + backLog() + panel() + '</div>';
-    const signals = '<section class="zone zone-tempo" data-tempo-live="' + (state.settings.tempo.running ? 'on' : 'off') + '"><div class="signals" aria-hidden="true"><i class="sig red" data-sig="LOWER"></i><i class="sig amber" data-sig="BOTTOM TOP"></i><i class="sig green" data-sig="LIFT"></i></div><p class="tempo-read">Phase <span class="tempo-lamp" data-metro>' + esc(runtime.phase) + '</span></p><button type="button" data-act="tempo-toggle" data-pad="1">' + (state.settings.tempo.running ? 'Tempo off' : 'Tempo on') + '</button></section>';
+    const signals = '<section class="zone zone-tempo" data-tempo-live="' + (state.settings.tempo.running ? 'on' : 'off') + '"><div class="signals"><span class="signal-head" aria-hidden="true"><i class="sig red" data-sig="LOWER"></i><i class="sig amber" data-sig="BOTTOM TOP"></i><i class="sig green" data-sig="LIFT"></i></span><p class="tempo-read">Phase <span class="tempo-lamp" data-metro>' + esc(runtime.phase) + '</span></p></div><button type="button" data-act="tempo-toggle" data-pad="1">' + (state.settings.tempo.running ? 'Tempo off' : 'Tempo on') + '</button></section>';
     return '<div class="zones transit-layout">' + padGlyphs() + welcomeHTML() +
       '<header class="zone zone-head"><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></header>' +
       '<div class="zone zone-partners" role="group" aria-label="Active partner">' + who + '</div>' +
