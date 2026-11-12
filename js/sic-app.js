@@ -668,15 +668,41 @@
       tempoBlock() +
       '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button><button type="button" data-act="tab" data-tab="history" data-pad="1">History</button><button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button><button type="button" data-act="mini-open" data-pad="1">Mini</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button><button type="button" data-act="finish" data-pad="1">Finish</button></nav></div>';
   }
+  function shortStop(name) {
+    const rules = [['pushdown', 'Pushdown'], ['pulldown', 'Pulldown'], ['incline', 'Incline'], ['decline', 'Decline'], ['deadlift', 'Deadlift'], ['fly', 'Fly'], ['dip', 'Dips'], ['bench', 'Bench'], ['squat', 'Squat'], ['row', 'Row'], ['curl', 'Curl'], ['raise', 'Raise'], ['press', 'Press'], ['crunch', 'Crunch']];
+    const n = String(name || '').toLowerCase();
+    for (let i = 0; i < rules.length; i++) if (n.indexOf(rules[i][0]) >= 0) return rules[i][1];
+    const bit = String(name || '').split(' ').pop() || 'Lift';
+    return bit.slice(0, 10);
+  }
+  function transitLabels() {
+    const used = {};
+    return viewCache.exercises.map(function (ex) {
+      let label = shortStop(ex.name);
+      if (used[label]) label = (/dumbbell/i.test(ex.name) ? 'DB ' : ex.name.split(' ')[0].slice(0, 4) + ' ') + label;
+      used[label] = 1;
+      return label;
+    });
+  }
   function transitLine(who) {
     const active = partner() === who;
+    const labels = transitLabels();
+    const n = viewCache.exercises.length || 1;
+    const h = n * 48;
+    let d = 'M 18 4';
+    for (let i = 0; i < n; i++) {
+      const y = 24 + i * 48;
+      const sway = i % 2 ? 30 : 6;
+      d += ' Q ' + sway + ' ' + (y - 20) + ' 18 ' + y;
+    }
+    const color = who === 'robin' ? '#2563EB' : '#E4573D';
     const stops = viewCache.exercises.map(function (ex) {
       const flag = who === 'robin' ? 'robinDone' : 'batmanDone';
       const filled = ex.sets.length && ex.sets.every(function (s) { return s[flag]; });
       const here = !!(ex.current && active);
-      return '<li class="stop' + (filled ? ' done' : '') + (here ? ' on' : '') + '"><button type="button" data-act="focus-ex" data-ex="' + esc(ex.id) + '"><i></i><span>' + esc(ex.name) + '</span></button></li>';
+      return '<li class="station' + (filled ? ' done' : '') + (here ? ' on' : '') + '"><button type="button" data-act="focus-ex" data-ex="' + esc(ex.id) + '" aria-label="' + esc(ex.name) + '"><i></i><span>' + esc(labels[viewCache.exercises.indexOf(ex)]) + '</span></button></li>';
     }).join('');
-    return '<div class="line ' + who + (active ? ' on' : '') + '"><ol class="route">' + stops + '</ol></div>';
+    return '<div class="line ' + who + (active ? ' on' : '') + '" style="height:' + h + 'px"><svg class="curve" viewBox="0 0 36 ' + h + '" preserveAspectRatio="none" aria-hidden="true"><path d="' + d + '" stroke="' + color + '" fill="none" stroke-width="5" stroke-linecap="round"/></svg><ol class="t-route">' + stops + '</ol></div>';
   }
   function transitCompose() {
     const f = curFocus();
@@ -689,10 +715,15 @@
       return '<button type="button" class="who-btn ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" data-pad="1" aria-current="' + (on ? 'true' : 'false') + '">' + esc(state.partnerNames[p] || p) + '</button>';
     }).join('');
     const lines = (state.duoMode ? ['batman', 'robin'] : [partner()]).map(transitLine).join('');
-    const sign = cur && set
-      ? '<section class="sign"><p class="next-kicker">CURRENT STATION</p><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">Set ' + (set.index + 1) + ' of ' + cur.sets.length + '</p><div class="sign-grid"><div class="prev-col"><span>PREV</span><b>' + esc(set.prev) + '</b></div><label>Lbs' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label></div><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1">LOG SET</button><section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '" data-rest-enabled="' + (off ? 'false' : 'true') + '"><p class="depart-line">Next set departs in <span class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</span></p><div class="rest-actions"><p class="rest-status">' + status + '</p><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1" aria-label="' + (off ? 'Turn rest on' : 'Turn rest off') + '">' + (off ? 'Rest on' : 'Rest off') + '</button></div></section></section>'
+    const estSec = state.settings.restSeconds || (state.rest[partner()] && state.rest[partner()].duration) || 240;
+    const capsule = '<aside class="add-cap"><span class="cap-line" aria-hidden="true"></span><input id="add-name" data-lockrender="1" list="ex-db" placeholder="" aria-label="Exercise to add"><button type="button" class="cap-plus" data-act="add-ask" aria-label="Add exercise">+</button></aside>' + datalist();
+    const board = cur && set
+      ? '<section class="depart"><p class="next-kicker">NEXT SET</p><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="amber">LBS <b>' + esc(set.weight || '—') + '</b></p><p class="amber">REPS <b>' + esc(set.reps || '—') + '</b></p><p class="amber">EST <b>' + fmtClock(estSec) + '</b></p><p class="set-progress">Set ' + (set.index + 1) + ' of ' + cur.sets.length + '</p></section>'
+      : '';
+    const below = cur && set
+      ? '<div class="log-block"><div class="sign-grid"><div class="prev-col"><span>PREV</span><b>' + esc(set.prev) + '</b></div><label>Lbs' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label></div><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1">LOG SET</button><section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '" data-rest-enabled="' + (off ? 'false' : 'true') + '"><p class="depart-line">Next set departs in <span class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</span></p><div class="rest-actions"><p class="rest-status">' + status + '</p><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1" aria-label="' + (off ? 'Turn rest on' : 'Turn rest off') + '">' + (off ? 'Rest on' : 'Rest off') + '</button></div></section></div>'
       : '<p>No service on this day.</p>';
-    const main = ui.tab === 'log' ? '<div class="map">' + lines + '</div>' + sign : '<div class="zone-panel">' + backLog() + panel() + '</div>';
+    const main = ui.tab === 'log' ? '<div class="map">' + lines + board + capsule + '</div>' + below : '<div class="zone-panel">' + backLog() + panel() + '</div>';
     const signals = '<section class="zone zone-tempo" data-tempo-live="' + (state.settings.tempo.running ? 'on' : 'off') + '"><div class="signals" aria-hidden="true"><i class="sig red" data-sig="LOWER"></i><i class="sig amber" data-sig="BOTTOM TOP"></i><i class="sig green" data-sig="LIFT"></i></div><p class="tempo-read">Phase <span class="tempo-lamp" data-metro>' + esc(runtime.phase) + '</span></p><button type="button" data-act="tempo-toggle" data-pad="1">' + (state.settings.tempo.running ? 'Tempo off' : 'Tempo on') + '</button></section>';
     return '<div class="zones transit-layout">' + padGlyphs() + welcomeHTML() +
       '<header class="zone zone-head"><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></header>' +
