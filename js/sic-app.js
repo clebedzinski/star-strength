@@ -818,7 +818,7 @@
     function valueHex(field, title, prev) {
       if (!cur || !set) return '';
       const raw = set[field] || '';
-      const dash = raw ? '' : '<b class="hh-dash" aria-hidden="true">—</b>';
+      const dash = raw ? '' : '<b class="hh-dash" aria-hidden="true"></b>';
       return cell('hh-val' + (raw ? '' : ' hh-empty'), '<label class="hh-hit">' + dash + '<input class="hh-num" data-lockrender="1" data-act="field" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="' + field + '" type="number" inputmode="decimal" value="' + esc(raw) + '" aria-label="' + (field === 'weight' ? 'Pounds' : 'Reps') + '"><small>' + title + '</small><small class="hh-prev">prev ' + esc(prev) + '</small></label>');
     }
     const people = state.duoMode ? ['batman', 'robin'] : [partner()];
