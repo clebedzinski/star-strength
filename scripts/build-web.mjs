@@ -6,7 +6,11 @@ const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 const outDir = path.join(root, 'artifacts');
 fs.mkdirSync(outDir, { recursive: true });
 
-const css = fs.readFileSync(path.join(root, 'css/sic.css'), 'utf8');
+let css = fs.readFileSync(path.join(root, 'css/sic.css'), 'utf8');
+css = css.replace(/url\('\.\.\/assets\/fonts\/([^']+)'\)/g, function (_m, name) {
+  const buf = fs.readFileSync(path.join(root, 'assets/fonts', name));
+  return "url('data:font/woff2;base64," + buf.toString('base64') + "')";
+});
 let html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const art = {};
 const skinDir = path.join(root, 'assets/skins');
@@ -28,18 +32,12 @@ for (const name of ['sic-config', 'sic-data', 'sic-logic', 'sic-fx', 'sic-app'])
   if (js.includes('</script>')) throw new Error(name + ' contains a closing script tag');
   html = html.replace('<script src="js/' + name + '.js"></script>', '<script>\n' + js + '\n</script>');
 }
-const single = path.join(outDir, 'sic.html');
-const named = path.join(outDir, 'sic-pixel-iron.html');
+const single = path.join(outDir, 'strength-in-character-1.2.0.html');
 fs.writeFileSync(single, html);
-fs.writeFileSync(named, html);
-const zip = path.join(outDir, 'sic-web.zip');
-const namedZip = path.join(outDir, 'sic-pixel-iron-web.zip');
+const zip = path.join(outDir, 'strength-in-character-1.2.0-web.zip');
 if (fs.existsSync(zip)) fs.unlinkSync(zip);
-if (fs.existsSync(namedZip)) fs.unlinkSync(namedZip);
 execFileSync('zip', ['-r', zip, 'index.html', 'css', 'js', 'assets', 'README.md', 'INSTALL.md', 'CHANGELOG.md'], { cwd: root, stdio: 'inherit' });
-fs.copyFileSync(zip, namedZip);
+if (html.includes('fonts.googleapis.com') || html.includes('fonts.gstatic.com')) throw new Error('single file still references Google Fonts');
 console.log(single);
-console.log(named);
 console.log('inlined art files', Object.keys(art).length, 'html bytes', html.length);
 console.log(zip);
-console.log(namedZip);
