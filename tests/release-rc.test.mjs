@@ -82,17 +82,20 @@ test('welcome, about, bug share, xml, autosave, and finish', async () => {
     if (!/1\.1\.0/.test(about)) problems.push('about version');
     if (!/Ryan "ryno"/.test(about)) problems.push('about credit');
     if (!/stays on this device/i.test(about)) problems.push('about privacy');
-    if (!/Online bug reporting is coming soon\. Share this report with the developer\./.test(about)) problems.push('bug copy');
+    await page.getByRole('tab', { name: 'Bugs' }).click();
+    const bugs = await page.locator('.sheet').innerText();
+    if (!/Reports stay on this phone\. Tap Share to send one by text, email or any app, or Copy to paste it anywhere\./.test(bugs)) problems.push('bug note');
     if (await page.getByRole('button', { name: 'Submit' }).count()) problems.push('submit still shown');
     await page.locator('#bug-text').fill('The rest bar overlapped Finish.');
+    await page.getByRole('button', { name: 'Save report' }).click();
     await page.evaluate(() => { navigator.share = async (data) => { window.__shared = data; }; });
-    await page.getByRole('button', { name: 'Share' }).click();
+    await page.getByRole('button', { name: 'Share', exact: true }).click();
     await page.waitForTimeout(50);
     const shared = await page.evaluate(() => ({
       text: window.__shared && window.__shared.text,
       queued: (SICApp.state().settings.bugQueue || []).length
     }));
-    if (!shared.text || shared.text.indexOf('Online bug reporting is coming soon') < 0) problems.push('share text');
+    if (!shared.text || shared.text.indexOf('Reports stay on this phone') < 0) problems.push('share text');
     if (!shared.queued) problems.push('bug not saved');
     await fresh.close();
   } finally {

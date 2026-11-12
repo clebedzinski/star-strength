@@ -28,7 +28,7 @@ Date: 2026-11-07. App version `1.0.0-sic`. This environment has no physical phon
 
 ## Bug reports
 
-Not working against a server. `js/sic-config.js` has an empty endpoint. Submit stores the report on the device and says it is not configured. A pasted `/exec` URL is attempted as `text/plain` and is called submitted only after a JSON body `{ok:true,id}` with the same id. There is no `no-cors` success path. Owner steps are in `gas/SETUP.md`. That deployment was not done.
+Reports stay on the phone. Share and Copy send them. There is no server and no network call.
 
 ## Screenshots
 
@@ -71,7 +71,7 @@ Not working against a server. `js/sic-config.js` has an empty endpoint. Submit s
 
 ## Not in this build
 
-- A deployed bug-report URL. Required owner step: `gas/SETUP.md`.
+- A bug-report server. Reports stay on the phone and leave only through Share or Copy.
 - Skin Studio.
 - A defined action for `/mcphersonstrut`.
 - `/msg.user=`.

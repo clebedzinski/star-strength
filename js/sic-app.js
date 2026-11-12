@@ -2,7 +2,7 @@
 (function () {
   const SIC = window.SIC;
   const DATA = window.SICData;
-  const CFG = window.SIC_CONFIG || { appVersion: '1.0.0-sic', bugReportEndpoint: '', bugReportVerified: false };
+  const CFG = window.SIC_CONFIG || { appVersion: '1.0.0-sic' };
   const params = new URLSearchParams(location.search);
   const demo = params.get('demo') === '1';
   const ids = SIC.createIds(1000);
@@ -31,11 +31,10 @@
     builder: null,
     testInput: '',
     folderStatus: { routines: '', history: '', backups: '' },
-    bugPreview: false,
     settingsCat: null,
     settingsSub: 'skin'
   };
-  const runtime = { logLockUntil: 0, undo: null, restAlive: { batman: false, robin: false }, nodes: [], saveTimer: 0, dirty: false, lastError: '', bugVerified: false, handles: {}, metro: null, phase: 'READY' };
+  const runtime = { logLockUntil: 0, undo: null, restAlive: { batman: false, robin: false }, nodes: [], saveTimer: 0, dirty: false, lastError: '', handles: {}, metro: null, phase: 'READY', actions: [] };
   let state = null;
   let audioCtx = null;
   let userSound = false;
@@ -74,8 +73,6 @@
     try { if (native() && native().getPlatform) return String(native().getPlatform()); } catch (e) {}
     return 'web';
   }
-  function bugEndpoint() { return (state.settings.bugEndpoint || CFG.bugReportEndpoint || '').trim(); }
-  function bugStatus() { return SIC.bugFeatureStatus({ endpoint: bugEndpoint(), verified: !!(runtime.bugVerified || CFG.bugReportVerified) }); }
 
   function memoryStorage(seed) {
     const m = Object.assign({}, seed || {});
@@ -113,7 +110,6 @@
     const days = Object.keys((state.routines[state.activeRoutineId] && state.routines[state.activeRoutineId].days) || {});
     if (state.settings.activeDay && days.indexOf(state.settings.activeDay) >= 0) state.activeDay = state.settings.activeDay;
     else state.activeDay = SIC.autoDay(state.routines[state.activeRoutineId], Date.now());
-    runtime.bugVerified = !!state.settings.bugVerified;
     if (demo) seedDemo();
     if (params.get('skin') && (SIC.SKIN_SLUGS.indexOf(params.get('skin')) >= 0)) state.skinId = params.get('skin');
     if (params.get('panel')) ui.overlay = params.get('panel');
@@ -965,7 +961,7 @@
       { id: 'input', title: 'Input & mini', blurb: 'Controls and the mini', keys: 'gamepad keyboard mini overlay pip xbox playstation', subs: [] },
       { id: 'data', title: 'Data & files', blurb: 'Save, folders, XML', keys: 'autosave snapshot xml import export folder backup storage', subs: [] },
       { id: 'notes', title: 'Notifications', blurb: 'Sneak peek and quiet hours', keys: 'notification countdown pump quiet ryan', subs: [] },
-      { id: 'about', title: 'About & support', blurb: 'Bugs, console, reset', keys: 'bug report console privacy clear version', subs: [] }
+      { id: 'about', title: 'About & support', blurb: 'Bugs, console, reset', keys: 'bug report console privacy clear version share copy', subs: [['about', 'About'], ['bugs', 'Bugs']] }
     ];
   }
   function settingsHTML() {
@@ -1053,20 +1049,20 @@
     if (cat === 'notes') {
       return '<p>Learning stays off until you turn it on. Web notices only show while this page is open. Android reminders use the system alarm. Sneak peek idea: Ryan (ryno).</p><button type="button" class="switch ' + (state.settings.notifications.enabled ? 'on' : '') + '" data-act="toggle-path" data-path="notifications.enabled">' + (state.settings.notifications.enabled ? 'On' : 'Off') + '</button><button type="button" data-act="toggle-path" data-path="notifications.learning">Learning ' + (state.settings.notifications.learning ? 'on' : 'off') + '</button><label class="stack">Manual time<input data-lockrender="1" data-act="manual-time" type="time" value="' + esc(state.settings.notifications.manualTime || '') + '"></label><div class="grid-2"><label class="stack">Quiet from<input data-lockrender="1" data-act="quiet" data-which="start" type="time" value="' + esc(state.settings.quietHours.start) + '"></label><label class="stack">until<input data-lockrender="1" data-act="quiet" data-which="end" type="time" value="' + esc(state.settings.quietHours.end) + '"></label></div><button type="button" data-act="toggle-path" data-path="quietHours.enabled">Quiet hours ' + (state.settings.quietHours.enabled ? 'on' : 'off') + '</button><div class="actions"><button type="button" data-act="sneak">Preview sneak peek</button><button type="button" data-act="notify-permission">Notification permission</button></div>';
     }
-    return '<h2>About</h2><p><strong>Strength in Character</strong> ' + esc(CFG.appVersion) + '</p><p class="welcome-tag">BE YOUR OWN BIGGEST FAN</p><h3>Credits</h3><p>The workout sneak-peek notification idea is from Ryan "ryno".</p><h3>Privacy</h3><p>All workout data stays on this device. Use Data &amp; files to export XML when you want a backup. Nothing here is uploaded.</p><h3>Report a bug</h3>' + bugBlock() + '<div class="actions"><button type="button" data-act="overlay" data-overlay="console">Open console</button><button type="button" data-act="clear-data">Clear data</button></div>';
+    if (cat === 'about' && sub === 'bugs') return bugBlock();
+    return '<h2>About</h2><p><strong>Strength in Character</strong> ' + esc(CFG.appVersion) + '</p><p class="welcome-tag">BE YOUR OWN BIGGEST FAN</p><h3>Credits</h3><p>The workout sneak-peek notification idea is from Ryan "ryno".</p><h3>Privacy</h3><p>All workout data stays on this device. Use Data &amp; files to export XML when you want a backup. Nothing here is uploaded.</p><div class="actions"><button type="button" data-act="overlay" data-overlay="console">Open console</button><button type="button" data-act="clear-data">Clear data</button></div>';
   }
-  function bugFields() {
-    return '<textarea id="bug-text" data-lockrender="1" rows="4" placeholder="What went wrong?"></textarea><input id="bug-contact" data-lockrender="1" placeholder="Optional contact"><input id="bug-company" class="hp" tabindex="-1" autocomplete="off" data-lockrender="1"><label><input id="bug-diag" type="checkbox" data-act="bug-diag"' + (ui.bugPreview ? ' checked' : '') + '> Include diagnostics</label><pre class="selectable" id="bug-preview">' + (ui.bugPreview ? esc(JSON.stringify(diagnostics(), null, 2)) : '') + '</pre>';
+  function fmtReportWhen(ts) {
+    const d = new Date(ts || Date.now());
+    const p = function (n) { return String(n).padStart(2, '0'); };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
   }
   function bugBlock() {
-    if (CFG.bugReportEnabled !== true) {
-      return '<p class="bug-status" data-bug-status="disabled">Online bug reporting is coming soon. Share this report with the developer.</p>' + bugFields() + '<div class="actions"><button type="button" data-act="bug-save">Save on this device</button><button type="button" class="primary" data-act="bug-share">Share</button><button type="button" data-act="bug-copy">Copy</button></div><div id="bug-result" class="muted"></div>';
-    }
-    const status = bugStatus();
-    return '<p class="bug-status" data-bug-status="' + status + '">Bug reports: ' + (status === 'unconfigured' ? 'not configured. Submit keeps the report on this device.' : status === 'pending' ? 'endpoint saved, waiting for a readable server ack.' : 'a previous ack was received.') + '</p><p class="muted">Reports go to the developer\'s Google Sheet after that owner deploys the Apps Script receiver. Google processes request metadata. Workout logs are not attached. Diagnostics are off unless you preview and include them. No email is required. Setup is in gas/SETUP.md. This build has not verified a live endpoint.</p><label class="selectable">Receiver URL <input data-lockrender="1" data-act="bug-endpoint" value="' + esc(state.settings.bugEndpoint || '') + '" placeholder="https://script.google.com/.../exec"></label>' + bugFields() + '<button type="button" class="primary" data-act="bug-submit">Submit</button><div id="bug-result" class="muted"></div>';
-  }
-  function diagnostics() {
-    return { version: CFG.appVersion, platform: platformName(), skin: state.skinId, viewport: window.innerWidth + 'x' + window.innerHeight, saveState: runtime.dirty ? 'dirty' : 'saved', lastError: runtime.lastError || '' };
+    const queue = (state.settings.bugQueue || []).slice().reverse();
+    const rows = queue.map(function (r) {
+      return '<li class="bug-item"><strong>' + esc(fmtReportWhen(r.created)) + '</strong><p>' + esc(r.happened || '') + '</p><div class="actions"><button type="button" data-act="bug-share" data-id="' + esc(r.id) + '">Share</button><button type="button" data-act="bug-copy" data-id="' + esc(r.id) + '">Copy</button><button type="button" data-act="bug-delete" data-id="' + esc(r.id) + '">Delete</button></div></li>';
+    }).join('');
+    return '<h2>Report a bug</h2><p class="bug-note">Reports stay on this phone. Tap Share to send one by text, email or any app, or Copy to paste it anywhere.</p><label class="stack">What happened<textarea id="bug-text" data-lockrender="1" rows="2" placeholder="What happened"></textarea></label><label class="stack">Steps<textarea id="bug-steps" data-lockrender="1" rows="2" placeholder="Steps to repeat it"></textarea></label><label class="stack">Severity<select id="bug-severity" data-lockrender="1"><option value="">Optional</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label><button type="button" class="primary" data-act="bug-save">Save report</button><div class="actions"><button type="button" data-act="bug-share-all">Share all</button><button type="button" data-act="bug-copy-all">Copy all</button></div>' + (rows ? '<ul class="bug-list">' + rows + '</ul>' : '<p class="muted">No saved reports yet.</p>');
   }
   function overlayHTML() {
     if (ui.dialog) return dialogHTML(ui.dialog);
@@ -1074,7 +1070,7 @@
     if (ui.overlay === 'overlay-ask') return '<div class="overlay"><div class="sheet"><h2>Float over other apps</h2><p>Mini mode is a small Strength in Character window that stays on top of other Android apps, like a chat head. Android asks for "Display over other apps". You can turn that off later in system settings. This is not available on iOS or in a phone browser.</p><div class="row"><button type="button" class="primary" data-act="overlay-perm">Continue to Android settings</button><button type="button" data-act="close-overlay">Not now</button></div></div></div>';
     if (ui.overlay === 'settings') return '<div class="overlay"><div class="sheet">' + settingsHTML() + '</div></div>';
     if (ui.overlay === 'bug') return '<div class="overlay"><div class="sheet"><div class="spread"><h2>Bug report</h2><button type="button" data-act="close-overlay">Close</button></div>' + bugBlock() + '</div></div>';
-    if (ui.overlay === 'whats') return '<div class="overlay"><div class="sheet"><h2>What\'s new</h2><p>Strength in Character ' + esc(CFG.appVersion) + '. Star Strength Classic is the spreadsheet. The other seven looks are marked Beta look and log the same way.</p><ul><li>LOG SET records the current set and starts rest. Finish is the control that ends the session.</li><li>Duo switches partners and keeps each person\'s previous numbers.</li><li>The workout sneak-peek idea is from Ryan "ryno".</li></ul><p>Online bug reporting is coming soon. Share a report from About if you need the developer to see it.</p><button type="button" class="primary" data-act="whats-close">Continue</button></div></div>';
+    if (ui.overlay === 'whats') return '<div class="overlay"><div class="sheet"><h2>What\'s new</h2><p>Strength in Character ' + esc(CFG.appVersion) + '. Star Strength Classic is the spreadsheet. The other seven looks log the same way.</p><ul><li>LOG SET records the current set and starts rest. Finish is the control that ends the session.</li><li>Duo switches partners and keeps each person\'s previous numbers.</li><li>The workout sneak-peek idea is from Ryan "ryno".</li></ul><p>Bug reports stay on this phone. Share or copy them from About.</p><button type="button" class="primary" data-act="whats-close">Continue</button></div></div>';
     if (ui.overlay === 'rest') return '<div class="overlay"><div class="sheet"><div class="spread"><h2>Rest timers</h2><button type="button" data-act="close-overlay">Close</button></div>' + ['batman', 'robin'].filter(function (p) { return p === 'batman' || state.duoMode; }).map(function (p) {
       return '<div class="card"><strong>' + esc(state.partnerNames[p]) + '</strong><div class="timer-readout" data-rest="' + p + '">' + fmtClock(SIC.restRemaining(state, p, Date.now())) + '</div><div class="row">' + [30, 60, 90, 120, 180, 240].map(function (s) { return '<button type="button" data-act="rest-dur" data-partner="' + p + '" data-sec="' + s + '">' + s + 's</button>'; }).join('') + '</div><button type="button" data-act="rest-start" data-partner="' + p + '">Start</button> <button type="button" data-act="rest-stop" data-partner="' + p + '">Stop</button></div>';
     }).join('') + '</div></div>';
@@ -1396,9 +1392,21 @@
     return new Promise(function (resolve) { ui.dialog = { title: title, message: message, input: value != null, value: value || '', resolve: resolve }; render({ force: true }); });
   }
 
-  function rememberBug(message, contact) {
-    const built = SIC.buildBugPayload({ message: message, contact: contact, company: ($('bug-company') && $('bug-company').value) || '', includeDiagnostics: ui.bugPreview, diagnostics: diagnostics(), version: CFG.appVersion, platform: platformName(), skin: state.skinId, id: ids('rpt').replace(/^id_/, 'rpt_') });
-    if (!built.ok) { toast(built.error === 'too-large' ? 'Report is over 4 KB.' : 'Add a description first.'); return null; }
+  function saveLocalReport(fields) {
+    const built = SIC.buildBugPayload({
+      happened: fields.happened,
+      steps: fields.steps,
+      severity: fields.severity,
+      version: CFG.appVersion,
+      platform: platformName(),
+      skin: state.skinId,
+      screen: window.innerWidth + 'x' + window.innerHeight,
+      console: (ui.console || []).slice(-12),
+      actions: (runtime.actions || []).slice(-12),
+      now: Date.now(),
+      id: ids('rpt').replace(/^id_/, 'rpt_')
+    });
+    if (!built.ok) { toast(built.error === 'too-large' ? 'Report is over 4 KB.' : 'Add what happened first.'); return null; }
     const queue = state.settings.bugQueue || [];
     queue.push(built.payload);
     state.settings.bugQueue = queue.slice(-30);
@@ -1406,12 +1414,16 @@
     return built.payload;
   }
   function reportPlain(payload) {
-    const lines = ['Strength in Character bug report', 'Online bug reporting is coming soon. Share this report with the developer.', '', payload.message || ''];
-    if (payload.contact) lines.push('Contact: ' + payload.contact);
-    if (payload.diagnostics) lines.push(JSON.stringify(payload.diagnostics));
-    lines.push(payload.id || '');
+    const lines = ['Strength in Character bug report', 'Reports stay on this phone.', '', 'What happened: ' + (payload.happened || '')];
+    if (payload.steps) lines.push('Steps: ' + payload.steps);
+    if (payload.severity) lines.push('Severity: ' + payload.severity);
+    lines.push('Version: ' + (payload.version || ''), 'Skin: ' + (payload.skin || ''), 'Screen: ' + (payload.screen || ''), 'Platform: ' + (payload.platform || ''));
+    if (payload.console && payload.console.length) lines.push('Console:', payload.console.join('\n'));
+    if (payload.actions && payload.actions.length) lines.push('Last actions: ' + payload.actions.join(', '));
+    lines.push(fmtReportWhen(payload.created), payload.id || '');
     return lines.join('\n');
   }
+  function reportsText(list) { return (list || []).map(reportPlain).join('\n\n---\n\n'); }
   async function shareReport(text) {
     if (navigator.share) {
       try { await navigator.share({ title: 'Strength in Character bug report', text: text }); return 'shared'; }
@@ -1421,39 +1433,7 @@
     if (n && n.shareText) {
       try { n.shareText('Strength in Character bug report', text); return 'shared'; } catch (e) {}
     }
-    return (await copyText(text)) ? 'copied' : 'saved';
-  }
-  async function submitBug(message, contact) {
-    if (CFG.bugReportEnabled !== true) return;
-    const built = rememberBug(message, contact);
-    if (!built) return;
-    const last = Number(state.settings.bugLast || 0);
-    if (Date.now() - last < 15000) { toast('Wait a few seconds before another report.'); return; }
-    state.settings.bugLast = Date.now();
-    const endpoint = bugEndpoint();
-    if (!endpoint) {
-      const note = $('bug-result'); if (note) note.textContent = 'Not configured — saved on this device as ' + built.id + '.';
-      toast('Saved on this device. Receiver is not deployed.'); return;
-    }
-    try {
-      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(built), redirect: 'follow' });
-      const text = await res.text();
-      const ack = SIC.interpretBugResponse(text, built.id);
-      const note = $('bug-result');
-      if (!ack.confirmed) {
-        if (note) note.textContent = 'Not confirmed — saved on this device, will retry. (' + ack.reason + ')';
-        toast('Not confirmed — saved on this device.');
-      } else {
-        runtime.bugVerified = true; state.settings.bugVerified = true;
-        state.settings.bugQueue = (state.settings.bugQueue || []).filter(function (r) { return r.id !== ack.id; });
-        if (note) note.textContent = 'Submitted ' + ack.id;
-        toast('Submitted ' + ack.id);
-      }
-    } catch (e) {
-      const note = $('bug-result'); if (note) note.textContent = 'Not confirmed — saved on this device, will retry.';
-      toast('Not confirmed — saved on this device.');
-    }
-    markDirty();
+    return 'saved';
   }
 
   async function chooseFolder(kind) {
@@ -1499,6 +1479,8 @@
   function onClick(e) {
     const t = e.target.closest('[data-act]');
     if (!t) return;
+    runtime.actions.push(t.dataset.act + (t.dataset.tab ? ':' + t.dataset.tab : ''));
+    if (runtime.actions.length > 20) runtime.actions.shift();
     if (t.dataset.act !== 'field') userSound = true;
     const act = t.dataset.act;
     if (act !== 'sound-test' && act !== 'log-set' && act !== 'finish' && act !== 'field') playEvent('tap');
@@ -1622,17 +1604,37 @@
     if (act === 'builder-ex-add') { ui.builder.days[Number(t.dataset.i)].exercises.push(''); render({ force: true }); return; }
     if (act === 'builder-save') { saveBuilder(); return; }
     if (act === 'share-import') { importShare(); return; }
-    if (act === 'bug-save' || act === 'bug-share' || act === 'bug-copy') {
-      const payload = rememberBug($('bug-text') ? $('bug-text').value : '', $('bug-contact') ? $('bug-contact').value : '');
-      if (!payload) return;
-      const note = $('bug-result');
-      const text = reportPlain(payload);
-      if (act === 'bug-save') { if (note) note.textContent = 'Saved on this device. Online bug reporting is coming soon.'; toast('Saved on this device.'); return; }
-      if (act === 'bug-copy') { copyText(text).then(function (ok) { const el = $('bug-result'); if (el) el.textContent = ok ? 'Copied. Online bug reporting is coming soon. Share this report with the developer.' : 'Saved on this device. Copy was not available.'; toast(ok ? 'Copied.' : 'Saved on this device.'); }); return; }
-      shareReport(text).then(function (how) { const el = $('bug-result'); if (el) el.textContent = how === 'shared' ? 'Share sheet opened. Online bug reporting is coming soon.' : how === 'copied' ? 'Copied. Online bug reporting is coming soon. Share this report with the developer.' : how === 'cancelled' ? 'Saved on this device.' : 'Saved on this device.'; });
+    if (act === 'bug-save' || act === 'bug-share' || act === 'bug-copy' || act === 'bug-share-all' || act === 'bug-copy-all') {
+      const queue = state.settings.bugQueue || [];
+      const all = act === 'bug-share-all' || act === 'bug-copy-all';
+      let text = '';
+      if (all) {
+        if (!queue.length) { toast('No saved reports.'); return; }
+        text = reportsText(queue);
+      } else {
+        let report = queue.find(function (r) { return r.id === t.dataset.id; });
+        if (!report && act !== 'bug-save') {
+          report = saveLocalReport({ happened: $('bug-text') ? $('bug-text').value : '', steps: $('bug-steps') ? $('bug-steps').value : '', severity: $('bug-severity') ? $('bug-severity').value : '' });
+          if (!report) return;
+        }
+        if (act === 'bug-save') {
+          const saved = saveLocalReport({ happened: $('bug-text') ? $('bug-text').value : '', steps: $('bug-steps') ? $('bug-steps').value : '', severity: $('bug-severity') ? $('bug-severity').value : '' });
+          if (!saved) return;
+          toast('Saved on this device.');
+          render({ force: true });
+          return;
+        }
+        text = reportPlain(report);
+      }
+      if (act.indexOf('copy') >= 0) { copyText(text).then(function (ok) { toast(ok ? 'Copied' : 'Copy was not available.'); }); return; }
+      shareReport(text).then(function (how) { if (how === 'shared') toast('Share opened.'); else if (how !== 'cancelled') toast('Saved on this device.'); });
       return;
     }
-    if (act === 'bug-submit') { if (CFG.bugReportEnabled === true) submitBug($('bug-text') ? $('bug-text').value : '', $('bug-contact') ? $('bug-contact').value : ''); return; }
+    if (act === 'bug-delete') {
+      const id = t.dataset.id;
+      ui.dialog = { title: 'Delete this report?', message: 'This removes it from this phone.', ok: 'Delete', resolve: function (yes) { if (!yes) return; state.settings.bugQueue = (state.settings.bugQueue || []).filter(function (r) { return r.id !== id; }); markDirty(); } };
+      render({ force: true }); return;
+    }
     if (act === 'sneak') { ui.overlay = 'sneak'; render({ force: true }); return; }
     if (act === 'notify-permission') { if (window.Notification && Notification.requestPermission) Notification.requestPermission(); else toast('This browser has no notification API.'); return; }
     if (act === 'folder') { chooseFolder(t.dataset.kind); return; }
@@ -1678,13 +1680,6 @@
     if (t.dataset.act === 'sound-vol') { state.settings.sounds[t.dataset.ev].volume = Number(t.value); markDirty(); return; }
     if (t.dataset.act === 'sound-inst') { state.settings.sounds[t.dataset.ev].instrument = t.value; markDirty(); return; }
     if (t.dataset.act === 'sound-on') { state.settings.sounds[t.dataset.ev].on = t.checked; markDirty(); return; }
-    if (t.dataset.act === 'bug-diag') { ui.bugPreview = t.checked; render({ force: true }); return; }
-    if (t.dataset.act === 'bug-endpoint') {
-      const next = t.value.trim();
-      if (next !== (state.settings.bugEndpoint || '')) { state.settings.bugVerified = false; runtime.bugVerified = false; }
-      state.settings.bugEndpoint = next;
-      markDirty(); return;
-    }
     if (t.dataset.act === 'manual-time') { state.settings.notifications.manualTime = t.value; markDirty(); return; }
     if (t.dataset.act === 'quiet') { state.settings.quietHours[t.dataset.which] = t.value; markDirty(); return; }
     if (t.dataset.act === 'timer-scale') { state.settings.timer.scale = Number(t.value); markDirty(); applyChrome(); return; }
@@ -1836,7 +1831,7 @@
       if (a === 'restart') { persist('restart'); location.reload(); }
       if (a === 'clear-console') ui.console = [];
       if (a === 'confirm-finish') ui.overlay = 'finish';
-      if (a === 'open-bug') { ui.overlay = 'bug'; setTimeout(function () { const box = $('bug-text'); if (box) box.value = res.text || ''; }, 0); }
+      if (a === 'save-bug') { saveLocalReport({ happened: res.text || '' }); ui.overlay = 'settings'; ui.settingsCat = 'about'; ui.settingsSub = 'bugs'; }
       if (a === 'render') render({ force: true });
     });
     markDirty();

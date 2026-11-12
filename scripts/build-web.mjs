@@ -36,7 +36,7 @@ const zip = path.join(outDir, 'sic-web.zip');
 const namedZip = path.join(outDir, 'sic-pixel-iron-web.zip');
 if (fs.existsSync(zip)) fs.unlinkSync(zip);
 if (fs.existsSync(namedZip)) fs.unlinkSync(namedZip);
-execFileSync('zip', ['-r', zip, 'index.html', 'css', 'js', 'assets', 'gas', 'README.md', 'INSTALL.md', 'CHANGELOG.md'], { cwd: root, stdio: 'inherit' });
+execFileSync('zip', ['-r', zip, 'index.html', 'css', 'js', 'assets', 'README.md', 'INSTALL.md', 'CHANGELOG.md'], { cwd: root, stdio: 'inherit' });
 fs.copyFileSync(zip, namedZip);
 console.log(single);
 console.log(named);

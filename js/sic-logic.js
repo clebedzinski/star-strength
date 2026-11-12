@@ -1251,7 +1251,7 @@
       const res = deleteProfile(state, parsed.name, opts);
       return Object.assign({ actions: res.ok ? ['save', 'render'] : [] }, res);
     }
-    if (parsed.cmd === 'bugreport') return { ok: true, message: 'Bug report preview opened. Nothing is sent until you submit.', actions: ['open-bug'], text: parsed.text };
+    if (parsed.cmd === 'bugreport') return { ok: true, message: 'Saved on this device.', actions: ['save-bug'], text: parsed.text };
     return { ok: false, message: 'Unknown command.', actions: [] };
   }
 
@@ -1292,40 +1292,27 @@
   }
   function buildBugPayload(input) {
     input = input || {};
-    if (input.company) return { ok: false, error: 'rejected' };
-    const message = String(input.message || '').trim();
-    if (!message) return { ok: false, error: 'message' };
-    if (message.length > BUG_MAX) return { ok: false, error: 'too-large' };
-    const contact = input.contact ? String(input.contact).trim().slice(0, 120) : '';
-    let diagnostics = null;
-    if (input.includeDiagnostics) {
-      const d = input.diagnostics || {};
-      diagnostics = {
-        version: String(d.version || '').slice(0, 40),
-        platform: String(d.platform || '').slice(0, 40),
-        skin: String(d.skin || '').slice(0, 40),
-        viewport: String(d.viewport || '').slice(0, 40),
-        saveState: String(d.saveState || '').slice(0, 40),
-        lastError: String(d.lastError || '').slice(0, 300)
-      };
-    }
+    const happened = String(input.happened != null ? input.happened : (input.message || '')).trim();
+    const steps = String(input.steps || '').trim();
+    if (!happened) return { ok: false, error: 'message' };
+    if ((happened + steps).length > BUG_MAX) return { ok: false, error: 'too-large' };
+    const sev = String(input.severity || '').toLowerCase();
+    const severity = sev === 'low' || sev === 'medium' || sev === 'high' ? sev : '';
+    const clip = function (list, n) { return (list || []).map(function (x) { return String(x).slice(0, 240); }).filter(Boolean).slice(-n); };
     const id = input.id && /^rpt_[a-zA-Z0-9_-]{6,80}$/.test(input.id) ? input.id : newReportId(input.rand);
-    return { ok: true, payload: { id: id, message: message, contact: contact, version: String(input.version || '').slice(0, 40), platform: String(input.platform || '').slice(0, 40), skin: String(input.skin || '').slice(0, 40), diagnostics: diagnostics, company: '' } };
-  }
-  function interpretBugResponse(bodyText, sentId) {
-    if (bodyText == null || bodyText === '') return { confirmed: false, reason: 'empty' };
-    let json;
-    try { json = JSON.parse(bodyText); } catch (e) { return { confirmed: false, reason: 'unparseable' }; }
-    if (!json || json.ok !== true || !json.id) return { confirmed: false, reason: 'not-ack' };
-    if (sentId && String(json.id) !== String(sentId)) return { confirmed: false, reason: 'id-mismatch' };
-    return { confirmed: true, id: String(json.id), duplicate: !!json.duplicate };
-  }
-  function bugFeatureStatus(config) {
-    config = config || {};
-    if (config.enabled === false) return 'disabled';
-    if (!config.endpoint) return 'unconfigured';
-    if (!config.verified) return 'pending';
-    return 'ready';
+    return { ok: true, payload: {
+      id: id,
+      created: input.now || Date.now(),
+      happened: happened,
+      steps: steps.slice(0, 2000),
+      severity: severity,
+      version: String(input.version || '').slice(0, 40),
+      platform: String(input.platform || '').slice(0, 40),
+      skin: String(input.skin || '').slice(0, 40),
+      screen: String(input.screen || '').slice(0, 40),
+      console: clip(input.console, 12),
+      actions: clip(input.actions, 12)
+    } };
   }
 
   function parseHHMM(s) {
@@ -1540,7 +1527,7 @@
     validateRoutineObject: validateRoutineObject, exportXml: exportXml, importXml: importXml, previewImport: previewImport,
     applyImport: applyImport, validateCommunityPack: validateCommunityPack, miniHitTest: miniHitTest,
     parseCommand: parseCommand, applyCommand: applyCommand, createProfile: createProfile, deleteProfile: deleteProfile,
-    buildBugPayload: buildBugPayload, interpretBugResponse: interpretBugResponse, bugFeatureStatus: bugFeatureStatus,
+    buildBugPayload: buildBugPayload,
     newReportId: newReportId, inferSchedule: inferSchedule, inQuietHours: inQuietHours, recoverStored: recoverStored,
     planAtomicWrite: planAtomicWrite, pushSnapshot: pushSnapshot, storageCapability: storageCapability,
     shortcutsAllowed: shortcutsAllowed, isHoldRepeatAction: isHoldRepeatAction, inputMap: inputMap, promptFor: promptFor,

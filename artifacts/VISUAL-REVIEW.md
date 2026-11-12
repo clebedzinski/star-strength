@@ -38,4 +38,4 @@ Individual skin shots are `artifacts/review/390-<skin>-log.png`, plus `360-` and
 - `artifacts/sic-web.zip`
 - `artifacts/sic-debug.apk` (versionCode 2, versionName 1.0.1-sic-debug)
 
-Bug reports are still not live. The Sheet receiver was not deployed.
+Bug reports stay on the phone. Share and Copy send them. There is no server.

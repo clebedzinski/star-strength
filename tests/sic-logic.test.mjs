@@ -278,24 +278,22 @@ test('console commands match the brief, including reserved and future', () => {
   assert.ok(removed.backup.vault);
 });
 
-test('bug reports confirm only on a matching ack and stay unconfigured without an endpoint', () => {
-  assert.equal(SIC.bugFeatureStatus({ enabled: false, endpoint: 'https://script.google.com/macros/s/abc/exec', verified: true }), 'disabled');
-  assert.equal(SIC.bugFeatureStatus({ endpoint: '', verified: false }), 'unconfigured');
-  assert.equal(SIC.bugFeatureStatus({ endpoint: 'https://script.google.com/macros/s/abc/exec', verified: false }), 'pending');
-  const built = SIC.buildBugPayload({ message: 'Rest timer keeps going', version: '1.0.0-sic', platform: 'web', skin: 'starclassic', rand: () => 0.1 });
+test('bug reports are local records with context and no server ack', () => {
+  const built = SIC.buildBugPayload({
+    happened: 'Rest timer keeps going', steps: 'Log a set', severity: 'High',
+    version: '1.1.0', platform: 'web', skin: 'starclassic', screen: '390x844',
+    console: ['Saved'], actions: ['log-set'], rand: () => 0.1
+  });
   assert.equal(built.ok, true);
   assert.match(built.payload.id, /^rpt_/);
-  assert.equal(built.payload.diagnostics, null);
-  assert.equal(SIC.buildBugPayload({ message: 'x', company: 'spam' }).ok, false);
-  assert.equal(SIC.buildBugPayload({ message: 'x'.repeat(4097) }).error, 'too-large');
-  const withDiag = SIC.buildBugPayload({ message: 'x', includeDiagnostics: true, diagnostics: { saveState: 'error', lastError: 'quota' }, id: built.payload.id });
-  assert.equal(withDiag.payload.diagnostics.saveState, 'error');
-  assert.equal(JSON.stringify(withDiag.payload).includes('routines'), false);
-  assert.deepEqual(SIC.interpretBugResponse('', built.payload.id), { confirmed: false, reason: 'empty' });
-  assert.equal(SIC.interpretBugResponse('not json', built.payload.id).reason, 'unparseable');
-  assert.equal(SIC.interpretBugResponse(JSON.stringify({ ok: true }), built.payload.id).reason, 'not-ack');
-  assert.equal(SIC.interpretBugResponse(JSON.stringify({ ok: true, id: 'other' }), built.payload.id).reason, 'id-mismatch');
-  assert.equal(SIC.interpretBugResponse(JSON.stringify({ ok: true, id: built.payload.id }), built.payload.id).confirmed, true);
+  assert.equal(built.payload.happened, 'Rest timer keeps going');
+  assert.equal(built.payload.severity, 'high');
+  assert.equal(built.payload.screen, '390x844');
+  assert.deepEqual(built.payload.actions, ['log-set']);
+  assert.equal(JSON.stringify(built.payload).includes('routines'), false);
+  assert.equal(SIC.buildBugPayload({ happened: '' }).error, 'message');
+  assert.equal(SIC.buildBugPayload({ happened: 'x'.repeat(4097) }).error, 'too-large');
+  assert.equal(SIC.applyCommand({ settings: {} }, SIC.parseCommand('/bugreport=button stuck')).actions[0], 'save-bug');
 });
 
 test('community skin packs reject scripts and executable keys', () => {

@@ -1,6 +1,6 @@
 # SIC (Strength in Character)
 
-A workout logger that keeps the original Star Strength spreadsheet as the **Star Strength Classic** skin and adds seven other layouts on the same log. Data stays on the device. The only network feature is an optional bug report, and that receiver is not deployed in this repository.
+A workout logger that keeps the original Star Strength spreadsheet as the **Star Strength Classic** skin and adds seven other layouts on the same log. Data stays on the device. Bug reports stay on the phone and leave only when someone taps Share or Copy.
 
 ## Run the web app
 
@@ -40,7 +40,7 @@ Output: `artifacts/strength-in-character-1.1.0.apk`. The launcher name is Streng
 
 ## Bug reports
 
-See `gas/SETUP.md`. Until that Web App is deployed and a response `{ "ok": true, "id": "..." }` is read back, the app keeps reports on the device and does not call them submitted.
+There is no bug-report server. Settings → About & support → Bugs saves a report on the phone. Share opens the Android share sheet or the Web Share API. Copy puts the text on the clipboard.
 
 ## What stayed
 
