@@ -2211,7 +2211,9 @@ body.skin-hexhive .hh-cell { position: relative; width: 92px; height: 106px; fle
 body.skin-hexhive .hh-face {
   position: absolute; inset: 0; pointer-events: none;
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  background: #FFC857 var(--art-honey) center / cover no-repeat;
+  background:
+    radial-gradient(ellipse 78% 42% at 50% 20%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 68%),
+    linear-gradient(180deg, #ffe08a 0%, #FFC857 46%, #f0b429 100%);
 }
 body.skin-hexhive .hh-core .hh-face { background: #0B0F17; }
 body.skin-hexhive .hh-log .hh-face { background: #00C2A8 var(--art-teal) center / cover no-repeat; }
@@ -2224,7 +2226,14 @@ body.skin-hexhive .hh-hit {
   font-size: 13px; line-height: 1.05;
 }
 body.skin-hexhive .hh-hit b { font-size: 20px; line-height: 1; }
-body.skin-hexhive .hh-hit small { font-size: 11px; letter-spacing: 0.04em; }
+body.skin-hexhive .hh-mark { position: relative; display: block; width: 28px; height: 28px; }
+body.skin-hexhive .hh-mark::before,
+body.skin-hexhive .hh-mark.plus::after {
+  content: ""; position: absolute; background: #0B0F17; border-radius: 2px;
+}
+body.skin-hexhive .hh-mark::before { left: 0; right: 0; top: 50%; height: 5px; margin-top: -2px; }
+body.skin-hexhive .hh-mark.plus::after { top: 2px; bottom: 2px; left: 50%; width: 5px; margin-left: -2px; }
+body.skin-hexhive .hh-hit small { font-size: 11px; letter-spacing: 0.04em; text-align: center; }
 body.skin-hexhive .hh-cell:has(.hh-hit:active) .hh-face { filter: brightness(0.82); }
 body.skin-hexhive .hh-core-copy {
   position: absolute; left: 14px; right: 14px; top: 24px; bottom: 24px;
@@ -2233,11 +2242,23 @@ body.skin-hexhive .hh-core-copy {
 }
 body.skin-hexhive .ex-name { margin: 0; font-size: 12px; color: #F7F3E6; line-height: 1.15; }
 body.skin-hexhive .set-progress { margin: 2px 0 0; font-size: 12px; color: #FFC857; }
-body.skin-hexhive .hh-num {
-  width: 64px; min-height: 28px; height: 28px; padding: 0; margin: 0; border: 0; border-radius: 0;
-  background: transparent; color: #0B0F17; font-size: 20px; font-weight: 900; text-align: center;
+body.skin-hexhive .hh-val .hh-hit { align-items: center; text-align: center; }
+body.skin-hexhive .hh-dash {
+  display: block; width: 28px; height: 6px; margin: 8px auto 2px;
+  background: #0B0F17; border-radius: 2px; font-size: 0; line-height: 0;
 }
-body.skin-hexhive .hh-prev { font-size: 11px; color: #0B0F17; }
+body.skin-hexhive .hh-num {
+  width: 100%; min-height: 30px; height: 30px; padding: 0; margin: 0; border: 0; border-radius: 0;
+  background: transparent; color: #0B0F17; font-size: 28px; font-weight: 900; text-align: center;
+}
+body.skin-hexhive .hh-empty .hh-num {
+  position: absolute; left: 0; top: 0; width: 48px; height: 48px; min-height: 0; opacity: 0;
+}
+body.skin-hexhive .hh-empty .hh-hit:focus-within .hh-dash { display: none; }
+body.skin-hexhive .hh-empty .hh-hit:focus-within .hh-num {
+  position: static; width: 100%; height: 30px; min-height: 30px; opacity: 1;
+}
+body.skin-hexhive .hh-prev { display: block; width: 100%; font-size: 11px; color: #0B0F17; text-align: center; }
 body.skin-hexhive .log-set { color: #0B0F17; font-size: 12px; font-weight: 900; letter-spacing: 0.02em; }
 body.skin-hexhive .zone-rest { outline: none; margin-top: 4px; }
 body.skin-hexhive .zone-rest[data-resting="true"] { outline: none; }
@@ -2274,10 +2295,13 @@ body.skin-hexhive .hh-bpm button {
 body.skin-hexhive .hh-phases { display: flex; justify-content: center; gap: 6px; }
 body.skin-hexhive .hh-phases span {
   width: 64px; height: 52px; display: flex; align-items: center; justify-content: center;
-  background: #FFC857; color: #0B0F17; font-size: 11px; opacity: 0.45;
+  color: #0B0F17; font-size: 11px; font-weight: 800; opacity: 1;
+  background:
+    linear-gradient(#F7F3E6, #F7F3E6) center / 78% 68% no-repeat,
+    #FFC857;
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
 }
-body.skin-hexhive .hh-phases span.on { opacity: 1; background: #00C2A8; }
+body.skin-hexhive .hh-phases span.on { background: #00C2A8; color: #0B0F17; }
 body.skin-hexhive .hh-chips { list-style: none; margin: 6px 0 0; padding: 0; display: flex; gap: 4px; overflow-x: auto; }
 body.skin-hexhive .hh-chip {
   flex: 0 0 auto; min-height: 36px; min-width: 48px; padding: 4px 12px; border: 0; font-size: 12px;

@@ -813,12 +813,13 @@
       if (!cur || !set) return '';
       const word = field === 'weight' ? 'LBS' : 'REPS';
       const aria = (dir < 0 ? 'Decrease ' : 'Increase ') + (field === 'weight' ? 'weight' : 'reps');
-      return cell('hh-step', '<button type="button" class="hh-hit" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="' + field + '" data-dir="' + dir + '" data-pad="1" aria-label="' + aria + '"><b>' + (dir < 0 ? '−' : '+') + '</b><small>' + word + '</small></button>');
+      return cell('hh-step', '<button type="button" class="hh-hit" data-act="nudge" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="' + field + '" data-dir="' + dir + '" data-pad="1" aria-label="' + aria + '"><b class="hh-mark ' + (dir < 0 ? 'minus' : 'plus') + '" aria-hidden="true"></b><small>' + word + '</small></button>');
     }
     function valueHex(field, title, prev) {
       if (!cur || !set) return '';
       const raw = set[field] || '';
-      return cell('hh-val', '<label class="hh-hit"><input class="hh-num" data-lockrender="1" data-act="field" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="' + field + '" type="number" inputmode="decimal" value="' + esc(raw) + '" aria-label="' + (field === 'weight' ? 'Pounds' : 'Reps') + '"><small>' + title + '</small><small class="hh-prev">PREV ' + esc(prev) + '</small></label>');
+      const dash = raw ? '' : '<b class="hh-dash" aria-hidden="true">—</b>';
+      return cell('hh-val' + (raw ? '' : ' hh-empty'), '<label class="hh-hit">' + dash + '<input class="hh-num" data-lockrender="1" data-act="field" data-ex="' + esc(cur.id) + '" data-set="' + esc(set.id) + '" data-field="' + field + '" type="number" inputmode="decimal" value="' + esc(raw) + '" aria-label="' + (field === 'weight' ? 'Pounds' : 'Reps') + '"><small>' + title + '</small><small class="hh-prev">prev ' + esc(prev) + '</small></label>');
     }
     const people = state.duoMode ? ['batman', 'robin'] : [partner()];
     const badges = people.map(function (p) {
