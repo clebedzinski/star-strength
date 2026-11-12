@@ -1,4 +1,6 @@
-# SIC test report
+# Strength in Character test report
+
+Historical snapshot from 2026-11-07 (`1.0.0-sic`). The APK, HTML, and zip names below were removed when the release candidate was packaged. The launcher name on current builds is Strength in Character.
 
 Date: 2026-11-07. App version `1.0.0-sic`. This environment has no physical phone, gamepad, or owner Google account.
 

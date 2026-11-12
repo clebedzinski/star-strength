@@ -445,9 +445,6 @@
     if (!ex) return '';
     return '<div class="manage-row"><button type="button" data-act="add-set" data-ex="' + esc(ex.id) + '">Add set</button><button type="button" data-act="manage" data-ex="' + esc(ex.id) + '">Sets</button><button type="button" data-act="remove-ask" data-ex="' + esc(ex.id) + '">Remove</button></div>';
   }
-  function skinBar() {
-    return '<div class="skin-bar">' + daySelect() + '<button type="button" data-act="overlay" data-overlay="settings" aria-label="Settings">' + ico('gear') + '</button><button type="button" data-act="mini-open" aria-label="Mini">' + ico('mini') + '</button>' + finishBtn() + '</div>';
-  }
   function clock() { const d = new Date(); return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
   function partnerBar() {
     const keys = state.duoMode ? ['batman', 'robin'] : ['batman'];
@@ -991,9 +988,7 @@
   function settingsBody(cat, sub) {
     if (cat === 'appearance' && sub === 'skin') {
       const skins = SIC.builtinSkins().concat(state.communitySkins || []).map(function (s) {
-        const finished = s.slug === 'starclassic' || s.slug === 'pixelforecast' || s.slug === 'irondial' || s.slug === 'chalkboard' || s.slug === 'scoreboard' || s.slug === 'transitline' || s.slug === 'vinyldeck' || s.slug === 'hexhive';
-        const look = finished ? '' : '<span class="muted">Beta look</span>';
-        return '<button type="button" class="' + (state.skinId === s.slug ? 'on' : '') + '" data-act="skin" data-skin="' + esc(s.slug) + '"><strong>' + esc(s.name) + '</strong>' + look + '</button>';
+        return '<button type="button" class="' + (state.skinId === s.slug ? 'on' : '') + '" data-act="skin" data-skin="' + esc(s.slug) + '"><strong>' + esc(s.name) + '</strong></button>';
       }).join('');
       return '<p>Pick the layout. Color variants for a skin are on Customize, and only for the skin that is selected.</p><div class="skin-pick">' + skins + '</div><label class="stack">Install a community skin file<input type="file" id="skin-file" accept="application/json" data-lockrender="1"></label>';
     }
@@ -1183,8 +1178,6 @@
     if (name === 'builder' && !ui.builder) ui.builder = { name: '', days: [{ name: 'Push', exercises: ['Barbell Bench Press'] }] };
     render({ force: true });
   }
-  function closeOverlay() { ui.overlay = null; ui.dialog = null; render({ force: true }); }
-
   function logSet() {
     const res = SIC.logCurrentSet(state, runtime, Date.now());
     if (!res.ok) { if (res.reason === 'lockout') return; toast(res.reason === 'no-set' ? 'No open set.' : 'Could not log that set.'); return; }
@@ -1386,10 +1379,6 @@
     try { if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(text); return true; } } catch (e) {}
     return false;
   }
-  function ask(title, message, value) {
-    return new Promise(function (resolve) { ui.dialog = { title: title, message: message, input: value != null, value: value || '', resolve: resolve }; render({ force: true }); });
-  }
-
   function saveLocalReport(fields) {
     const built = SIC.buildBugPayload({
       happened: fields.happened,
@@ -1494,7 +1483,7 @@
       const ex = t.dataset.ex, setId = t.dataset.set;
       state.focus = { exerciseId: ex, setId: setId };
       const cur = SIC.findCurrent(state);
-      if (cur && cur.set && SIC.setDone(cur.set, partner())) { SIC.setDoneFlag && null; cur.set[partner() === 'robin' ? 'p2Done' : 'done'] = false; if (state.rest[partner()]) state.rest[partner()].endAt = 0; markDirty(); render({ force: true }); return; }
+      if (cur && cur.set && SIC.setDone(cur.set, partner())) { cur.set[partner() === 'robin' ? 'p2Done' : 'done'] = false; if (state.rest[partner()]) state.rest[partner()].endAt = 0; markDirty(); render({ force: true }); return; }
       logSet(); return;
     }
     if (act === 'focus-set' || act === 'focus-ex') {
@@ -1739,7 +1728,6 @@
     if (!valid.ok) { toast('Invalid code: ' + valid.errors.join(', ')); return; }
     const id = ids('custom');
     const routine = valid.routine; routine.id = id;
-    SIC.ensureExerciseSession && null;
     state.routines[id] = routine;
     const ensure = SIC.createIds(3);
     Object.keys(routine.days).forEach(function (day) { routine.days[day].forEach(function (ex) { if (!ex.id) ex.id = ensure('ex'); (ex.sets || []).forEach(function (s) { if (!s.id) s.id = ensure('set'); }); }); });
@@ -1799,7 +1787,7 @@
   function clearData() {
     const dump = {};
     for (let i = 0; i < storage.length; i++) { const k = storage.key(i); if (SIC.isSicKey(k)) dump[k] = storage.getItem(k); }
-    download('sic-backup-' + Date.now() + '.json', JSON.stringify(dump, null, 2), 'application/json');
+    download('strength-in-character-backup-' + Date.now() + '.json', JSON.stringify(dump, null, 2), 'application/json');
     SIC.keysToClear(Object.keys(dump)).forEach(function (k) { storage.removeItem(k); });
     toast('Workout data cleared.');
     setTimeout(function () { location.reload(); }, 400);
@@ -1820,7 +1808,7 @@
     const res = SIC.applyCommand(state, parsed, { id: ids, now: Date.now(), confirmed: false });
     if (res.message) ui.console.push(res.message);
     if (parsed.cmd === 'deleteuser' && res.reason === 'confirm') {
-      ui.dialog = { title: 'Delete profile?', message: res.message + ' A backup is kept in the result.', ok: 'Delete', resolve: function (yes) { if (!yes) return; const done = SIC.applyCommand(state, parsed, { confirmed: true }); ui.console.push(done.message || ''); if (done.backup) download('sic-profile-backup.json', JSON.stringify(done.backup), 'application/json'); markDirty(); } };
+      ui.dialog = { title: 'Delete profile?', message: res.message + ' A backup is kept in the result.', ok: 'Delete', resolve: function (yes) { if (!yes) return; const done = SIC.applyCommand(state, parsed, { confirmed: true }); ui.console.push(done.message || ''); if (done.backup) download('strength-in-character-profile-backup.json', JSON.stringify(done.backup), 'application/json'); markDirty(); } };
       return;
     }
     (res.actions || []).forEach(function (a) {

@@ -1,8 +1,8 @@
 {
-  "name": "sic",
+  "name": "strength-in-character",
   "private": true,
   "scripts": {
-    "test": "node --test tests/sic-logic.test.mjs",
+    "test": "node --test tests/*.test.mjs",
     "bundle": "node scripts/build-web.mjs"
   }
 }
