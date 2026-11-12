@@ -251,7 +251,8 @@
       pixelforecast: { bg: 'pixelforecast/background.webp', frame: 'pixelforecast/window-frame.webp', sky: 'pixelforecast/sky-tile.webp', mini: 'pixelforecast/mini-window.webp' },
       irondial: { bg: 'irondial/background.webp', ring: 'irondial/dial-ring.webp', bolt: 'irondial/bolt.webp', mini: 'irondial/mini-puck.webp' },
       chalkboard: { bg: 'chalkboard/background.webp', note: 'chalkboard/sticky-note.webp', dust: 'chalkboard/chalk-smudge.webp', mini: 'chalkboard/mini-slate.webp' },
-      scoreboard: { bg: 'scoreboard/background.webp', bezel: 'scoreboard/cabinet-bezel.webp', mini: 'scoreboard/mini-led-strip.webp' }
+      scoreboard: { bg: 'scoreboard/background.webp', bezel: 'scoreboard/cabinet-bezel.webp', mini: 'scoreboard/mini-led-strip.webp' },
+      transitline: { bg: 'transitline/background.webp', mini: 'transitline/mini-pill.webp' }
     };
     const pack = packs[state.skinId] || {};
     ['bg', 'frame', 'sky', 'ring', 'bolt', 'mini', 'note', 'dust', 'bezel'].forEach(function (key) {
@@ -275,7 +276,9 @@
             hintW: s[SIC.hintField(p, 'weight')] || '',
             hintR: s[SIC.hintField(p, 'reps')] || '',
             prev: prev ? prev.weight + '×' + prev.reps : '—',
-            done: SIC.setDone(s, p)
+            done: SIC.setDone(s, p),
+            batmanDone: !!s.done,
+            robinDone: !!s.p2Done
           };
         })
       };
@@ -665,10 +668,44 @@
       tempoBlock() +
       '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button><button type="button" data-act="tab" data-tab="history" data-pad="1">History</button><button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button><button type="button" data-act="mini-open" data-pad="1">Mini</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button><button type="button" data-act="finish" data-pad="1">Finish</button></nav></div>';
   }
+  function transitLine(who) {
+    const active = partner() === who;
+    const stops = viewCache.exercises.map(function (ex) {
+      const flag = who === 'robin' ? 'robinDone' : 'batmanDone';
+      const filled = ex.sets.length && ex.sets.every(function (s) { return s[flag]; });
+      const here = !!(ex.current && active);
+      return '<li class="stop' + (filled ? ' done' : '') + (here ? ' on' : '') + '"><button type="button" data-act="focus-ex" data-ex="' + esc(ex.id) + '"><i></i><span>' + esc(ex.name) + '</span></button></li>';
+    }).join('');
+    return '<div class="line ' + who + (active ? ' on' : '') + '"><ol class="route">' + stops + '</ol></div>';
+  }
+  function transitCompose() {
+    const f = curFocus();
+    const cur = f.cur, set = f.set;
+    const off = state.settings.restEnabled === false;
+    const resting = viewCache.rest[viewCache.partner] > 0 && !off;
+    const status = off ? 'Rest off' : (resting ? 'Resting' : 'Rest ready');
+    const who = ['batman', 'robin'].filter(function (p) { return p === 'batman' || state.duoMode; }).map(function (p) {
+      const on = partner() === p;
+      return '<button type="button" class="who-btn ' + p + (on ? ' on' : '') + '" data-act="partner" data-partner="' + p + '" data-pad="1" aria-current="' + (on ? 'true' : 'false') + '">' + esc(state.partnerNames[p] || p) + '</button>';
+    }).join('');
+    const lines = (state.duoMode ? ['batman', 'robin'] : [partner()]).map(transitLine).join('');
+    const sign = cur && set
+      ? '<section class="sign"><p class="next-kicker">CURRENT STATION</p><h2 class="ex-name">' + esc(cur.name) + '</h2><p class="set-progress">Set ' + (set.index + 1) + ' of ' + cur.sets.length + '</p><div class="sign-grid"><div class="prev-col"><span>PREV</span><b>' + esc(set.prev) + '</b></div><label>Lbs' + numInput(cur.id, set.id, 'weight', set.weight, '') + '</label><label>Reps' + numInput(cur.id, set.id, 'reps', set.reps, '') + '</label></div><button type="button" class="log-set" data-act="log-set" data-pad="1" data-focus="1">LOG SET</button><section class="zone zone-rest" data-resting="' + (resting ? 'true' : 'false') + '" data-rest-enabled="' + (off ? 'false' : 'true') + '"><p class="depart-line">Next set departs in <span class="rest-count timer-readout" data-rest="' + viewCache.partner + '">' + fmtClock(viewCache.rest[viewCache.partner]) + '</span></p><div class="rest-actions"><p class="rest-status">' + status + '</p><button type="button" data-act="rest-nudge" data-sec="-15" data-pad="1">−15</button><button type="button" data-act="rest-nudge" data-sec="15" data-pad="1">+15</button><button type="button" data-act="rest-stop" data-pad="1">Skip</button><button type="button" data-act="rest-toggle" data-pad="1" aria-label="' + (off ? 'Turn rest on' : 'Turn rest off') + '">' + (off ? 'Rest on' : 'Rest off') + '</button></div></section></section>'
+      : '<p>No service on this day.</p>';
+    const main = ui.tab === 'log' ? '<div class="map">' + lines + '</div>' + sign : '<div class="zone-panel">' + backLog() + panel() + '</div>';
+    const signals = '<section class="zone zone-tempo" data-tempo-live="' + (state.settings.tempo.running ? 'on' : 'off') + '"><div class="signals" aria-hidden="true"><i class="sig red" data-sig="LOWER"></i><i class="sig amber" data-sig="BOTTOM TOP"></i><i class="sig green" data-sig="LIFT"></i></div><p class="tempo-read">Phase <span class="tempo-lamp" data-metro>' + esc(runtime.phase) + '</span></p><button type="button" data-act="tempo-toggle" data-pad="1">' + (state.settings.tempo.running ? 'Tempo off' : 'Tempo on') + '</button></section>';
+    return '<div class="zones transit-layout">' + padGlyphs() + welcomeHTML() +
+      '<header class="zone zone-head"><div class="ss-titles"><h1>Strength in Character</h1><p>BE YOUR OWN BIGGEST FAN</p></div></header>' +
+      '<div class="zone zone-partners" role="group" aria-label="Active partner">' + who + '</div>' +
+      '<section class="zone zone-now">' + main + '</section>' +
+      signals +
+      '<nav class="zone zone-nav" aria-label="Main"><button type="button" data-act="tab" data-tab="log" data-pad="1" aria-current="' + (ui.tab === 'log' ? 'true' : 'false') + '">Log</button><button type="button" data-act="tab" data-tab="routines" data-pad="1">Routines</button><button type="button" data-act="tab" data-tab="history" data-pad="1">History</button><button type="button" data-act="tab" data-tab="analytics" data-pad="1">Stats</button><button type="button" data-act="mini-open" data-pad="1">Mini</button><button type="button" data-act="overlay" data-overlay="settings" data-pad="1">Settings</button><button type="button" data-act="finish" data-pad="1">Finish</button></nav></div>';
+  }
   function sharedShell() {
     viewCache = view();
     if (state.skinId === 'chalkboard') return chalkCompose();
     if (state.skinId === 'scoreboard') return scoreCompose();
+    if (state.skinId === 'transitline') return transitCompose();
     const f = curFocus();
     const cur = f.cur, set = f.set;
     const id = cur ? esc(cur.id) : '';
@@ -740,7 +777,10 @@
       const digits = set && set.weight ? esc(set.weight) : (set && set.prev && set.prev !== '—' ? esc(String(set.prev).split('×')[0]) : '0.0');
       return '<div class="mini-body"><div class="mini-led" data-drag="1">' + shut + '<em>' + digits + '</em>' + rest + log + '</div>' + more + fields + '</div>';
     }
-    if (shape === 'capsule') return '<div class="mini-body"><div class="mini-pill">' + chrome + '<strong>' + name + '</strong><p>' + prev + '</p>' + log + more + fields + '</div></div>';
+    if (shape === 'capsule') {
+      const shown = set && set.weight ? esc(set.weight) : '—';
+      return '<div class="mini-body"><div class="mini-pill" data-drag="1">' + shut + '<b class="mini-line ' + partner() + '"></b><strong>' + name + '</strong><em>' + shown + '</em>' + rest + log + '</div>' + more + fields + '</div>';
+    }
     if (shape === 'cassette') return '<div class="mini-body">' + shut + '<div class="mini-disc" data-drag="1"><span>' + name + '</span>' + log + '</div><p>' + prev + ' ' + rest + '</p>' + who + more + fields + '</div>';
     if (shape === 'flower') return '<div class="mini-body">' + shut + '<div class="mini-hexes"><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="-1" aria-label="Decrease weight">−</button><div class="mini-core"><b>' + name + '</b><small>' + prev + '</small></div><button type="button" data-act="nudge" data-ex="' + id + '" data-set="' + sid + '" data-field="weight" data-dir="1" aria-label="Increase weight">+</button>' + log + '</div>' + who + rest + more + fields + '</div>';
     return '<div class="mini-body"><div class="mini-card">' + chrome + '<strong>' + name + '</strong><p>prev ' + prev + '</p>' + log + more + fields + '</div></div>';
@@ -792,7 +832,7 @@
   function settingsBody(cat, sub) {
     if (cat === 'appearance' && sub === 'skin') {
       const skins = SIC.builtinSkins().concat(state.communitySkins || []).map(function (s) {
-        const finished = s.slug === 'starclassic' || s.slug === 'pixelforecast' || s.slug === 'irondial' || s.slug === 'chalkboard' || s.slug === 'scoreboard';
+        const finished = s.slug === 'starclassic' || s.slug === 'pixelforecast' || s.slug === 'irondial' || s.slug === 'chalkboard' || s.slug === 'scoreboard' || s.slug === 'transitline';
         const look = finished ? '' : '<span class="muted">Beta look</span>';
         return '<button type="button" class="' + (state.skinId === s.slug ? 'on' : '') + '" data-act="skin" data-skin="' + esc(s.slug) + '"><strong>' + esc(s.name) + '</strong>' + look + '</button>';
       }).join('');
@@ -1119,6 +1159,9 @@
   function paintMetro() {
     document.querySelectorAll('[data-metro]').forEach(function (el) { el.textContent = runtime.phase; });
     document.querySelectorAll('[data-phase]').forEach(function (el) { el.classList.toggle('on', el.getAttribute('data-phase') === runtime.phase); });
+    document.querySelectorAll('[data-sig]').forEach(function (el) {
+      el.classList.toggle('on', el.getAttribute('data-sig').split(' ').indexOf(runtime.phase) >= 0);
+    });
   }
   function haptic(ms) { if (!state.settings.haptics || !navigator.vibrate) return; try { navigator.vibrate(ms || 15); } catch (e) {} }
   function paintRestArt(now) {
